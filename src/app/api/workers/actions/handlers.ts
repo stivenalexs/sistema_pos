@@ -1,5 +1,6 @@
 import "server-only";
 
+import { issueCreditNote, issueInvoice } from "@/modules/invoicing";
 import { processPaymentEvent } from "@/modules/payments";
 import { PermanentActionError, type ActionHandlers } from "@/shared/actions/server/worker";
 
@@ -17,5 +18,23 @@ export const actionHandlers: ActionHandlers = {
       throw new PermanentActionError("invalid_payload");
     }
     return { outcome: await processPaymentEvent(payload.event_id) };
+  },
+
+  // Electronic invoice of a paid order through Factus (D-044).
+  issue_invoice: async (action) => {
+    const payload = action.payload as { order_id?: unknown } | null;
+    if (!payload || typeof payload.order_id !== "string") {
+      throw new PermanentActionError("invalid_payload");
+    }
+    return issueInvoice(payload.order_id);
+  },
+
+  // Credit note for a refunded order (D-044).
+  issue_credit_note: async (action) => {
+    const payload = action.payload as { credit_note_id?: unknown } | null;
+    if (!payload || typeof payload.credit_note_id !== "string") {
+      throw new PermanentActionError("invalid_payload");
+    }
+    return issueCreditNote(payload.credit_note_id);
   },
 };
