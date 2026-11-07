@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { signOutAction } from "@/modules/customers";
 import { createSupabaseBrowserClient } from "@/shared/supabase/browser";
 import { FormSubmitButton } from "@/shared/ui/form-submit-button";
 
@@ -11,7 +10,9 @@ import { FormSubmitButton } from "@/shared/ui/form-submit-button";
 // browser: reading cookies on the server inside the root layout breaks pages
 // whose Server Action returns an error (Next.js 16.4.5 invariant, D-035).
 // This is display only; every permission check happens on the server.
-export function SessionNav() {
+// The sign-out Server Action comes from the layout: a Client Component must
+// not import the customers module index, which also exports server-only code.
+export function SessionNav({ signOutAction }: { signOutAction: () => Promise<void> }) {
   const [email, setEmail] = useState<string | null | undefined>(undefined);
 
   useEffect(() => {

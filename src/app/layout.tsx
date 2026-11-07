@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
 
 import { PermanentNotice } from "@/modules/compliance";
+import { signOutAction } from "@/modules/customers";
 
 import { SessionNav } from "./session-nav";
 import "./globals.css";
@@ -33,7 +34,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <Link href="/" className="font-semibold">
             Licorera
           </Link>
-          <SessionNav />
+          <SessionNav signOutAction={signOutAction} />
         </header>
         <main className="mx-auto w-full max-w-xl flex-1 px-4 py-8">{children}</main>
         <PermanentNotice />

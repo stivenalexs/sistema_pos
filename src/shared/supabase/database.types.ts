@@ -146,6 +146,14 @@ isOneToOne: false
                            },
 "fail_action":
 { Args: { "p_action_id": string,"p_error": string,"p_permanent"?: boolean }; Returns: Database["public"]['Enums']["action_status"]
+                           },
+"get_catalog":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "brand": string,"description": string,"min_quantity": number,"name": string,"origin": Database["public"]['Enums']["product_origin"],"price_cop": number,"price_list_id": string,"product_id": string,"sale_unit": string,"sku": string,"units_per_box": number,"volume_ml": number
+            }[]
+                           },
+"quote_items":
+{ Args: { "p_items": Json }; Returns: Json
                            }
           }
           Enums: {
