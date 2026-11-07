@@ -52,6 +52,8 @@ export type OrderDetail = {
   paymentDeadline: string | null;
   cancelAfter: string | null;
   createdAt: string;
+  /** Payment received but it cannot be fulfilled: the store refunds it. */
+  needsRefund: boolean;
   items: {
     productName: string;
     sku: string;
@@ -67,7 +69,7 @@ export async function getOrder(orderId: string): Promise<OrderDetail | null> {
   const { data } = await supabase
     .from("orders")
     .select(
-      "id, status, fulfillment, sale_unit, subtotal_cop, delivery_fee_cop, total_cop, payment_deadline, cancel_after, created_at, order_items (product_name, sku, quantity, unit_price_cop, line_total_cop)",
+      "id, status, fulfillment, sale_unit, subtotal_cop, delivery_fee_cop, total_cop, payment_deadline, cancel_after, created_at, needs_refund, order_items (product_name, sku, quantity, unit_price_cop, line_total_cop)",
     )
     .eq("id", orderId)
     .maybeSingle();
@@ -84,6 +86,7 @@ export async function getOrder(orderId: string): Promise<OrderDetail | null> {
     paymentDeadline: data.payment_deadline,
     cancelAfter: data.cancel_after,
     createdAt: data.created_at,
+    needsRefund: data.needs_refund,
     items: data.order_items
       .map((item) => ({
         productName: item.product_name,

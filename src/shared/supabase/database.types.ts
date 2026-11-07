@@ -205,14 +205,14 @@ isOneToOne: false
                   ]
                 },"orders": {
                   Row: {
-                    "cancel_after": string | null,"cancel_reason": string | null,"cancelled_at": string | null,"channel": Database["public"]['Enums']["order_channel"],"created_at": string,"customer_id": string | null,"delivery_fee_cop": number,"fulfillment": Database["public"]['Enums']["fulfillment_method"],"id": string,"idempotency_key": string,"paid_at": string | null,"payment_deadline": string | null,"sale_unit": string,"status": Database["public"]['Enums']["order_status"],"subtotal_cop": number,"total_base_units": number,"total_boxes": number,"total_cop": number,"updated_at": string
+                    "cancel_after": string | null,"cancel_reason": string | null,"cancelled_at": string | null,"channel": Database["public"]['Enums']["order_channel"],"created_at": string,"customer_id": string | null,"delivery_fee_cop": number,"fulfillment": Database["public"]['Enums']["fulfillment_method"],"id": string,"idempotency_key": string,"needs_refund": boolean,"paid_at": string | null,"payment_deadline": string | null,"refund_reason": string | null,"sale_unit": string,"status": Database["public"]['Enums']["order_status"],"subtotal_cop": number,"total_base_units": number,"total_boxes": number,"total_cop": number,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "cancel_after"?: string | null,"cancel_reason"?: string | null,"cancelled_at"?: string | null,"channel": Database["public"]['Enums']["order_channel"],"created_at"?: string,"customer_id"?: string | null,"delivery_fee_cop"?: number,"fulfillment": Database["public"]['Enums']["fulfillment_method"],"id"?: string,"idempotency_key": string,"paid_at"?: string | null,"payment_deadline"?: string | null,"sale_unit": string,"status"?: Database["public"]['Enums']["order_status"],"subtotal_cop": number,"total_base_units": number,"total_boxes"?: number,"total_cop": number,"updated_at"?: string
+                    "cancel_after"?: string | null,"cancel_reason"?: string | null,"cancelled_at"?: string | null,"channel": Database["public"]['Enums']["order_channel"],"created_at"?: string,"customer_id"?: string | null,"delivery_fee_cop"?: number,"fulfillment": Database["public"]['Enums']["fulfillment_method"],"id"?: string,"idempotency_key": string,"needs_refund"?: boolean,"paid_at"?: string | null,"payment_deadline"?: string | null,"refund_reason"?: string | null,"sale_unit": string,"status"?: Database["public"]['Enums']["order_status"],"subtotal_cop": number,"total_base_units": number,"total_boxes"?: number,"total_cop": number,"updated_at"?: string
                   }
                   Update: {
-                    "cancel_after"?: string | null,"cancel_reason"?: string | null,"cancelled_at"?: string | null,"channel"?: Database["public"]['Enums']["order_channel"],"created_at"?: string,"customer_id"?: string | null,"delivery_fee_cop"?: number,"fulfillment"?: Database["public"]['Enums']["fulfillment_method"],"id"?: string,"idempotency_key"?: string,"paid_at"?: string | null,"payment_deadline"?: string | null,"sale_unit"?: string,"status"?: Database["public"]['Enums']["order_status"],"subtotal_cop"?: number,"total_base_units"?: number,"total_boxes"?: number,"total_cop"?: number,"updated_at"?: string
+                    "cancel_after"?: string | null,"cancel_reason"?: string | null,"cancelled_at"?: string | null,"channel"?: Database["public"]['Enums']["order_channel"],"created_at"?: string,"customer_id"?: string | null,"delivery_fee_cop"?: number,"fulfillment"?: Database["public"]['Enums']["fulfillment_method"],"id"?: string,"idempotency_key"?: string,"needs_refund"?: boolean,"paid_at"?: string | null,"payment_deadline"?: string | null,"refund_reason"?: string | null,"sale_unit"?: string,"status"?: Database["public"]['Enums']["order_status"],"subtotal_cop"?: number,"total_base_units"?: number,"total_boxes"?: number,"total_cop"?: number,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -222,6 +222,40 @@ isOneToOne: false
       referencedRelation: "customers"
       referencedColumns: ["id"]
     }
+                  ]
+                },"payment_attempts": {
+                  Row: {
+                    "amount_in_cents": number,"attempt_number": number,"created_at": string,"currency": string,"expires_at": string,"finalized_at": string | null,"id": string,"idempotency_key": string,"order_id": string,"payment_method_type": string | null,"reference": string,"status": Database["public"]['Enums']["payment_attempt_status"],"status_message": string | null,"transaction_id_hint": string | null,"updated_at": string,"wompi_transaction_id": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount_in_cents": number,"attempt_number": number,"created_at"?: string,"currency"?: string,"expires_at": string,"finalized_at"?: string | null,"id"?: string,"idempotency_key": string,"order_id": string,"payment_method_type"?: string | null,"reference": string,"status"?: Database["public"]['Enums']["payment_attempt_status"],"status_message"?: string | null,"transaction_id_hint"?: string | null,"updated_at"?: string,"wompi_transaction_id"?: string | null
+                  }
+                  Update: {
+                    "amount_in_cents"?: number,"attempt_number"?: number,"created_at"?: string,"currency"?: string,"expires_at"?: string,"finalized_at"?: string | null,"id"?: string,"idempotency_key"?: string,"order_id"?: string,"payment_method_type"?: string | null,"reference"?: string,"status"?: Database["public"]['Enums']["payment_attempt_status"],"status_message"?: string | null,"transaction_id_hint"?: string | null,"updated_at"?: string,"wompi_transaction_id"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "payment_attempts_order_id_fkey"
+      columns: ["order_id"]
+isOneToOne: false
+      referencedRelation: "orders"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"payment_events": {
+                  Row: {
+                    "amount_in_cents": number | null,"checksum": string,"currency": string | null,"event_type": string,"id": string,"outcome": string | null,"payload": NonNullable<Json>,"processed_at": string | null,"received_at": string,"reference": string | null,"source": string,"status": string | null,"transaction_id": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount_in_cents"?: number | null,"checksum": string,"currency"?: string | null,"event_type": string,"id"?: string,"outcome"?: string | null,"payload": NonNullable<Json>,"processed_at"?: string | null,"received_at"?: string,"reference"?: string | null,"source": string,"status"?: string | null,"transaction_id"?: string | null
+                  }
+                  Update: {
+                    "amount_in_cents"?: number | null,"checksum"?: string,"currency"?: string | null,"event_type"?: string,"id"?: string,"outcome"?: string | null,"payload"?: NonNullable<Json>,"processed_at"?: string | null,"received_at"?: string,"reference"?: string | null,"source"?: string,"status"?: string | null,"transaction_id"?: string | null
+                  }
+                  Relationships: [
+                    
                   ]
                 },"price_lists": {
                   Row: {
@@ -323,7 +357,10 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "cancel_abandoned_orders":
+            "apply_payment_event":
+{ Args: { "p_event_id": string }; Returns: string
+                           },
+"cancel_abandoned_orders":
 { Args: Record<PropertyKey, never>; Returns: number
                            },
 "cancel_order":
@@ -366,6 +403,11 @@ isOneToOne: false
               "name": string,"on_hand": number,"product_id": string,"reserved": number,"sku": string,"threshold": number
             }[]
                            },
+"payments_to_reconcile":
+{ Args: { "p_limit"?: number,"p_min_age_minutes"?: number }; Returns: {
+              "attempt_id": string,"transaction_id": string
+            }[]
+                           },
 "place_order":
 { Args: { "p_fulfillment"?: Database["public"]['Enums']["fulfillment_method"],"p_idempotency_key": string }; Returns: Json
                            },
@@ -379,6 +421,9 @@ isOneToOne: false
                            },
 "record_count":
 { Args: { "p_counted_units": number,"p_idempotency_key": string,"p_product_id": string,"p_reason": string }; Returns: string
+                           },
+"record_payment_redirect":
+{ Args: { "p_order_id": string,"p_transaction_id": string }; Returns: undefined
                            },
 "record_stock_entry":
 { Args: { "p_idempotency_key": string,"p_product_id": string,"p_reason"?: string,"p_reference": string,"p_units": number }; Returns: string
@@ -397,10 +442,16 @@ isOneToOne: false
                            },
 "set_cart_item":
 { Args: { "p_product_id": string,"p_quantity": number }; Returns: undefined
+                           },
+"start_payment":
+{ Args: { "p_idempotency_key": string,"p_order_id": string }; Returns: Json
+                           },
+"store_payment_event":
+{ Args: { "p_checksum": string,"p_payload": Json,"p_source": string }; Returns: Json
                            }
           }
           Enums: {
-            "action_status": "queued"|"processing"|"succeeded"|"failed","customer_type": "retail"|"wholesale","document_type": "cc"|"ce"|"nit"|"passport","fulfillment_method": "pickup"|"delivery","inventory_movement_type": "purchase_in"|"web_sale"|"pos_sale"|"adjustment"|"waste"|"return_in"|"reservation"|"reservation_release","legal_document": "age_gate"|"terms"|"privacy","order_channel": "web"|"pos","order_status": "draft"|"awaiting_payment"|"paid"|"preparing"|"out_for_delivery"|"delivered"|"cancelled"|"refunded","product_origin": "national"|"imported","reservation_status": "active"|"consumed"|"released"|"expired","staff_role": "admin"|"cashier"|"courier"|"warehouse","wholesale_status": "pending"|"approved"|"rejected"
+            "action_status": "queued"|"processing"|"succeeded"|"failed","customer_type": "retail"|"wholesale","document_type": "cc"|"ce"|"nit"|"passport","fulfillment_method": "pickup"|"delivery","inventory_movement_type": "purchase_in"|"web_sale"|"pos_sale"|"adjustment"|"waste"|"return_in"|"reservation"|"reservation_release","legal_document": "age_gate"|"terms"|"privacy","order_channel": "web"|"pos","order_status": "draft"|"awaiting_payment"|"paid"|"preparing"|"out_for_delivery"|"delivered"|"cancelled"|"refunded","payment_attempt_status": "pending"|"approved"|"declined"|"voided"|"error"|"abandoned","product_origin": "national"|"imported","reservation_status": "active"|"consumed"|"released"|"expired","staff_role": "admin"|"cashier"|"courier"|"warehouse","wholesale_status": "pending"|"approved"|"rejected"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -520,7 +571,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "action_status": ["queued", "processing", "succeeded", "failed"],"customer_type": ["retail", "wholesale"],"document_type": ["cc", "ce", "nit", "passport"],"fulfillment_method": ["pickup", "delivery"],"inventory_movement_type": ["purchase_in", "web_sale", "pos_sale", "adjustment", "waste", "return_in", "reservation", "reservation_release"],"legal_document": ["age_gate", "terms", "privacy"],"order_channel": ["web", "pos"],"order_status": ["draft", "awaiting_payment", "paid", "preparing", "out_for_delivery", "delivered", "cancelled", "refunded"],"product_origin": ["national", "imported"],"reservation_status": ["active", "consumed", "released", "expired"],"staff_role": ["admin", "cashier", "courier", "warehouse"],"wholesale_status": ["pending", "approved", "rejected"]
+            "action_status": ["queued", "processing", "succeeded", "failed"],"customer_type": ["retail", "wholesale"],"document_type": ["cc", "ce", "nit", "passport"],"fulfillment_method": ["pickup", "delivery"],"inventory_movement_type": ["purchase_in", "web_sale", "pos_sale", "adjustment", "waste", "return_in", "reservation", "reservation_release"],"legal_document": ["age_gate", "terms", "privacy"],"order_channel": ["web", "pos"],"order_status": ["draft", "awaiting_payment", "paid", "preparing", "out_for_delivery", "delivered", "cancelled", "refunded"],"payment_attempt_status": ["pending", "approved", "declined", "voided", "error", "abandoned"],"product_origin": ["national", "imported"],"reservation_status": ["active", "consumed", "released", "expired"],"staff_role": ["admin", "cashier", "courier", "warehouse"],"wholesale_status": ["pending", "approved", "rejected"]
           }
         }
 } as const
