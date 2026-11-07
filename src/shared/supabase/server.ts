@@ -5,6 +5,8 @@ import { cookies } from "next/headers";
 
 import { getPublicEnv } from "@/shared/env/public-env";
 
+import type { Database } from "./database.types";
+
 // Supabase client for Server Components, Server Actions and Route Handlers.
 // It acts as the signed-in user (session from the request cookies), so RLS
 // applies. Use this one by default.
@@ -12,7 +14,7 @@ export async function createSupabaseServerClient() {
   const { supabaseUrl, supabasePublishableKey } = getPublicEnv();
   const cookieStore = await cookies();
 
-  return createServerClient(supabaseUrl, supabasePublishableKey, {
+  return createServerClient<Database>(supabaseUrl, supabasePublishableKey, {
     cookies: {
       getAll() {
         return cookieStore.getAll();

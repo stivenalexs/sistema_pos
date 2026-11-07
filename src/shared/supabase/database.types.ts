@@ -23,7 +23,21 @@ export type Database = {
           }
         },"public": {
           Tables: {
-            "customers": {
+            "actions": {
+                  Row: {
+                    "attempts": number,"created_at": string,"error": string | null,"finished_at": string | null,"id": string,"idempotency_key": string,"max_attempts": number,"next_attempt_at": string | null,"payload": NonNullable<Json>,"queue_msg_id": number | null,"result": Json | null,"started_at": string | null,"status": Database["public"]['Enums']["action_status"],"type": string,"updated_at": string,"user_id": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "attempts"?: number,"created_at"?: string,"error"?: string | null,"finished_at"?: string | null,"id"?: string,"idempotency_key": string,"max_attempts"?: number,"next_attempt_at"?: string | null,"payload"?: NonNullable<Json>,"queue_msg_id"?: number | null,"result"?: Json | null,"started_at"?: string | null,"status"?: Database["public"]['Enums']["action_status"],"type": string,"updated_at"?: string,"user_id"?: string | null
+                  }
+                  Update: {
+                    "attempts"?: number,"created_at"?: string,"error"?: string | null,"finished_at"?: string | null,"id"?: string,"idempotency_key"?: string,"max_attempts"?: number,"next_attempt_at"?: string | null,"payload"?: NonNullable<Json>,"queue_msg_id"?: number | null,"result"?: Json | null,"started_at"?: string | null,"status"?: Database["public"]['Enums']["action_status"],"type"?: string,"updated_at"?: string,"user_id"?: string | null
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"customers": {
                   Row: {
                     "created_at": string,"customer_type": Database["public"]['Enums']["customer_type"],"document_number": string | null,"document_type": Database["public"]['Enums']["document_type"] | null,"full_name": string,"id": string,"phone": string | null,"price_list_id": string | null,"updated_at": string,"wholesale_status": Database["public"]['Enums']["wholesale_status"] | null
                   }
@@ -103,10 +117,25 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            [_ in never]: never
+            "claim_actions":
+{ Args: { "p_batch"?: number,"p_visibility_seconds"?: number }; Returns: {
+              "action_id": string,"attempt": number,"max_attempts": number,"payload": Json,"type": string,"user_id": string
+            }[]
+                           },
+"complete_action":
+{ Args: { "p_action_id": string,"p_result"?: Json }; Returns: undefined
+                           },
+"enqueue_action":
+{ Args: { "p_idempotency_key": string,"p_max_attempts"?: number,"p_payload"?: Json,"p_type": string,"p_user_id": string }; Returns: {
+              "created": boolean,"tracking_id": string
+            }[]
+                           },
+"fail_action":
+{ Args: { "p_action_id": string,"p_error": string,"p_permanent"?: boolean }; Returns: Database["public"]['Enums']["action_status"]
+                           }
           }
           Enums: {
-            "customer_type": "retail"|"wholesale","document_type": "cc"|"ce"|"nit"|"passport","product_origin": "national"|"imported","staff_role": "admin"|"cashier"|"courier"|"warehouse","wholesale_status": "pending"|"approved"|"rejected"
+            "action_status": "queued"|"processing"|"succeeded"|"failed","customer_type": "retail"|"wholesale","document_type": "cc"|"ce"|"nit"|"passport","product_origin": "national"|"imported","staff_role": "admin"|"cashier"|"courier"|"warehouse","wholesale_status": "pending"|"approved"|"rejected"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -226,7 +255,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "customer_type": ["retail", "wholesale"],"document_type": ["cc", "ce", "nit", "passport"],"product_origin": ["national", "imported"],"staff_role": ["admin", "cashier", "courier", "warehouse"],"wholesale_status": ["pending", "approved", "rejected"]
+            "action_status": ["queued", "processing", "succeeded", "failed"],"customer_type": ["retail", "wholesale"],"document_type": ["cc", "ce", "nit", "passport"],"product_origin": ["national", "imported"],"staff_role": ["admin", "cashier", "courier", "warehouse"],"wholesale_status": ["pending", "approved", "rejected"]
           }
         }
 } as const
