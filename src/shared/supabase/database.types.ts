@@ -51,6 +51,52 @@ export type Database = {
                   Relationships: [
                     
                   ]
+                },"cart_items": {
+                  Row: {
+                    "cart_id": string,"created_at": string,"id": string,"product_id": string,"quantity": number,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "cart_id": string,"created_at"?: string,"id"?: string,"product_id": string,"quantity": number,"updated_at"?: string
+                  }
+                  Update: {
+                    "cart_id"?: string,"created_at"?: string,"id"?: string,"product_id"?: string,"quantity"?: number,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "cart_items_cart_id_fkey"
+      columns: ["cart_id"]
+isOneToOne: false
+      referencedRelation: "carts"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "cart_items_product_id_fkey"
+      columns: ["product_id"]
+isOneToOne: false
+      referencedRelation: "products"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"carts": {
+                  Row: {
+                    "created_at": string,"customer_id": string,"id": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"customer_id": string,"id"?: string,"updated_at"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"customer_id"?: string,"id"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "carts_customer_id_fkey"
+      columns: ["customer_id"]
+isOneToOne: true
+      referencedRelation: "customers"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"customers": {
                   Row: {
                     "business_name": string | null,"created_at": string,"customer_type": Database["public"]['Enums']["customer_type"],"document_number": string | null,"document_type": Database["public"]['Enums']["document_type"] | null,"full_name": string,"id": string,"phone": string | null,"price_list_id": string | null,"updated_at": string,"wholesale_status": Database["public"]['Enums']["wholesale_status"] | null
@@ -110,6 +156,72 @@ isOneToOne: false
                   }
                   Relationships: [
                     
+                  ]
+                },"order_events": {
+                  Row: {
+                    "actor_id": string | null,"created_at": string,"from_status": Database["public"]['Enums']["order_status"] | null,"id": string,"order_id": string,"reason": string | null,"to_status": Database["public"]['Enums']["order_status"]
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "actor_id"?: string | null,"created_at"?: string,"from_status"?: Database["public"]['Enums']["order_status"] | null,"id"?: string,"order_id": string,"reason"?: string | null,"to_status": Database["public"]['Enums']["order_status"]
+                  }
+                  Update: {
+                    "actor_id"?: string | null,"created_at"?: string,"from_status"?: Database["public"]['Enums']["order_status"] | null,"id"?: string,"order_id"?: string,"reason"?: string | null,"to_status"?: Database["public"]['Enums']["order_status"]
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "order_events_order_id_fkey"
+      columns: ["order_id"]
+isOneToOne: false
+      referencedRelation: "orders"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"order_items": {
+                  Row: {
+                    "base_units": number,"created_at": string,"id": string,"line_total_cop": number,"order_id": string,"product_id": string,"product_name": string,"quantity": number,"sale_unit": string,"sku": string,"unit_price_cop": number,"units_per_box": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "base_units": number,"created_at"?: string,"id"?: string,"line_total_cop": number,"order_id": string,"product_id": string,"product_name": string,"quantity": number,"sale_unit": string,"sku": string,"unit_price_cop": number,"units_per_box": number
+                  }
+                  Update: {
+                    "base_units"?: number,"created_at"?: string,"id"?: string,"line_total_cop"?: number,"order_id"?: string,"product_id"?: string,"product_name"?: string,"quantity"?: number,"sale_unit"?: string,"sku"?: string,"unit_price_cop"?: number,"units_per_box"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "order_items_order_id_fkey"
+      columns: ["order_id"]
+isOneToOne: false
+      referencedRelation: "orders"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "order_items_product_id_fkey"
+      columns: ["product_id"]
+isOneToOne: false
+      referencedRelation: "products"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"orders": {
+                  Row: {
+                    "cancel_after": string | null,"cancel_reason": string | null,"cancelled_at": string | null,"channel": Database["public"]['Enums']["order_channel"],"created_at": string,"customer_id": string | null,"delivery_fee_cop": number,"fulfillment": Database["public"]['Enums']["fulfillment_method"],"id": string,"idempotency_key": string,"paid_at": string | null,"payment_deadline": string | null,"sale_unit": string,"status": Database["public"]['Enums']["order_status"],"subtotal_cop": number,"total_base_units": number,"total_boxes": number,"total_cop": number,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "cancel_after"?: string | null,"cancel_reason"?: string | null,"cancelled_at"?: string | null,"channel": Database["public"]['Enums']["order_channel"],"created_at"?: string,"customer_id"?: string | null,"delivery_fee_cop"?: number,"fulfillment": Database["public"]['Enums']["fulfillment_method"],"id"?: string,"idempotency_key": string,"paid_at"?: string | null,"payment_deadline"?: string | null,"sale_unit": string,"status"?: Database["public"]['Enums']["order_status"],"subtotal_cop": number,"total_base_units": number,"total_boxes"?: number,"total_cop": number,"updated_at"?: string
+                  }
+                  Update: {
+                    "cancel_after"?: string | null,"cancel_reason"?: string | null,"cancelled_at"?: string | null,"channel"?: Database["public"]['Enums']["order_channel"],"created_at"?: string,"customer_id"?: string | null,"delivery_fee_cop"?: number,"fulfillment"?: Database["public"]['Enums']["fulfillment_method"],"id"?: string,"idempotency_key"?: string,"paid_at"?: string | null,"payment_deadline"?: string | null,"sale_unit"?: string,"status"?: Database["public"]['Enums']["order_status"],"subtotal_cop"?: number,"total_base_units"?: number,"total_boxes"?: number,"total_cop"?: number,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "orders_customer_id_fkey"
+      columns: ["customer_id"]
+isOneToOne: false
+      referencedRelation: "customers"
+      referencedColumns: ["id"]
+    }
                   ]
                 },"price_lists": {
                   Row: {
@@ -211,7 +323,13 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "claim_actions":
+            "cancel_abandoned_orders":
+{ Args: Record<PropertyKey, never>; Returns: number
+                           },
+"cancel_order":
+{ Args: { "p_order_id": string }; Returns: boolean
+                           },
+"claim_actions":
 { Args: { "p_batch"?: number,"p_visibility_seconds"?: number }; Returns: {
               "action_id": string,"attempt": number,"max_attempts": number,"payload": Json,"type": string,"user_id": string
             }[]
@@ -230,6 +348,9 @@ isOneToOne: false
 "fail_action":
 { Args: { "p_action_id": string,"p_error": string,"p_permanent"?: boolean }; Returns: Database["public"]['Enums']["action_status"]
                            },
+"get_cart_items":
+{ Args: Record<PropertyKey, never>; Returns: Json
+                           },
 "get_catalog":
 { Args: Record<PropertyKey, never>; Returns: {
               "brand": string,"description": string,"min_quantity": number,"name": string,"origin": Database["public"]['Enums']["product_origin"],"price_cop": number,"price_list_id": string,"product_id": string,"sale_unit": string,"sku": string,"units_per_box": number,"volume_ml": number
@@ -244,6 +365,9 @@ isOneToOne: false
 { Args: Record<PropertyKey, never>; Returns: {
               "name": string,"on_hand": number,"product_id": string,"reserved": number,"sku": string,"threshold": number
             }[]
+                           },
+"place_order":
+{ Args: { "p_fulfillment"?: Database["public"]['Enums']["fulfillment_method"],"p_idempotency_key": string }; Returns: Json
                            },
 "quote_items":
 { Args: { "p_items": Json }; Returns: Json
@@ -270,10 +394,13 @@ isOneToOne: false
                            },
 "reserve_stock":
 { Args: { "p_items": Json,"p_reference": string,"p_ttl_minutes"?: number }; Returns: string[]
+                           },
+"set_cart_item":
+{ Args: { "p_product_id": string,"p_quantity": number }; Returns: undefined
                            }
           }
           Enums: {
-            "action_status": "queued"|"processing"|"succeeded"|"failed","customer_type": "retail"|"wholesale","document_type": "cc"|"ce"|"nit"|"passport","inventory_movement_type": "purchase_in"|"web_sale"|"pos_sale"|"adjustment"|"waste"|"return_in"|"reservation"|"reservation_release","legal_document": "age_gate"|"terms"|"privacy","product_origin": "national"|"imported","reservation_status": "active"|"consumed"|"released"|"expired","staff_role": "admin"|"cashier"|"courier"|"warehouse","wholesale_status": "pending"|"approved"|"rejected"
+            "action_status": "queued"|"processing"|"succeeded"|"failed","customer_type": "retail"|"wholesale","document_type": "cc"|"ce"|"nit"|"passport","fulfillment_method": "pickup"|"delivery","inventory_movement_type": "purchase_in"|"web_sale"|"pos_sale"|"adjustment"|"waste"|"return_in"|"reservation"|"reservation_release","legal_document": "age_gate"|"terms"|"privacy","order_channel": "web"|"pos","order_status": "draft"|"awaiting_payment"|"paid"|"preparing"|"out_for_delivery"|"delivered"|"cancelled"|"refunded","product_origin": "national"|"imported","reservation_status": "active"|"consumed"|"released"|"expired","staff_role": "admin"|"cashier"|"courier"|"warehouse","wholesale_status": "pending"|"approved"|"rejected"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -393,7 +520,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "action_status": ["queued", "processing", "succeeded", "failed"],"customer_type": ["retail", "wholesale"],"document_type": ["cc", "ce", "nit", "passport"],"inventory_movement_type": ["purchase_in", "web_sale", "pos_sale", "adjustment", "waste", "return_in", "reservation", "reservation_release"],"legal_document": ["age_gate", "terms", "privacy"],"product_origin": ["national", "imported"],"reservation_status": ["active", "consumed", "released", "expired"],"staff_role": ["admin", "cashier", "courier", "warehouse"],"wholesale_status": ["pending", "approved", "rejected"]
+            "action_status": ["queued", "processing", "succeeded", "failed"],"customer_type": ["retail", "wholesale"],"document_type": ["cc", "ce", "nit", "passport"],"fulfillment_method": ["pickup", "delivery"],"inventory_movement_type": ["purchase_in", "web_sale", "pos_sale", "adjustment", "waste", "return_in", "reservation", "reservation_release"],"legal_document": ["age_gate", "terms", "privacy"],"order_channel": ["web", "pos"],"order_status": ["draft", "awaiting_payment", "paid", "preparing", "out_for_delivery", "delivered", "cancelled", "refunded"],"product_origin": ["national", "imported"],"reservation_status": ["active", "consumed", "released", "expired"],"staff_role": ["admin", "cashier", "courier", "warehouse"],"wholesale_status": ["pending", "approved", "rejected"]
           }
         }
 } as const
