@@ -57,6 +57,14 @@ Registro de decisiones. Se lee al iniciar cada sesión (referenciado desde `agen
   - Se conservan las opciones que trae la plantilla: `cacheComponents`, `partialPrefetching` y Tailwind mediante `@tailwindcss/turbopack`.
   - **Auditoría:** 0 vulnerabilidades en dependencias de producción. Hay 8 moderadas en herramientas de desarrollo (`minimatch` dentro de `typescript-eslint`, un riesgo de bloqueo por expresiones regulares). No se fuerza `npm audit fix --force` porque cambiaría versiones mayores de `eslint-config-next`; se revisa al actualizar Next.
 
+- **D-030 (2026-11-06)** Conexión con Supabase (paso 5 del plan).
+  - **Versiones exactas:** `@supabase/supabase-js` 2.118.0, `@supabase/ssr` 0.12.7, `server-only` 0.0.1, y la CLI `supabase` 2.122.1 como dependencia de desarrollo (se usa con `npx`, no global). Descartadas: CLI 3.0.0 (versión mayor publicada el 2026-11-02) y supabase-js 2.119.0 (publicada el 2026-11-04), por recientes.
+  - **Claves con el formato nuevo de Supabase:** `sb_publishable_…` en `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` y `sb_secret_…` en `SUPABASE_SECRET_KEY`. Las claves `anon` y `service_role` se retiran a finales de 2026. **La clave `secret` reemplaza a la `service_role` de agents.md §6 y sigue la misma regla: solo en el servidor.** `env.ts` se niega a arrancar si la clave secreta está en la variable pública, o al revés.
+  - **Tres clientes en `src/shared/supabase/`:** `server.ts` (sesión del usuario con cookies, respeta RLS; es el de uso por defecto), `browser.ts` (componentes del navegador) y `admin.ts` (clave secreta, se salta RLS; solo workers y webhooks). `server.ts`, `admin.ts` y `env/server-env.ts` importan `server-only`; se comprobó que el build falla si un componente de navegador importa `admin.ts`. `src/shared/index.ts` no reexporta piezas del servidor.
+  - **Las variables se validan al usarlas, no al importar el módulo,** para que el build no exija secretos.
+  - **Entornos:** local con `supabase start` (necesita Docker Desktop) y un proyecto alojado en Supabase para pruebas. `.env.example` documenta las variables sin valores; los valores reales van en `.env.local`. Scripts: `db:start`, `db:stop`, `db:status`, `db:reset` y `db:types`.
+  - **Pendiente de este paso:** Docker no está instalado en el equipo de desarrollo, así que no se ha probado `supabase start`, no se ha generado `database.types.ts` y **pgmq no se ha verificado (D-025 sigue condicionada)**. El proyecto de pruebas en la nube tampoco se ha creado. La configuración de autenticación de `config.toml` (por ejemplo, contraseñas de mínimo 6 caracteres) queda con los valores por defecto hasta el paso 8, igual que `proxy.ts` para renovar la sesión.
+
 ## Pendientes de confirmar (supuestos del asistente, no decisiones)
 
 - ~~**P-001**~~ Resuelto en D-021.
