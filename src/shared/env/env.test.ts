@@ -1,7 +1,18 @@
 import { describe, expect, it } from "vitest";
 
 import { EnvError, parsePublicEnv } from "./public-env";
-import { parseServerEnv } from "./server-env";
+import { parseServerEnv, parseWorkerSecret } from "./server-env";
+
+describe("parseWorkerSecret", () => {
+  it("accepts a long secret", () => {
+    expect(parseWorkerSecret("k".repeat(32))).toBe("k".repeat(32));
+  });
+
+  it("rejects a missing or short secret", () => {
+    expect(() => parseWorkerSecret(undefined)).toThrow(/WORKER_SECRET/);
+    expect(() => parseWorkerSecret("short")).toThrow(/at least 32/);
+  });
+});
 
 const VALID_PUBLIC = {
   NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
@@ -34,7 +45,16 @@ describe("parsePublicEnv", () => {
   it("rejects an invalid URL", () => {
     expect(() =>
       parsePublicEnv({ ...VALID_PUBLIC, NEXT_PUBLIC_SUPABASE_URL: "not a url" }),
-    ).toThrow(/valid URL/);
+    ).toThrow(/API URL/);
+  });
+
+  it("rejects the database URL in place of the API URL", () => {
+    expect(() =>
+      parsePublicEnv({
+        ...VALID_PUBLIC,
+        NEXT_PUBLIC_SUPABASE_URL: "postgresql://postgres:postgres@127.0.0.1:54322/postgres",
+      }),
+    ).toThrow(/not the database URL/);
   });
 
   it("refuses a secret key in the public variable", () => {

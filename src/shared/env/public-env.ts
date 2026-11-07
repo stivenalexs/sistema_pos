@@ -31,8 +31,14 @@ export function parsePublicEnv(raw: RawPublicEnv): PublicEnv {
     "NEXT_PUBLIC_SUPABASE_URL",
     raw.NEXT_PUBLIC_SUPABASE_URL,
   );
-  if (!URL.canParse(supabaseUrl)) {
-    throw new EnvError("NEXT_PUBLIC_SUPABASE_URL is not a valid URL.");
+  // Must be the API URL (http/https), not the database URL (postgresql://).
+  const protocol = URL.canParse(supabaseUrl)
+    ? new URL(supabaseUrl).protocol
+    : null;
+  if (protocol !== "http:" && protocol !== "https:") {
+    throw new EnvError(
+      "NEXT_PUBLIC_SUPABASE_URL must be the API URL (http:// or https://), not the database URL.",
+    );
   }
 
   const supabasePublishableKey = requireValue(

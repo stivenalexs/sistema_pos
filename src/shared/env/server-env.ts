@@ -25,6 +25,23 @@ export function parseServerEnv(raw: RawServerEnv): ServerEnv {
   return { supabaseSecretKey };
 }
 
+const MIN_WORKER_SECRET_LENGTH = 32;
+
+/** Shared secret that pg_cron sends to the worker endpoint (D-034). */
+export function parseWorkerSecret(value: string | undefined): string {
+  const secret = requireValue("WORKER_SECRET", value);
+  if (secret.length < MIN_WORKER_SECRET_LENGTH) {
+    throw new EnvError(
+      `WORKER_SECRET must have at least ${MIN_WORKER_SECRET_LENGTH} characters.`,
+    );
+  }
+  return secret;
+}
+
+export function getWorkerSecret(): string {
+  return parseWorkerSecret(process.env.WORKER_SECRET);
+}
+
 export function getServerEnv(): ServerEnv {
   return parseServerEnv({
     SUPABASE_SECRET_KEY: process.env.SUPABASE_SECRET_KEY,

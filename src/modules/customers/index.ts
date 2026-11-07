@@ -1,2 +1,10 @@
 // Public API of the customers module. Other modules import only from here (agents.md, section 3).
-export {};
+export { type SignupInput, validateSignup } from "./domain/signup";
+export {
+  type AuthFormState,
+  signInAction,
+  signOutAction,
+  signUpAction,
+} from "./server/auth-actions";
+export { LoginForm } from "./ui/login-form";
+export { SignupForm } from "./ui/signup-form";
