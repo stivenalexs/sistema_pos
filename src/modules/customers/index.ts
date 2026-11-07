@@ -6,5 +6,6 @@ export {
   signOutAction,
   signUpAction,
 } from "./server/auth-actions";
+export { type CurrentCustomer, getCurrentCustomer } from "./server/current-customer";
 export { LoginForm } from "./ui/login-form";
 export { SignupForm } from "./ui/signup-form";
