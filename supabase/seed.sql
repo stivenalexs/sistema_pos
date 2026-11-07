@@ -29,3 +29,14 @@ insert into public.product_prices (price_list_id, product_id, price_cop) values
   ('00000000-0000-4000-8000-000000000002', '00000000-0000-4000-8000-000000000202', 960000),
   ('00000000-0000-4000-8000-000000000003', '00000000-0000-4000-8000-000000000101', 460000),
   ('00000000-0000-4000-8000-000000000003', '00000000-0000-4000-8000-000000000201', 1100000);
+
+-- Initial stock in base units (goods received). Only through movements (D-019).
+insert into public.inventory_movements (product_id, movement_type, units, reference, reason) values
+  ('00000000-0000-4000-8000-000000000101', 'purchase_in', 120, 'FC-EJEMPLO-001', 'Inventario inicial de ejemplo'),
+  ('00000000-0000-4000-8000-000000000102', 'purchase_in', 60,  'FC-EJEMPLO-001', 'Inventario inicial de ejemplo'),
+  ('00000000-0000-4000-8000-000000000103', 'purchase_in', 480, 'FC-EJEMPLO-001', 'Inventario inicial de ejemplo'),
+  ('00000000-0000-4000-8000-000000000201', 'purchase_in', 18,  'FC-EJEMPLO-002', 'Inventario inicial de ejemplo'),
+  ('00000000-0000-4000-8000-000000000202', 'purchase_in', 24,  'FC-EJEMPLO-002', 'Inventario inicial de ejemplo');
+
+update public.products set web_safety_stock = 2, low_stock_threshold = 12
+where id = '00000000-0000-4000-8000-000000000101';

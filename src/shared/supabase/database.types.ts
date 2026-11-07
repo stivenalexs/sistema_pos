@@ -37,6 +37,20 @@ export type Database = {
                   Relationships: [
                     
                   ]
+                },"app_settings": {
+                  Row: {
+                    "key": string,"updated_at": string,"value": NonNullable<Json>
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "key": string,"updated_at"?: string,"value": NonNullable<Json>
+                  }
+                  Update: {
+                    "key"?: string,"updated_at"?: string,"value"?: NonNullable<Json>
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"customers": {
                   Row: {
                     "business_name": string | null,"created_at": string,"customer_type": Database["public"]['Enums']["customer_type"],"document_number": string | null,"document_type": Database["public"]['Enums']["document_type"] | null,"full_name": string,"id": string,"phone": string | null,"price_list_id": string | null,"updated_at": string,"wholesale_status": Database["public"]['Enums']["wholesale_status"] | null
@@ -54,6 +68,32 @@ export type Database = {
       columns: ["price_list_id"]
 isOneToOne: false
       referencedRelation: "price_lists"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"inventory_movements": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"id": string,"idempotency_key": string | null,"movement_type": Database["public"]['Enums']["inventory_movement_type"],"product_id": string,"reason": string | null,"reference": string | null,"reservation_id": string | null,"units": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"id"?: string,"idempotency_key"?: string | null,"movement_type": Database["public"]['Enums']["inventory_movement_type"],"product_id": string,"reason"?: string | null,"reference"?: string | null,"reservation_id"?: string | null,"units": number
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"id"?: string,"idempotency_key"?: string | null,"movement_type"?: Database["public"]['Enums']["inventory_movement_type"],"product_id"?: string,"reason"?: string | null,"reference"?: string | null,"reservation_id"?: string | null,"units"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "inventory_movements_product_id_fkey"
+      columns: ["product_id"]
+isOneToOne: false
+      referencedRelation: "products"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "inventory_movements_reservation_id_fkey"
+      columns: ["reservation_id"]
+isOneToOne: false
+      referencedRelation: "stock_reservations"
       referencedColumns: ["id"]
     }
                   ]
@@ -111,19 +151,59 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
-                },"products": {
+                },"product_stock": {
                   Row: {
-                    "allow_retail_by_unit": boolean,"brand": string | null,"created_at": string,"description": string | null,"id": string,"is_active": boolean,"name": string,"origin": Database["public"]['Enums']["product_origin"],"retail_min_units": number,"sku": string,"units_per_box": number,"updated_at": string,"volume_ml": number | null,"wholesale_min_boxes": number
+                    "on_hand": number,"product_id": string,"reserved": number,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "allow_retail_by_unit"?: boolean,"brand"?: string | null,"created_at"?: string,"description"?: string | null,"id"?: string,"is_active"?: boolean,"name": string,"origin": Database["public"]['Enums']["product_origin"],"retail_min_units"?: number,"sku": string,"units_per_box": number,"updated_at"?: string,"volume_ml"?: number | null,"wholesale_min_boxes"?: number
+                    "on_hand"?: number,"product_id": string,"reserved"?: number,"updated_at"?: string
                   }
                   Update: {
-                    "allow_retail_by_unit"?: boolean,"brand"?: string | null,"created_at"?: string,"description"?: string | null,"id"?: string,"is_active"?: boolean,"name"?: string,"origin"?: Database["public"]['Enums']["product_origin"],"retail_min_units"?: number,"sku"?: string,"units_per_box"?: number,"updated_at"?: string,"volume_ml"?: number | null,"wholesale_min_boxes"?: number
+                    "on_hand"?: number,"product_id"?: string,"reserved"?: number,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "product_stock_product_id_fkey"
+      columns: ["product_id"]
+isOneToOne: true
+      referencedRelation: "products"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"products": {
+                  Row: {
+                    "allow_retail_by_unit": boolean,"brand": string | null,"created_at": string,"description": string | null,"id": string,"is_active": boolean,"low_stock_threshold": number,"name": string,"origin": Database["public"]['Enums']["product_origin"],"retail_min_units": number,"sku": string,"units_per_box": number,"updated_at": string,"volume_ml": number | null,"web_safety_stock": number,"wholesale_min_boxes": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "allow_retail_by_unit"?: boolean,"brand"?: string | null,"created_at"?: string,"description"?: string | null,"id"?: string,"is_active"?: boolean,"low_stock_threshold"?: number,"name": string,"origin": Database["public"]['Enums']["product_origin"],"retail_min_units"?: number,"sku": string,"units_per_box": number,"updated_at"?: string,"volume_ml"?: number | null,"web_safety_stock"?: number,"wholesale_min_boxes"?: number
+                  }
+                  Update: {
+                    "allow_retail_by_unit"?: boolean,"brand"?: string | null,"created_at"?: string,"description"?: string | null,"id"?: string,"is_active"?: boolean,"low_stock_threshold"?: number,"name"?: string,"origin"?: Database["public"]['Enums']["product_origin"],"retail_min_units"?: number,"sku"?: string,"units_per_box"?: number,"updated_at"?: string,"volume_ml"?: number | null,"web_safety_stock"?: number,"wholesale_min_boxes"?: number
                   }
                   Relationships: [
                     
+                  ]
+                },"stock_reservations": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"expires_at": string,"id": string,"product_id": string,"reference": string,"status": Database["public"]['Enums']["reservation_status"],"units": number,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"expires_at": string,"id"?: string,"product_id": string,"reference": string,"status"?: Database["public"]['Enums']["reservation_status"],"units": number,"updated_at"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"expires_at"?: string,"id"?: string,"product_id"?: string,"reference"?: string,"status"?: Database["public"]['Enums']["reservation_status"],"units"?: number,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "stock_reservations_product_id_fkey"
+      columns: ["product_id"]
+isOneToOne: false
+      referencedRelation: "products"
+      referencedColumns: ["id"]
+    }
                   ]
                 }
           }
@@ -139,6 +219,9 @@ isOneToOne: false
 "complete_action":
 { Args: { "p_action_id": string,"p_result"?: Json }; Returns: undefined
                            },
+"consume_reservation":
+{ Args: { "p_idempotency_key": string,"p_items": Json,"p_reference": string }; Returns: number
+                           },
 "enqueue_action":
 { Args: { "p_idempotency_key": string,"p_max_attempts"?: number,"p_payload"?: Json,"p_type": string,"p_user_id": string }; Returns: {
               "created": boolean,"tracking_id": string
@@ -152,12 +235,45 @@ isOneToOne: false
               "brand": string,"description": string,"min_quantity": number,"name": string,"origin": Database["public"]['Enums']["product_origin"],"price_cop": number,"price_list_id": string,"product_id": string,"sale_unit": string,"sku": string,"units_per_box": number,"volume_ml": number
             }[]
                            },
+"get_web_availability":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "available_sale_units": number,"available_units": number,"product_id": string
+            }[]
+                           },
+"low_stock_products":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "name": string,"on_hand": number,"product_id": string,"reserved": number,"sku": string,"threshold": number
+            }[]
+                           },
 "quote_items":
 { Args: { "p_items": Json }; Returns: Json
+                           },
+"reconcile_stock":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "ledger_on_hand": number,"ledger_reserved": number,"on_hand": number,"product_id": string,"reserved": number
+            }[]
+                           },
+"record_count":
+{ Args: { "p_counted_units": number,"p_idempotency_key": string,"p_product_id": string,"p_reason": string }; Returns: string
+                           },
+"record_stock_entry":
+{ Args: { "p_idempotency_key": string,"p_product_id": string,"p_reason"?: string,"p_reference": string,"p_units": number }; Returns: string
+                           },
+"record_waste":
+{ Args: { "p_idempotency_key": string,"p_product_id": string,"p_reason": string,"p_units": number }; Returns: string
+                           },
+"release_expired_reservations":
+{ Args: Record<PropertyKey, never>; Returns: number
+                           },
+"release_reservation":
+{ Args: { "p_reference": string }; Returns: number
+                           },
+"reserve_stock":
+{ Args: { "p_items": Json,"p_reference": string,"p_ttl_minutes"?: number }; Returns: string[]
                            }
           }
           Enums: {
-            "action_status": "queued"|"processing"|"succeeded"|"failed","customer_type": "retail"|"wholesale","document_type": "cc"|"ce"|"nit"|"passport","legal_document": "age_gate"|"terms"|"privacy","product_origin": "national"|"imported","staff_role": "admin"|"cashier"|"courier"|"warehouse","wholesale_status": "pending"|"approved"|"rejected"
+            "action_status": "queued"|"processing"|"succeeded"|"failed","customer_type": "retail"|"wholesale","document_type": "cc"|"ce"|"nit"|"passport","inventory_movement_type": "purchase_in"|"web_sale"|"pos_sale"|"adjustment"|"waste"|"return_in"|"reservation"|"reservation_release","legal_document": "age_gate"|"terms"|"privacy","product_origin": "national"|"imported","reservation_status": "active"|"consumed"|"released"|"expired","staff_role": "admin"|"cashier"|"courier"|"warehouse","wholesale_status": "pending"|"approved"|"rejected"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -277,7 +393,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "action_status": ["queued", "processing", "succeeded", "failed"],"customer_type": ["retail", "wholesale"],"document_type": ["cc", "ce", "nit", "passport"],"legal_document": ["age_gate", "terms", "privacy"],"product_origin": ["national", "imported"],"staff_role": ["admin", "cashier", "courier", "warehouse"],"wholesale_status": ["pending", "approved", "rejected"]
+            "action_status": ["queued", "processing", "succeeded", "failed"],"customer_type": ["retail", "wholesale"],"document_type": ["cc", "ce", "nit", "passport"],"inventory_movement_type": ["purchase_in", "web_sale", "pos_sale", "adjustment", "waste", "return_in", "reservation", "reservation_release"],"legal_document": ["age_gate", "terms", "privacy"],"product_origin": ["national", "imported"],"reservation_status": ["active", "consumed", "released", "expired"],"staff_role": ["admin", "cashier", "courier", "warehouse"],"wholesale_status": ["pending", "approved", "rejected"]
           }
         }
 } as const
