@@ -78,6 +78,25 @@ describe("buildBillPayload", () => {
     expect(Math.abs(Number(bill.cash_rounding_amount))).toBeLessThanOrEqual(500);
   });
 
+  it("adds the delivery fee as its own line with IVA (D-045) and the total still matches", () => {
+    // 6.000 delivery = 5.714 before IVA + 286 IVA.
+    const bill = buildBillPayload(
+      {
+        ...INVOICE,
+        total_cop: 108465 + 6000,
+        lines: [
+          ...INVOICE.lines,
+          { sku: "DOMICILIO", name: "Servicio de domicilio", quantity_units: 1, net_cop: 5714, iva_cop: 286, final_cop: 6000 },
+        ],
+      },
+      5,
+      null,
+    );
+    expect(bill.items[1]).toMatchObject({ code_reference: "DOMICILIO", price: "5714.00", taxes: [{ code: "01", rate: "5.00" }] });
+    expect(bill.payment_details[0]?.amount).toBe("114465.00");
+    expect(Math.abs(Number(bill.cash_rounding_amount))).toBeLessThan(1);
+  });
+
   it("maps Wompi methods to Factus codes", () => {
     expect(paymentMethodCode("CARD")).toBe("48");
     expect(paymentMethodCode("PSE")).toBe("47");

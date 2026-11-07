@@ -19,8 +19,23 @@ export function OrderSummary({ order }: { order: OrderDetail }) {
         <dd className="font-medium">{ORDER_STATUS_LABELS[order.status] ?? order.status}</dd>
         <dt className="text-neutral-600">Entrega</dt>
         <dd>{FULFILLMENT_LABELS[order.fulfillment] ?? order.fulfillment}</dd>
+        {order.delivery ? (
+          <>
+            <dt className="text-neutral-600">Dirección</dt>
+            <dd>
+              {order.delivery.addressLine}, {order.delivery.municipality}
+              {order.delivery.details ? <span className="block text-neutral-600">{order.delivery.details}</span> : null}
+            </dd>
+          </>
+        ) : null}
         <dt className="text-neutral-600">Creado</dt>
         <dd>{formatBogotaDateTime(order.createdAt)}</dd>
+        {order.deliveredAt ? (
+          <>
+            <dt className="text-neutral-600">Entregado</dt>
+            <dd>{formatBogotaDateTime(order.deliveredAt)}</dd>
+          </>
+        ) : null}
       </dl>
 
       <ul className="flex flex-col divide-y divide-neutral-200 border-y border-neutral-200">
@@ -36,6 +51,19 @@ export function OrderSummary({ order }: { order: OrderDetail }) {
           </li>
         ))}
       </ul>
+
+      {order.fulfillment === "delivery" ? (
+        <div className="flex flex-col gap-1 text-sm">
+          <p className="flex justify-between">
+            <span>Subtotal</span>
+            <span>{formatCop(order.subtotalCop)}</span>
+          </p>
+          <p className="flex justify-between">
+            <span>Domicilio</span>
+            <span>{order.deliveryFeeCop === 0 ? "Gratis" : formatCop(order.deliveryFeeCop)}</span>
+          </p>
+        </div>
+      ) : null}
 
       <p className="flex justify-between text-lg font-semibold">
         <span>Total</span>
@@ -56,7 +84,14 @@ export function OrderSummary({ order }: { order: OrderDetail }) {
 
       {order.status === "paid" && !order.needsRefund ? (
         <p role="status" className="rounded-md border border-green-700 bg-green-50 p-3">
-          Pago recibido. Te avisaremos cuando tu pedido esté listo para recoger.
+          {order.fulfillment === "delivery"
+            ? "Pago recibido. Te avisaremos cuando tu pedido salga a domicilio. Al recibirlo, muestra tu cédula y firma."
+            : "Pago recibido. Te avisaremos cuando tu pedido esté listo para recoger."}
+        </p>
+      ) : null}
+      {order.status === "out_for_delivery" ? (
+        <p role="status" className="rounded-md border border-neutral-400 p-3">
+          Tu pedido va en camino. Ten a mano tu cédula: quien reciba debe mostrarla y firmar.
         </p>
       ) : null}
       {order.needsRefund ? (

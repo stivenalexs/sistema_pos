@@ -1,3 +1,4 @@
+import { type FulfillmentChoice, FulfillmentPicker } from "@/modules/delivery";
 import { formatCop, QUOTE_ERROR_MESSAGES } from "@/modules/pricing";
 
 import type { CartView as CartViewData } from "../server/get-cart";
@@ -5,10 +6,12 @@ import { AddToCartForm } from "./add-to-cart-form";
 import { PlaceOrderButton } from "./place-order-button";
 
 // Cart screen (functional, no design yet; D-037). All prices come from the server.
-export function CartView({ cart }: { cart: CartViewData }) {
+export function CartView({ cart, choice }: { cart: CartViewData; choice: FulfillmentChoice }) {
   if (cart.lines.length === 0) {
     return <p>Tu carrito está vacío.</p>;
   }
+  const canPlace =
+    choice.fulfillment === "pickup" || (choice.selectedAddressId !== null && choice.quote?.ok === true);
 
   const unitLabel = cart.saleUnit === "box" ? "cajas" : "unidades";
 
@@ -60,26 +63,54 @@ export function CartView({ cart }: { cart: CartViewData }) {
         })}
       </ul>
 
+      {cart.quote?.ok ? <FulfillmentPicker choice={choice} /> : null}
+
       {cart.quote?.ok && cart.quote.totalCop != null ? (
-        <div className="flex flex-col gap-1">
-          <p className="flex justify-between">
-            <span>Subtotal</span>
-            <span>{formatCop(cart.quote.totalCop)}</span>
-          </p>
-          <p className="flex justify-between text-sm text-neutral-600">
-            <span>Entrega</span>
-            <span>Recoger en la tienda (sin costo)</span>
-          </p>
-          <p className="flex justify-between text-lg font-semibold">
-            <span>Total</span>
-            <span>{formatCop(cart.quote.totalCop)}</span>
-          </p>
-        </div>
+        <Totals subtotalCop={cart.quote.totalCop} choice={choice} />
       ) : (
         <p className="text-red-700">Corrige las líneas marcadas para poder confirmar el pedido.</p>
       )}
 
-      {cart.quote?.ok ? <PlaceOrderButton /> : null}
+      {cart.quote?.ok && canPlace ? (
+        <PlaceOrderButton
+          // A different choice is a different intent: remount for a new key.
+          key={`${choice.fulfillment}:${choice.selectedAddressId ?? ""}`}
+          choice={
+            choice.fulfillment === "delivery" && choice.selectedAddressId
+              ? { fulfillment: "delivery", addressId: choice.selectedAddressId }
+              : { fulfillment: "pickup" }
+          }
+        />
+      ) : null}
+    </div>
+  );
+}
+
+// Display only: the order total is computed again by the database.
+function Totals({ subtotalCop, choice }: { subtotalCop: number; choice: FulfillmentChoice }) {
+  const fee = choice.fulfillment === "delivery" && choice.quote?.ok ? choice.quote.feeCop : 0;
+  return (
+    <div className="flex flex-col gap-1">
+      <p className="flex justify-between">
+        <span>Subtotal</span>
+        <span>{formatCop(subtotalCop)}</span>
+      </p>
+      <p className="flex justify-between text-sm text-neutral-600">
+        <span>Entrega</span>
+        <span>
+          {choice.fulfillment === "pickup"
+            ? "Recoger en la tienda (sin costo)"
+            : choice.quote?.ok
+              ? fee === 0
+                ? "Domicilio gratis"
+                : `Domicilio ${formatCop(fee)}`
+              : "—"}
+        </span>
+      </p>
+      <p className="flex justify-between text-lg font-semibold">
+        <span>Total</span>
+        <span>{formatCop(subtotalCop + fee)}</span>
+      </p>
     </div>
   );
 }

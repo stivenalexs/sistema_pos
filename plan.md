@@ -39,7 +39,7 @@ Revisa tú, sin delegar: las políticas RLS (paso 6), la firma del webhook de Wo
 
 ## Fase 6: entrega, POS y control
 
-- [ ] **14.** "Con delivery-proof: tarifas configurables, asignación a mensajero propio o tercero y la vista móvil con cédula y firma."
+- [x] **14.** "Con delivery-proof: tarifas configurables, asignación a mensajero propio o tercero y la vista móvil con cédula y firma."
 - [ ] **15.** "Con block-sales-rule: bloqueos por municipio, fecha y hora, evaluados en el checkout y en el POS."
 - [ ] **16.** "Con pos-sale: la pantalla de caja con venta asíncrona, descuento compartido con la web y factura."
 - [ ] **17.** "Panel de administración: aprobar mayoristas, ver facturas rechazadas, cola atascada, ajustes de inventario y reglas de bloqueo."

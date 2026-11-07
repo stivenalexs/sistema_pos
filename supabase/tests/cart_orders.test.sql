@@ -141,9 +141,10 @@ select is(
   public.place_order('d0000000-0000-4000-8000-000000000009') ->> 'error', 'insufficient_stock', 'reject: not enough stock'
 );
 select is((select count(*)::int from public.orders), 1, 'reject: no order was created');
-select throws_ok(
-  $$select public.place_order(gen_random_uuid(), 'delivery')$$,
-  '22023', null, 'reject: delivery arrives with step 14'
+-- Delivery exists since step 14; without an address it is rejected.
+select is(
+  public.place_order(gen_random_uuid(), 'delivery') ->> 'reason', 'address_not_found',
+  'reject: delivery without an address'
 );
 reset role;
 

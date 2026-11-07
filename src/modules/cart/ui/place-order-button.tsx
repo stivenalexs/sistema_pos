@@ -15,9 +15,13 @@ const ERRORS: Record<string, string> = {
   quote_failed: "Revisa las líneas marcadas en tu carrito.",
   insufficient_stock: "Uno de los productos ya no tiene unidades suficientes. Ajusta la cantidad.",
   order_requires_customer: "Inicia sesión con tu cuenta de cliente para comprar.",
+  delivery_unavailable: "El domicilio a esa dirección no está disponible. Elige otra dirección o recoge en la tienda.",
+  invalid_fulfillment: "Elige cómo quieres recibir el pedido.",
 };
 
-export function PlaceOrderButton() {
+export type OrderFulfillment = { fulfillment: "pickup" } | { fulfillment: "delivery"; addressId: string };
+
+export function PlaceOrderButton({ choice }: { choice: OrderFulfillment }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
 
@@ -26,7 +30,8 @@ export function PlaceOrderButton() {
     const response = await fetch("/api/orders", {
       method: "POST",
       headers: { "Content-Type": "application/json", [IDEMPOTENCY_KEY_HEADER]: idempotencyKey },
-      body: JSON.stringify({ fulfillment: "pickup" }),
+      // Only the choice: the fee is computed by the server.
+      body: JSON.stringify(choice),
     });
     const body = (await response.json().catch(() => ({}))) as {
       trackingId?: string;

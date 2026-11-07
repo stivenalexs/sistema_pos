@@ -1,5 +1,6 @@
 import "server-only";
 
+import { processDeliveryAttempt } from "@/modules/delivery";
 import { issueCreditNote, issueInvoice } from "@/modules/invoicing";
 import { processPaymentEvent } from "@/modules/payments";
 import { PermanentActionError, type ActionHandlers } from "@/shared/actions/server/worker";
@@ -37,4 +38,7 @@ export const actionHandlers: ActionHandlers = {
     }
     return issueCreditNote(payload.credit_note_id);
   },
+
+  // Delivery attempt with its proof (D-007, D-045). Idempotent by the key.
+  confirm_delivery: async (action) => processDeliveryAttempt(action.userId, action.payload),
 };

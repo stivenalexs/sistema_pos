@@ -8,13 +8,24 @@ import { createSupabaseServerClient } from "@/shared/supabase/server";
 
 export type PlaceOrderResult =
   | { ok: true; created: boolean; trackingId: string; orderId: string }
-  | { ok: false; error: "cart_empty" | "quote_failed" | "insufficient_stock" | "idempotency_key_conflict" };
+  | {
+      ok: false;
+      error: "cart_empty" | "quote_failed" | "insufficient_stock" | "delivery_unavailable" | "idempotency_key_conflict";
+      reason?: string;
+    };
 
-export async function placeOrder(idempotencyKey: string): Promise<PlaceOrderResult> {
+export type Fulfillment =
+  | { fulfillment: "pickup" }
+  | { fulfillment: "delivery"; addressId: string };
+
+export async function placeOrder(idempotencyKey: string, choice: Fulfillment = { fulfillment: "pickup" }): Promise<PlaceOrderResult> {
   const supabase = await createSupabaseServerClient();
+  // The delivery fee is computed by the database from the address id; the
+  // browser never sends amounts (agents.md §5.1).
   const { data, error } = await supabase.rpc("place_order", {
     p_idempotency_key: idempotencyKey,
-    p_fulfillment: "pickup",
+    p_fulfillment: choice.fulfillment,
+    ...(choice.fulfillment === "delivery" ? { p_address_id: choice.addressId } : {}),
   });
   if (error) {
     if (error.message.includes("idempotency_key_conflict")) {
@@ -28,7 +39,8 @@ export async function placeOrder(idempotencyKey: string): Promise<PlaceOrderResu
     created?: boolean;
     tracking_id?: string;
     order_id?: string;
-    error?: "cart_empty" | "quote_failed" | "insufficient_stock";
+    error?: "cart_empty" | "quote_failed" | "insufficient_stock" | "delivery_unavailable";
+    reason?: string;
   };
   if (result.ok && result.tracking_id && result.order_id) {
     return {
@@ -38,7 +50,11 @@ export async function placeOrder(idempotencyKey: string): Promise<PlaceOrderResu
       orderId: result.order_id,
     };
   }
-  return { ok: false, error: result.error ?? "quote_failed" };
+  return {
+    ok: false,
+    error: result.error ?? "quote_failed",
+    ...(result.reason ? { reason: result.reason } : {}),
+  };
 }
 
 export type OrderDetail = {
@@ -54,6 +70,13 @@ export type OrderDetail = {
   createdAt: string;
   /** Payment received but it cannot be fulfilled: the store refunds it. */
   needsRefund: boolean;
+  delivery: {
+    addressLine: string;
+    details: string | null;
+    municipality: string;
+    distanceM: number | null;
+  } | null;
+  deliveredAt: string | null;
   items: {
     productName: string;
     sku: string;
@@ -69,7 +92,7 @@ export async function getOrder(orderId: string): Promise<OrderDetail | null> {
   const { data } = await supabase
     .from("orders")
     .select(
-      "id, status, fulfillment, sale_unit, subtotal_cop, delivery_fee_cop, total_cop, payment_deadline, cancel_after, created_at, needs_refund, order_items (product_name, sku, quantity, unit_price_cop, line_total_cop)",
+      "id, status, fulfillment, sale_unit, subtotal_cop, delivery_fee_cop, total_cop, payment_deadline, cancel_after, created_at, needs_refund, delivery_address, delivery_distance_m, delivered_at, order_items (product_name, sku, quantity, unit_price_cop, line_total_cop)",
     )
     .eq("id", orderId)
     .maybeSingle();
@@ -87,6 +110,8 @@ export async function getOrder(orderId: string): Promise<OrderDetail | null> {
     cancelAfter: data.cancel_after,
     createdAt: data.created_at,
     needsRefund: data.needs_refund,
+    delivery: deliverySnapshot(data.delivery_address, data.delivery_distance_m),
+    deliveredAt: data.delivered_at,
     items: data.order_items
       .map((item) => ({
         productName: item.product_name,
@@ -96,5 +121,16 @@ export async function getOrder(orderId: string): Promise<OrderDetail | null> {
         lineTotalCop: item.line_total_cop,
       }))
       .sort((a, b) => a.productName.localeCompare(b.productName, "es")),
+  };
+}
+
+function deliverySnapshot(raw: unknown, distanceM: number | null): OrderDetail["delivery"] {
+  const value = raw as { address_line?: unknown; details?: unknown; municipality?: unknown } | null;
+  if (!value || typeof value.address_line !== "string" || typeof value.municipality !== "string") return null;
+  return {
+    addressLine: value.address_line,
+    details: typeof value.details === "string" ? value.details : null,
+    municipality: value.municipality,
+    distanceM,
   };
 }
