@@ -29,11 +29,12 @@ insert into public.product_prices (price_list_id, product_id, price_cop) values
   ('10000000-0000-4000-8000-000000000002', '10000000-0000-4000-8000-000000000102', 1150000),
   ('10000000-0000-4000-8000-000000000003', '10000000-0000-4000-8000-000000000102', 1100000);
 
-insert into auth.users (id, email, aud, role) values
-  ('20000000-0000-4000-8000-000000000001', 'retail@test.local', 'authenticated', 'authenticated'),
-  ('20000000-0000-4000-8000-000000000002', 'pending@test.local', 'authenticated', 'authenticated'),
-  ('20000000-0000-4000-8000-000000000003', 'wholesale@test.local', 'authenticated', 'authenticated'),
-  ('20000000-0000-4000-8000-000000000004', 'wholesale2@test.local', 'authenticated', 'authenticated');
+-- customer_profile = manual: these fixtures create their customers rows by hand.
+insert into auth.users (id, email, aud, role, raw_app_meta_data) values
+  ('20000000-0000-4000-8000-000000000001', 'retail@test.local', 'authenticated', 'authenticated', '{"customer_profile":"manual"}'),
+  ('20000000-0000-4000-8000-000000000002', 'pending@test.local', 'authenticated', 'authenticated', '{"customer_profile":"manual"}'),
+  ('20000000-0000-4000-8000-000000000003', 'wholesale@test.local', 'authenticated', 'authenticated', '{"customer_profile":"manual"}'),
+  ('20000000-0000-4000-8000-000000000004', 'wholesale2@test.local', 'authenticated', 'authenticated', '{"customer_profile":"manual"}');
 
 insert into public.customers (id, customer_type, wholesale_status, full_name, price_list_id) values
   ('20000000-0000-4000-8000-000000000001', 'retail', null, 'Cliente minorista', null),

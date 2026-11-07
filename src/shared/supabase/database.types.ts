@@ -39,14 +39,14 @@ export type Database = {
                   ]
                 },"customers": {
                   Row: {
-                    "created_at": string,"customer_type": Database["public"]['Enums']["customer_type"],"document_number": string | null,"document_type": Database["public"]['Enums']["document_type"] | null,"full_name": string,"id": string,"phone": string | null,"price_list_id": string | null,"updated_at": string,"wholesale_status": Database["public"]['Enums']["wholesale_status"] | null
+                    "business_name": string | null,"created_at": string,"customer_type": Database["public"]['Enums']["customer_type"],"document_number": string | null,"document_type": Database["public"]['Enums']["document_type"] | null,"full_name": string,"id": string,"phone": string | null,"price_list_id": string | null,"updated_at": string,"wholesale_status": Database["public"]['Enums']["wholesale_status"] | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"customer_type": Database["public"]['Enums']["customer_type"],"document_number"?: string | null,"document_type"?: Database["public"]['Enums']["document_type"] | null,"full_name": string,"id": string,"phone"?: string | null,"price_list_id"?: string | null,"updated_at"?: string,"wholesale_status"?: Database["public"]['Enums']["wholesale_status"] | null
+                    "business_name"?: string | null,"created_at"?: string,"customer_type": Database["public"]['Enums']["customer_type"],"document_number"?: string | null,"document_type"?: Database["public"]['Enums']["document_type"] | null,"full_name": string,"id": string,"phone"?: string | null,"price_list_id"?: string | null,"updated_at"?: string,"wholesale_status"?: Database["public"]['Enums']["wholesale_status"] | null
                   }
                   Update: {
-                    "created_at"?: string,"customer_type"?: Database["public"]['Enums']["customer_type"],"document_number"?: string | null,"document_type"?: Database["public"]['Enums']["document_type"] | null,"full_name"?: string,"id"?: string,"phone"?: string | null,"price_list_id"?: string | null,"updated_at"?: string,"wholesale_status"?: Database["public"]['Enums']["wholesale_status"] | null
+                    "business_name"?: string | null,"created_at"?: string,"customer_type"?: Database["public"]['Enums']["customer_type"],"document_number"?: string | null,"document_type"?: Database["public"]['Enums']["document_type"] | null,"full_name"?: string,"id"?: string,"phone"?: string | null,"price_list_id"?: string | null,"updated_at"?: string,"wholesale_status"?: Database["public"]['Enums']["wholesale_status"] | null
                   }
                   Relationships: [
                     {
@@ -56,6 +56,20 @@ isOneToOne: false
       referencedRelation: "price_lists"
       referencedColumns: ["id"]
     }
+                  ]
+                },"legal_acceptances": {
+                  Row: {
+                    "accepted_at": string,"declared_birth_date": string | null,"document": Database["public"]['Enums']["legal_document"],"id": string,"user_id": string | null,"version": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "accepted_at"?: string,"declared_birth_date"?: string | null,"document": Database["public"]['Enums']["legal_document"],"id"?: string,"user_id"?: string | null,"version": string
+                  }
+                  Update: {
+                    "accepted_at"?: string,"declared_birth_date"?: string | null,"document"?: Database["public"]['Enums']["legal_document"],"id"?: string,"user_id"?: string | null,"version"?: string
+                  }
+                  Relationships: [
+                    
                   ]
                 },"price_lists": {
                   Row: {
@@ -135,7 +149,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "action_status": "queued"|"processing"|"succeeded"|"failed","customer_type": "retail"|"wholesale","document_type": "cc"|"ce"|"nit"|"passport","product_origin": "national"|"imported","staff_role": "admin"|"cashier"|"courier"|"warehouse","wholesale_status": "pending"|"approved"|"rejected"
+            "action_status": "queued"|"processing"|"succeeded"|"failed","customer_type": "retail"|"wholesale","document_type": "cc"|"ce"|"nit"|"passport","legal_document": "age_gate"|"terms"|"privacy","product_origin": "national"|"imported","staff_role": "admin"|"cashier"|"courier"|"warehouse","wholesale_status": "pending"|"approved"|"rejected"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -255,7 +269,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "action_status": ["queued", "processing", "succeeded", "failed"],"customer_type": ["retail", "wholesale"],"document_type": ["cc", "ce", "nit", "passport"],"product_origin": ["national", "imported"],"staff_role": ["admin", "cashier", "courier", "warehouse"],"wholesale_status": ["pending", "approved", "rejected"]
+            "action_status": ["queued", "processing", "succeeded", "failed"],"customer_type": ["retail", "wholesale"],"document_type": ["cc", "ce", "nit", "passport"],"legal_document": ["age_gate", "terms", "privacy"],"product_origin": ["national", "imported"],"staff_role": ["admin", "cashier", "courier", "warehouse"],"wholesale_status": ["pending", "approved", "rejected"]
           }
         }
 } as const

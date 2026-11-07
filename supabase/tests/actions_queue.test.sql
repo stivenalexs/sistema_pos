@@ -5,9 +5,10 @@ begin;
 create extension if not exists pgtap with schema extensions;
 select plan(25);
 
-insert into auth.users (id, email, aud, role) values
-  ('40000000-0000-4000-8000-000000000001', 'a@test.local', 'authenticated', 'authenticated'),
-  ('40000000-0000-4000-8000-000000000002', 'b@test.local', 'authenticated', 'authenticated');
+-- customer_profile = manual: these fixtures create their customers rows by hand.
+insert into auth.users (id, email, aud, role, raw_app_meta_data) values
+  ('40000000-0000-4000-8000-000000000001', 'a@test.local', 'authenticated', 'authenticated', '{"customer_profile":"manual"}'),
+  ('40000000-0000-4000-8000-000000000002', 'b@test.local', 'authenticated', 'authenticated', '{"customer_profile":"manual"}');
 
 -- Start from an empty queue inside this transaction.
 delete from pgmq.q_actions;
