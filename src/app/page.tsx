@@ -43,7 +43,14 @@ async function Catalog() {
       {customer?.wholesaleStatus === "approved" ? (
         <p className="text-sm text-neutral-700">Precios mayoristas, por caja.</p>
       ) : null}
-      <ProductList items={items} />
+      {customer ? (
+        <p className="text-sm">
+          <Link href="/cart" className="underline">
+            Ver mi carrito
+          </Link>
+        </p>
+      ) : null}
+      <ProductList items={items} canBuy={customer !== null} />
     </>
   );
 }
