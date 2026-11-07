@@ -23,7 +23,81 @@ export type Database = {
           }
         },"public": {
           Tables: {
-            [_ in never]: never
+            "customers": {
+                  Row: {
+                    "created_at": string,"customer_type": Database["public"]['Enums']["customer_type"],"document_number": string | null,"document_type": Database["public"]['Enums']["document_type"] | null,"full_name": string,"id": string,"phone": string | null,"price_list_id": string | null,"updated_at": string,"wholesale_status": Database["public"]['Enums']["wholesale_status"] | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"customer_type": Database["public"]['Enums']["customer_type"],"document_number"?: string | null,"document_type"?: Database["public"]['Enums']["document_type"] | null,"full_name": string,"id": string,"phone"?: string | null,"price_list_id"?: string | null,"updated_at"?: string,"wholesale_status"?: Database["public"]['Enums']["wholesale_status"] | null
+                  }
+                  Update: {
+                    "created_at"?: string,"customer_type"?: Database["public"]['Enums']["customer_type"],"document_number"?: string | null,"document_type"?: Database["public"]['Enums']["document_type"] | null,"full_name"?: string,"id"?: string,"phone"?: string | null,"price_list_id"?: string | null,"updated_at"?: string,"wholesale_status"?: Database["public"]['Enums']["wholesale_status"] | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "customers_price_list_id_fkey"
+      columns: ["price_list_id"]
+isOneToOne: false
+      referencedRelation: "price_lists"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"price_lists": {
+                  Row: {
+                    "created_at": string,"customer_type": Database["public"]['Enums']["customer_type"],"id": string,"is_default": boolean,"name": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"customer_type": Database["public"]['Enums']["customer_type"],"id"?: string,"is_default"?: boolean,"name": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"customer_type"?: Database["public"]['Enums']["customer_type"],"id"?: string,"is_default"?: boolean,"name"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"product_prices": {
+                  Row: {
+                    "created_at": string,"id": string,"price_cop": number,"price_list_id": string,"product_id": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"price_cop": number,"price_list_id": string,"product_id": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"price_cop"?: number,"price_list_id"?: string,"product_id"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "product_prices_price_list_id_fkey"
+      columns: ["price_list_id"]
+isOneToOne: false
+      referencedRelation: "price_lists"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "product_prices_product_id_fkey"
+      columns: ["product_id"]
+isOneToOne: false
+      referencedRelation: "products"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"products": {
+                  Row: {
+                    "allow_retail_by_unit": boolean,"brand": string | null,"created_at": string,"description": string | null,"id": string,"is_active": boolean,"name": string,"origin": Database["public"]['Enums']["product_origin"],"retail_min_units": number,"sku": string,"units_per_box": number,"updated_at": string,"volume_ml": number | null,"wholesale_min_boxes": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "allow_retail_by_unit"?: boolean,"brand"?: string | null,"created_at"?: string,"description"?: string | null,"id"?: string,"is_active"?: boolean,"name": string,"origin": Database["public"]['Enums']["product_origin"],"retail_min_units"?: number,"sku": string,"units_per_box": number,"updated_at"?: string,"volume_ml"?: number | null,"wholesale_min_boxes"?: number
+                  }
+                  Update: {
+                    "allow_retail_by_unit"?: boolean,"brand"?: string | null,"created_at"?: string,"description"?: string | null,"id"?: string,"is_active"?: boolean,"name"?: string,"origin"?: Database["public"]['Enums']["product_origin"],"retail_min_units"?: number,"sku"?: string,"units_per_box"?: number,"updated_at"?: string,"volume_ml"?: number | null,"wholesale_min_boxes"?: number
+                  }
+                  Relationships: [
+                    
+                  ]
+                }
           }
           Views: {
             [_ in never]: never
@@ -32,7 +106,7 @@ export type Database = {
             [_ in never]: never
           }
           Enums: {
-            [_ in never]: never
+            "customer_type": "retail"|"wholesale","document_type": "cc"|"ce"|"nit"|"passport","product_origin": "national"|"imported","staff_role": "admin"|"cashier"|"courier"|"warehouse","wholesale_status": "pending"|"approved"|"rejected"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -152,7 +226,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            
+            "customer_type": ["retail", "wholesale"],"document_type": ["cc", "ce", "nit", "passport"],"product_origin": ["national", "imported"],"staff_role": ["admin", "cashier", "courier", "warehouse"],"wholesale_status": ["pending", "approved", "rejected"]
           }
         }
 } as const
