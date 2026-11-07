@@ -3,7 +3,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(29);
+select plan(31);
 
 insert into auth.users (id, email, aud, role, raw_app_meta_data) values
   ('e0000000-0000-4000-8000-000000000001', 'p1@test.local', 'authenticated', 'authenticated', '{"customer_profile":"manual"}'),
@@ -97,6 +97,11 @@ reset role;
 select pg_temp.as_service();
 set local role service_role;
 
+select is(
+  public.clear_mismatched_payment_hint(
+    (select (r #>> '{attempt,id}')::uuid from t_a2), 'tx-0001-ABC', (select r #>> '{attempt,reference}' from t_a2)),
+  false, 'reconcile: a hint whose transaction matches the attempt is kept'
+);
 select is(
   (select transaction_id from public.payments_to_reconcile(0)),
   'tx-0001-ABC', 'reconcile: an attempt with a transaction hint is listed'
@@ -227,6 +232,16 @@ reset role;
 select is(
   (select status::text || ':' || refund_reason from public.orders where id = (select id from t_o3)),
   'paid:insufficient_stock_after_payment', 'refund: paid without stock is flagged for refund'
+);
+
+-- A hint pointing to a transaction of another attempt is dropped.
+update public.payment_attempts set transaction_id_hint = 'tx-other'
+where order_id = (select id from t_o2) and attempt_number = 1;
+select is(
+  public.clear_mismatched_payment_hint(
+    (select id from public.payment_attempts where order_id = (select id from t_o2) and attempt_number = 1),
+    'tx-other', 'SOMEONE-ELSES-REF-1'),
+  true, 'reconcile: a hint whose transaction belongs to another attempt is dropped'
 );
 
 select * from finish();

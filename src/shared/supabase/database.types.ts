@@ -451,6 +451,9 @@ isOneToOne: false
               "action_id": string,"attempt": number,"max_attempts": number,"payload": Json,"type": string,"user_id": string
             }[]
                            },
+"clear_mismatched_payment_hint":
+{ Args: { "p_attempt_id": string,"p_transaction_id": string,"p_wompi_reference": string }; Returns: boolean
+                           },
 "complete_action":
 { Args: { "p_action_id": string,"p_result"?: Json }; Returns: undefined
                            },

@@ -34,7 +34,8 @@ export type CheckoutInput = {
   amountInCents: number;
   /** ISO 8601 in UTC: until when the stock stays reserved. */
   expiresAt: string;
-  redirectUrl: string;
+  /** Omitted when null: Wompi then shows its own result page. */
+  redirectUrl: string | null;
   customerEmail?: string | null;
   customerFullName?: string | null;
 };
@@ -57,12 +58,27 @@ export function buildCheckoutUrl(config: WompiConfig, input: CheckoutInput): str
       expirationTime,
       integritySecret: config.integritySecret,
     }),
-    "redirect-url": input.redirectUrl,
     "expiration-time": expirationTime,
   });
+  if (input.redirectUrl) params.set("redirect-url", input.redirectUrl);
   if (input.customerEmail) params.set("customer-data:email", input.customerEmail);
   if (input.customerFullName) params.set("customer-data:full-name", input.customerFullName);
   return `${config.checkoutUrl}?${params.toString()}`;
+}
+
+/**
+ * Return URL for the checkout, or null when the site runs on localhost:
+ * Wompi's CDN answers 403 "Request blocked" to any checkout whose
+ * redirect-url points to localhost or 127.0.0.1 (checked 2026-11-07, D-040).
+ * In local development, open the app as http://lvh.me:3000 to get the
+ * redirect back (lvh.me resolves to 127.0.0.1).
+ */
+export function checkoutRedirectUrl(siteOrigin: string, orderId: string): string | null {
+  const host = new URL(siteOrigin).hostname;
+  if (host === "localhost" || host === "127.0.0.1" || host === "[::1]" || host === "::1") {
+    return null;
+  }
+  return `${siteOrigin}/orders/${orderId}/payment-return`;
 }
 
 /** Converts whole pesos to Wompi cents. The only place where this happens. */

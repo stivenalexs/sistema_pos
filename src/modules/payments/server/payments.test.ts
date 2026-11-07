@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
 
-import { buildCheckoutUrl, copToCents, integritySignature } from "./checkout";
+import { buildCheckoutUrl, checkoutRedirectUrl, copToCents, integritySignature } from "./checkout";
 import { computeEventChecksum, verifyWompiEvent } from "./verify-signature";
 import { parseWompiConfig } from "./wompi-config";
 
@@ -141,6 +141,27 @@ describe("checkout", () => {
         .update("sk8-438k4-xmxm392-sn2m2490000COP2023-06-09T20:28:50.000Ztest_integrity_EXAMPLE")
         .digest("hex"),
     );
+  });
+
+  it("omits the return URL on localhost (Wompi's CDN blocks it with 403)", () => {
+    expect(checkoutRedirectUrl("http://localhost:3000", "o1")).toBeNull();
+    expect(checkoutRedirectUrl("http://127.0.0.1:3000", "o1")).toBeNull();
+    expect(checkoutRedirectUrl("http://lvh.me:3000", "o1")).toBe("http://lvh.me:3000/orders/o1/payment-return");
+    expect(checkoutRedirectUrl("https://tienda.example", "o1")).toBe("https://tienda.example/orders/o1/payment-return");
+  });
+
+  it("does not send redirect-url when there is none", () => {
+    const config = parseWompiConfig({
+      WOMPI_ENV: "sandbox",
+      WOMPI_PUBLIC_KEY: "pub_test_X",
+      WOMPI_PRIVATE_KEY: "prv_test_X",
+      WOMPI_EVENTS_SECRET: "test_events_X",
+      WOMPI_INTEGRITY_SECRET: "test_integrity_X",
+    });
+    const url = new URL(
+      buildCheckoutUrl(config, { reference: "R-1", amountInCents: 100, expiresAt: "2026-11-07T20:00:00Z", redirectUrl: null }),
+    );
+    expect(url.searchParams.has("redirect-url")).toBe(false);
   });
 
   it("converts pesos to cents only at the edge, with integers", () => {
