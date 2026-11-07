@@ -34,14 +34,24 @@ Registro de decisiones. Se lee al iniciar cada sesión (referenciado desde `agen
 ### Seguridad del repositorio
 - **D-020 (2026-11-06)** Protección de secretos en dos niveles. (1) `.gitignore` excluye `.env`, `.env.*`, `*.env`, `supabase/.env*` y `*.pem`, pero conserva `.env.example`. (2) `.claude/settings.json` deniega a Claude `Read`, `Edit` y `Write` sobre `.env`, `.env.local`, `.env.*.local`, `.env.development`, `.env.production`, `.env.test`, `.env.staging`, `*.env` y `*.pem`, y los comandos `cat`/`type` sobre `.env*`, `printenv` y `env`. **`.env.example` queda fuera del bloqueo** porque solo contiene nombres de variables sin valores y Claude debe poder mantenerlo (paso 5 del plan). Motivo: agents.md sección 6 y 8. Alternativa descartada: denegar el comodín `.env*`, que también bloquearía `.env.example`, porque en Claude Code las reglas de denegación prevalecen sobre las de permiso. Limitación conocida: el bloqueo de comandos de shell es por coincidencia de texto y no cubre toda forma posible de leer un archivo; la regla de no leer secretos sigue vigente.
 
+### Pendientes resueltos (paso 2 del plan, 2026-11-06)
+- **D-021 (2026-11-06)** Resuelve P-001. El kilómetro del domicilio se mide **en línea recta** con PostGIS, desde la tienda hasta la dirección de entrega. Motivo: es gratis y corre dentro de Supabase. Descartados: distancia por ruta (exige un servicio de mapas de pago) y tarifas por barrio o zona.
+- **D-022 (2026-11-06)** Resuelve P-002. Verificación de edad: **fecha de nacimiento (≥18) y aceptación en el registro, con auditoría, y cédula verificada en la entrega** (D-007). No se pide foto del documento al registrarse. Descartados: foto de la cédula en el registro (guarda datos sensibles bajo habeas data y exige revisión manual) y solo fecha sin auditoría.
+- **D-023 (2026-11-06)** Resuelve P-003. Las reservas de stock de pedidos web pendientes de pago vencen a los **30 minutos**. El valor vive en configuración, no en el código. Descartados: 15 minutos (puede vencer en pagos PSE lentos) y 60 minutos (bloquea stock demasiado tiempo frente al POS).
+- **D-024 (2026-11-06)** Resuelve P-004 y precisa D-004. El minorista compra **solo por unidad**; la compra por caja es exclusiva del mayorista. Cuando un producto permite la compra por unidad, define su **cantidad mínima en unidades por producto** (por defecto 1). Descartados: caja para minoristas (siempre o configurable), compra sin mínimo y mínimo por valor del pedido.
+- **D-025 (2026-11-06)** Resuelve P-007 de forma condicionada. La cola usa **Supabase Queues (pgmq)**. La disponibilidad de la extensión se verifica al conectar el proyecto (paso 5 del plan). Si no está disponible, se usa una tabla de cola propia con `FOR UPDATE SKIP LOCKED`, y eso se registra como decisión nueva. Descartado por ahora: tabla propia desde el inicio.
+- **D-026 (2026-11-06)** Resuelve P-008. Los mensajeros de terceros se manejan con **asignación manual**: el administrador asigna el pedido y actualiza su estado. Una integración por API con una empresa concreta queda para una fase posterior, si se necesita. Descartados por ahora: integración por API y modelo mixto.
+- **D-027 (2026-11-06)** Resuelve P-009. "thernos" era un error de digitación de la skill **`thermos`**, como dice agents.md sección 8.
+
 ## Pendientes de confirmar (supuestos del asistente, no decisiones)
 
-- **P-001** Medición del 1 km del domicilio: se propone distancia en línea recta con PostGIS (gratis); por ruta exigiría un servicio de mapas de pago.
-- **P-002** Nivel de verificación de edad: se propone fecha de nacimiento + aceptación en el registro + prueba de entrega con cédula, con registro de auditoría. No se pide foto del documento al registrarse.
-- **P-003** Vencimiento de reservas de stock para pagos pendientes (PSE): se propone 30 minutos.
-- **P-004** Si el minorista también puede comprar por caja, y si hay mínimo en unidades al activar la compra por cantidad.
-- **P-005** Tratamiento tributario (IVA, impuesto al consumo departamental) de nacionales e importados, y qué documento electrónico se emite en ventas POS: consultar al contador.
-- **P-006** Derecho de retracto, horarios y "ley seca" municipales, publicidad de licor y habeas data (Ley 1581): consultar a un abogado.
-- **P-007** Disponibilidad de Supabase Queues (pgmq) en el plan contratado; si no, usar tabla de cola propia o un servicio gestionado.
-- **P-008** Si los mensajeros de terceros se integran por API o solo se les asigna el pedido manualmente.
-- **P-009** Confirmar que "thernos" es la skill `thermos`.
+- ~~**P-001**~~ Resuelto en D-021.
+- ~~**P-002**~~ Resuelto en D-022.
+- ~~**P-003**~~ Resuelto en D-023.
+- ~~**P-004**~~ Resuelto en D-024.
+- **P-005** Tratamiento tributario (IVA, impuesto al consumo departamental) de nacionales e importados, y qué documento electrónico se emite en ventas POS: consultar al contador. **Sigue abierto (2026-11-06)**. Bloquea los pasos 13 y 16. Mientras tanto, impuestos y tipos de documento se diseñan como tablas configurables.
+- **P-006** Derecho de retracto, horarios y "ley seca" municipales, publicidad de licor y habeas data (Ley 1581): consultar a un abogado. **Sigue abierto (2026-11-06)**. Los horarios y la ley seca se modelan como reglas configurables (paso 15) y los textos legales quedan provisionales hasta su aprobación.
+- ~~**P-007**~~ Resuelto en D-025 (con verificación en el paso 5).
+- ~~**P-008**~~ Resuelto en D-026.
+- ~~**P-009**~~ Resuelto en D-027.
+- **P-010** Cómo se obtienen las coordenadas de la dirección de entrega para medir la distancia en línea recta (D-021). Se propone que el cliente marque su ubicación en un mapa al registrar la dirección. La alternativa es convertir la dirección escrita en coordenadas (geocodificación), que suele ser un servicio de pago o con límites de uso. Las direcciones colombianas ("Cra 43A # 1-50") geocodifican de forma poco precisa. También falta definir qué municipios forman el "área metropolitana" de D-005.
