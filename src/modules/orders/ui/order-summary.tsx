@@ -3,6 +3,7 @@ import { formatCop } from "@/modules/pricing";
 import { FULFILLMENT_LABELS, formatBogotaDateTime, ORDER_STATUS_LABELS } from "../domain/order-labels";
 import type { OrderDetail } from "../server/orders";
 import { CancelOrderForm } from "./cancel-order-form";
+import { PayButton } from "./pay-button";
 
 // Order summary (functional, no design yet; D-037).
 export function OrderSummary({ order }: { order: OrderDetail }) {
@@ -45,12 +46,24 @@ export function OrderSummary({ order }: { order: OrderDetail }) {
         <div className="flex flex-col gap-3">
           {order.paymentDeadline ? (
             <p className="text-sm">
-              Te guardamos los productos hasta las {formatBogotaDateTime(order.paymentDeadline)}. El pago en
-              línea estará disponible pronto.
+              Te guardamos los productos hasta las {formatBogotaDateTime(order.paymentDeadline)}.
             </p>
           ) : null}
+          <PayButton orderId={order.id} />
           <CancelOrderForm orderId={order.id} />
         </div>
+      ) : null}
+
+      {order.status === "paid" && !order.needsRefund ? (
+        <p role="status" className="rounded-md border border-green-700 bg-green-50 p-3">
+          Pago recibido. Te avisaremos cuando tu pedido esté listo para recoger.
+        </p>
+      ) : null}
+      {order.needsRefund ? (
+        <p role="status" className="rounded-md border border-amber-600 bg-amber-50 p-3">
+          Recibimos tu pago, pero no podemos completar el pedido. Te devolveremos el dinero; nos
+          pondremos en contacto contigo.
+        </p>
       ) : null}
     </div>
   );

@@ -3,3 +3,4 @@ export * from "./domain/order-labels";
 export { type CancelOrderState, cancelOrderAction } from "./server/order-actions";
 export { getOrder, type OrderDetail, placeOrder, type PlaceOrderResult } from "./server/orders";
 export { OrderSummary } from "./ui/order-summary";
+export { PaymentStatusRefresher } from "./ui/payment-status-refresher";
