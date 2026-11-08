@@ -8,7 +8,8 @@ import { getSalesBlock, SalesBlockNotice } from "@/modules/compliance";
 import { getCurrentCustomer } from "@/modules/customers";
 import { getCatalog } from "@/modules/pricing";
 
-export const metadata: Metadata = { title: "Nuestra cava" };
+// The layout template does not apply to the page at its own level.
+export const metadata: Metadata = { title: { absolute: "Nuestra cava · La Cava" } };
 
 // Catalog page from the Figma "Nuestra cava · Catálogo" (D-048).
 export default function Home() {

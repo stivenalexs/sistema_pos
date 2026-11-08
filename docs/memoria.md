@@ -419,6 +419,12 @@ Registro de decisiones. Se lee al iniciar cada sesión (referenciado desde `agen
   - **Pendientes de la revisión (propuestas 4 a 6):** listas en tabla (ventas POS, facturas, reembolsos, cola), estados vacíos que orienten y la entrada de mercancía primero en Inventario.
   - **Pruebas:** 4 Vitest de la bandeja y los contadores. En el navegador: "Todo al día." con todo en cero, menú lateral con la sección actual y el contador de un mayorista pendiente (cuenta de prueba local `mayorista-diseno@test.local`). No se vio la bandeja con tareas en el navegador porque el responsable estaba usando el panel; queda cubierta por las pruebas.
 
+- **D-065 (2026-11-08)** Sesión en el encabezado y páginas solo para quien no tiene sesión, a pedido del responsable.
+  - **La barra se actualiza sin recargar la página.** El inicio y el cierre de sesión corren en el servidor (Server Actions), así que el cliente de Supabase del navegador no recibía ningún aviso y la barra seguía igual hasta recargar. Ahora `SessionNav` vuelve a leer la sesión en cada cambio de ruta (`usePathname`; las dos acciones terminan con una redirección) y la limpia al terminar el cierre de sesión (en un `finally`, que también corre cuando la acción redirige). Usa `getUser()` en lugar de `getClaims()` para que el token de una cuenta borrada no aparezca como sesión iniciada. Va dentro de un `<Suspense>` en el layout, porque `usePathname` lo exige para prerenderizar las rutas dinámicas.
+  - **Con sesión iniciada no se puede abrir `/login` ni `/signup`.** `proxy.ts` redirige a la página `next` que se pidió (si es segura) o al inicio de cada rol (`signedInDestination`: administrador `/admin`, cajero `/pos`, mensajero `/courier`, bodega `/admin/inventario`, cliente `/`). Solo en esas dos páginas se confirma la cuenta con `getUser()`, para no sumar una consulta a Auth en cada petición. `/auth/set-password` no está incluida porque la persona invitada llega ahí con su sesión.
+  - **De paso:** el título de la página de inicio quedaba "Nuestra cava" sin "· La Cava", porque la plantilla del layout no se aplica a la página de su mismo nivel; ahora usa `absolute`.
+  - **Pruebas:** 4 Vitest de `signedInDestination`. En el navegador: con sesión, `/login` y `/signup` llevan a `/admin` y `/login?next=/admin/facturas` a Facturas; cerrar sesión y entrar cambian la barra sin recargar (una marca en `window` sobrevivió a las dos acciones); volver atrás al login con sesión termina en `/admin`.
+
 ## Pendientes de confirmar (supuestos del asistente, no decisiones)
 
 - ~~**P-001**~~ Resuelto en D-021.
