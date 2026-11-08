@@ -651,6 +651,20 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"stock_settings_changes": {
+                  Row: {
+                    "changed_by": string | null,"created_at": string,"id": string,"new_low_stock_threshold": number,"new_web_safety_stock": number,"old_low_stock_threshold": number,"old_web_safety_stock": number,"product_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "changed_by"?: string | null,"created_at"?: string,"id"?: string,"new_low_stock_threshold": number,"new_web_safety_stock": number,"old_low_stock_threshold": number,"old_web_safety_stock": number,"product_id": string
+                  }
+                  Update: {
+                    "changed_by"?: string | null,"created_at"?: string,"id"?: string,"new_low_stock_threshold"?: number,"new_web_safety_stock"?: number,"old_low_stock_threshold"?: number,"old_web_safety_stock"?: number,"product_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"tax_rates": {
                   Row: {
                     "ad_valorem_pct": number,"created_at": string,"exploitation_pct": number,"id": string,"specific_per_degree_cop": number,"tax_category": Database["public"]['Enums']["tax_category"],"year": number
@@ -782,6 +796,19 @@ isOneToOne: false
               "available_sale_units": number,"available_units": number,"product_id": string
             }[]
                            },
+"inventory_alerts":
+{ Args: Record<PropertyKey, never>; Returns: Json
+                           },
+"inventory_overview":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "available": number,"is_active": boolean,"is_low": boolean,"low_stock_threshold": number,"name": string,"on_hand": number,"origin": Database["public"]['Enums']["product_origin"],"product_id": string,"reserved": number,"sku": string,"units_per_box": number,"web_safety_stock": number
+            }[]
+                           },
+"inventory_recent_movements":
+{ Args: { "p_include_reservations"?: boolean,"p_limit"?: number,"p_product_id"?: string }; Returns: {
+              "created_at": string,"movement_id": string,"movement_type": Database["public"]['Enums']["inventory_movement_type"],"product_id": string,"product_name": string,"reason": string,"recorded_by": string,"reference": string,"sku": string,"units": number
+            }[]
+                           },
 "invite_staff":
 { Args: { "p_email": string,"p_full_name": string,"p_phone": string,"p_staff_role": string }; Returns: Json
                            },
@@ -868,6 +895,9 @@ isOneToOne: false
                            },
 "set_cart_item":
 { Args: { "p_product_id": string,"p_quantity": number }; Returns: undefined
+                           },
+"set_stock_settings":
+{ Args: { "p_low_stock_threshold": number,"p_product_id": string,"p_web_safety_stock": number }; Returns: Json
                            },
 "start_payment":
 { Args: { "p_idempotency_key": string,"p_order_id": string }; Returns: Json

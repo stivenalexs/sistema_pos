@@ -21,7 +21,7 @@ export const STAFF_HOME: Record<StaffRole, string> = {
   admin: "/admin",
   cashier: "/pos",
   courier: "/courier",
-  warehouse: "/",
+  warehouse: "/admin/inventario",
 };
 
 export function isStaffRole(value: unknown): value is StaffRole {

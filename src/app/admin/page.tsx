@@ -19,7 +19,10 @@ export default function AdminHome() {
 
 async function Summary() {
   await connection();
-  if ((await getStaffRole()) !== "admin") redirect("/login?next=/admin");
+  const role = await getStaffRole();
+  // Warehouse staff only have the inventory section (D-056).
+  if (role === "warehouse") redirect("/admin/inventario");
+  if (role !== "admin") redirect("/login?next=/admin");
   const summary = await getAdminSummary();
   const cards = [
     { href: "/admin/mayoristas", label: "Mayoristas por revisar", value: summary.pendingWholesale },
@@ -28,9 +31,16 @@ async function Summary() {
     { href: "/admin/facturas", label: "Facturas o notas rechazadas", value: summary.invoicesAttention },
     { href: "/admin/reembolsos", label: "Reembolsos por registrar", value: summary.refundsPending },
     { href: "/admin/cola", label: "Trabajos fallidos", value: summary.failedActions },
+    { href: "/admin/inventario", label: "Productos en stock bajo", value: summary.lowStock },
   ];
   return (
     <div className="flex flex-col gap-4">
+    {summary.stockMismatches > 0 ? (
+      <p role="alert" className="notice notice-danger">
+        {summary.stockMismatches} productos tienen un saldo que no coincide con su libro de movimientos: revisa el{" "}
+        <Link href="/admin/inventario" className="link">inventario</Link>.
+      </p>
+    ) : null}
     {summary.queueStuck > 0 ? (
       <p role="status" className="notice notice-warning">
         Hay {summary.queueStuck} trabajos detenidos hace más de 10 minutos: revisa la <Link href="/admin/cola" className="link">cola</Link>.
