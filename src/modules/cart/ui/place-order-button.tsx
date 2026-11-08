@@ -49,9 +49,9 @@ export function PlaceOrderButton({ choice }: { choice: OrderFulfillment }) {
 
   return (
     <div className="flex flex-col gap-2">
-      <ActionButton onAccept={placeOrder}>Confirmar pedido</ActionButton>
+      <ActionButton onAccept={placeOrder} className="w-full">Confirmar pedido</ActionButton>
       {error ? (
-        <p role="alert" className="text-red-700">
+        <p role="alert" className="notice notice-danger">
           {error}
         </p>
       ) : null}

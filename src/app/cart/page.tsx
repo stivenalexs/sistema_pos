@@ -6,18 +6,19 @@ import { Suspense } from "react";
 import { CartView, getCartView } from "@/modules/cart";
 import { getCurrentCustomer } from "@/modules/customers";
 import { type FulfillmentChoice, getDeliveryAddresses, quoteDelivery } from "@/modules/delivery";
+import { PageHeader } from "@/shared/ui/page-header";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
 export default function CartPage({ searchParams }: { searchParams: SearchParams }) {
   return (
-    <section className="flex flex-col gap-6">
-      <h1 className="text-2xl font-semibold">Mi carrito</h1>
-      <Suspense fallback={<p className="text-neutral-600">Cargando carrito…</p>}>
+    <section className="page-narrow flex flex-col gap-10">
+      <PageHeader eyebrow="Tu selección" title="Mi carrito" />
+      <Suspense fallback={<p className="text-muted">Cargando carrito…</p>}>
         <Cart searchParams={searchParams} />
       </Suspense>
       <p className="text-sm">
-        <Link href="/" className="underline">
+        <Link href="/" className="link">
           Seguir comprando
         </Link>
       </p>

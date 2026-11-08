@@ -5,10 +5,10 @@ import type { CartView as CartViewData } from "../server/get-cart";
 import { AddToCartForm } from "./add-to-cart-form";
 import { PlaceOrderButton } from "./place-order-button";
 
-// Cart screen (functional, no design yet; D-037). All prices come from the server.
+// Cart screen (D-046). No animation (agents.md §8). All prices come from the server.
 export function CartView({ cart, choice }: { cart: CartViewData; choice: FulfillmentChoice }) {
   if (cart.lines.length === 0) {
-    return <p>Tu carrito está vacío.</p>;
+    return <p className="notice notice-info">Tu carrito está vacío.</p>;
   }
   const canPlace =
     choice.fulfillment === "pickup" || (choice.selectedAddressId !== null && choice.quote?.ok === true);
@@ -16,27 +16,27 @@ export function CartView({ cart, choice }: { cart: CartViewData; choice: Fulfill
   const unitLabel = cart.saleUnit === "box" ? "cajas" : "unidades";
 
   return (
-    <div className="flex flex-col gap-6">
-      <ul className="flex flex-col divide-y divide-neutral-200 border-y border-neutral-200">
+    <div className="flex flex-col gap-8">
+      <ul className="flex flex-col divide-y divide-line border-y border-line">
         {cart.lines.map((line) => {
           const error = line.quote?.error ?? null;
           const outOfStock =
             line.availableSaleUnits !== null && line.quantity > line.availableSaleUnits;
           return (
-            <li key={line.productId} className="flex flex-col gap-2 py-4">
+            <li key={line.productId} className="flex flex-col gap-3 py-5">
               <div className="flex items-start justify-between gap-4">
-                <h2 className="font-medium">{line.name}</h2>
-                <p className="whitespace-nowrap font-semibold">
+                <h2 className="font-display text-2xl leading-tight">{line.name}</h2>
+                <p className="whitespace-nowrap font-semibold text-gold tabular-nums">
                   {line.quote?.lineTotalCop != null ? formatCop(line.quote.lineTotalCop) : "—"}
                 </p>
               </div>
               {line.quote?.unitPriceCop != null ? (
-                <p className="text-sm text-neutral-600">
+                <p className="text-sm text-muted">
                   {line.quantity} × {formatCop(line.quote.unitPriceCop)}
                 </p>
               ) : null}
               {error ? (
-                <p className="text-sm text-red-700">
+                <p className="text-sm text-danger">
                   {QUOTE_ERROR_MESSAGES[error]}
                   {error === "below_minimum" && line.quote?.minQuantity
                     ? ` Mínimo: ${line.quote.minQuantity} ${unitLabel}.`
@@ -44,7 +44,7 @@ export function CartView({ cart, choice }: { cart: CartViewData; choice: Fulfill
                 </p>
               ) : null}
               {!error && outOfStock ? (
-                <p className="text-sm text-red-700">
+                <p className="text-sm text-danger">
                   Solo quedan {line.availableSaleUnits} {unitLabel} disponibles.
                 </p>
               ) : null}
@@ -57,7 +57,7 @@ export function CartView({ cart, choice }: { cart: CartViewData; choice: Fulfill
                   defaultQuantity={line.quantity}
                 />
               </div>
-              <p className="text-xs text-neutral-500">Para quitar el producto, pon la cantidad en 0.</p>
+              <p className="text-xs text-muted">Para quitar el producto, pon la cantidad en 0.</p>
             </li>
           );
         })}
@@ -68,7 +68,7 @@ export function CartView({ cart, choice }: { cart: CartViewData; choice: Fulfill
       {cart.quote?.ok && cart.quote.totalCop != null ? (
         <Totals subtotalCop={cart.quote.totalCop} choice={choice} />
       ) : (
-        <p className="text-red-700">Corrige las líneas marcadas para poder confirmar el pedido.</p>
+        <p className="notice notice-danger">Corrige las líneas marcadas para poder confirmar el pedido.</p>
       )}
 
       {cart.quote?.ok && canPlace ? (
@@ -90,14 +90,14 @@ export function CartView({ cart, choice }: { cart: CartViewData; choice: Fulfill
 function Totals({ subtotalCop, choice }: { subtotalCop: number; choice: FulfillmentChoice }) {
   const fee = choice.fulfillment === "delivery" && choice.quote?.ok ? choice.quote.feeCop : 0;
   return (
-    <div className="flex flex-col gap-1">
+    <div className="card flex flex-col gap-2 p-5 tabular-nums">
       <p className="flex justify-between">
         <span>Subtotal</span>
         <span>{formatCop(subtotalCop)}</span>
       </p>
-      <p className="flex justify-between text-sm text-neutral-600">
+      <p className="flex justify-between gap-4 text-sm text-muted">
         <span>Entrega</span>
-        <span>
+        <span className="text-right">
           {choice.fulfillment === "pickup"
             ? "Recoger en la tienda (sin costo)"
             : choice.quote?.ok
@@ -107,9 +107,9 @@ function Totals({ subtotalCop, choice }: { subtotalCop: number; choice: Fulfillm
               : "—"}
         </span>
       </p>
-      <p className="flex justify-between text-lg font-semibold">
+      <p className="mt-2 flex justify-between border-t border-line pt-3 text-lg font-semibold">
         <span>Total</span>
-        <span>{formatCop(subtotalCop + fee)}</span>
+        <span className="text-gold">{formatCop(subtotalCop + fee)}</span>
       </p>
     </div>
   );

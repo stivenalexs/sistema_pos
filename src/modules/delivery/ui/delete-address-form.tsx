@@ -9,12 +9,12 @@ import { type AddressFormState, deleteAddressAction } from "../server/address-ac
 export function DeleteAddressForm({ addressId }: { addressId: string }) {
   const [state, formAction] = useActionState<AddressFormState, FormData>(deleteAddressAction, { status: "idle" });
   return (
-    <form action={formAction} className="flex items-center gap-2">
+    <form action={formAction} className="flex shrink-0 flex-col items-end gap-2">
       <input type="hidden" name="addressId" value={addressId} />
-      <FormSubmitButton pendingLabel="Borrando…" className="px-3 py-1 text-sm">
+      <FormSubmitButton pendingLabel="Borrando…" variant="secondary" className="btn-sm">
         Borrar
       </FormSubmitButton>
-      {state.status === "error" ? <span className="text-sm text-red-700">{state.message}</span> : null}
+      {state.status === "error" ? <span className="field-error">{state.message}</span> : null}
     </form>
   );
 }

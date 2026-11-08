@@ -2,7 +2,10 @@
 
 import { useActionState } from "react";
 
+import Image from "next/image";
+
 import { FormSubmitButton } from "@/shared/ui/form-submit-button";
+import { PasswordInput } from "@/shared/ui/password-input";
 
 import type { AuthFormState } from "../server/auth-actions";
 
@@ -11,20 +14,18 @@ type Props = {
   next: string;
 };
 
-const INPUT = "w-full rounded-md border border-neutral-400 px-3 py-2";
-
 export function LoginForm({ action, next }: Props) {
   const [state, formAction] = useActionState(action, { status: "idle" });
 
   return (
-    <form action={formAction} className="flex flex-col gap-4">
+    <form action={formAction} className="flex flex-col gap-[22px]">
       {state.message ? (
-        <p role="alert" className="text-red-700">
+        <p role="alert" className="notice notice-danger">
           {state.message}
         </p>
       ) : null}
       <input type="hidden" name="next" value={next} />
-      <label className="flex flex-col gap-1">
+      <label className="field-label">
         Correo electrónico
         <input
           type="email"
@@ -32,14 +33,23 @@ export function LoginForm({ action, next }: Props) {
           required
           autoComplete="email"
           defaultValue={state.values?.email}
-          className={INPUT}
+          placeholder="tu@correo.com"
+          className="field"
         />
       </label>
-      <label className="flex flex-col gap-1">
+      <label className="field-label">
         Contraseña
-        <input type="password" name="password" required autoComplete="current-password" className={INPUT} />
+        <PasswordInput
+          name="password"
+          required
+          autoComplete="current-password"
+          placeholder="Introduce tu contraseña"
+        />
       </label>
-      <FormSubmitButton pendingLabel="Entrando…">Iniciar sesión</FormSubmitButton>
+      <FormSubmitButton pendingLabel="Entrando…" className="mt-2 w-full justify-between">
+        Entrar a la cava
+        <Image src="/brand/arrow-right.svg" alt="" width={20} height={20} />
+      </FormSubmitButton>
     </form>
   );
 }

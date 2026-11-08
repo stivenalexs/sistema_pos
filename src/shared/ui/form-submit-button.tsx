@@ -11,6 +11,8 @@ import { useFormStatus } from "react-dom";
 export type FormSubmitButtonProps = {
   children: ReactNode;
   pendingLabel?: string;
+  /** Visual style only; the locking rules are the same. */
+  variant?: "primary" | "secondary";
   className?: string;
   name?: string;
   value?: string;
@@ -19,6 +21,7 @@ export type FormSubmitButtonProps = {
 export function FormSubmitButton({
   children,
   pendingLabel = "Procesando…",
+  variant = "primary",
   className = "",
   name,
   value,
@@ -51,7 +54,7 @@ export function FormSubmitButton({
       onClick={handleClick}
       disabled={pending}
       aria-busy={pending}
-      className={`rounded-md bg-neutral-900 px-4 py-2 font-medium text-white disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
+      className={`btn ${variant === "primary" ? "btn-primary" : "btn-secondary"} ${className}`}
     >
       {pending ? pendingLabel : children}
     </button>

@@ -19,16 +19,16 @@ export function AddressForm({ zones, center }: Props) {
   const errors = state.fieldErrors ?? {};
 
   return (
-    <form action={formAction} className="flex flex-col gap-4">
-      <label className="flex flex-col gap-1">
+    <form action={formAction} className="flex flex-col gap-5">
+      <label className="field-label">
         Nombre de la dirección
-        <input name="label" required maxLength={60} placeholder="Casa, oficina…" className="rounded-md border border-neutral-400 px-3 py-2" />
-        {errors.label ? <span className="text-sm text-red-700">{errors.label}</span> : null}
+        <input name="label" required maxLength={60} placeholder="Casa, oficina…" className="field" />
+        {errors.label ? <span className="field-error">{errors.label}</span> : null}
       </label>
 
-      <label className="flex flex-col gap-1">
+      <label className="field-label">
         Municipio
-        <select name="zoneId" required defaultValue="" className="rounded-md border border-neutral-400 px-3 py-2">
+        <select name="zoneId" required defaultValue="" className="field">
           <option value="" disabled>
             Elige el municipio
           </option>
@@ -38,10 +38,10 @@ export function AddressForm({ zones, center }: Props) {
             </option>
           ))}
         </select>
-        {errors.zoneId ? <span className="text-sm text-red-700">{errors.zoneId}</span> : null}
+        {errors.zoneId ? <span className="field-error">{errors.zoneId}</span> : null}
       </label>
 
-      <label className="flex flex-col gap-1">
+      <label className="field-label">
         Dirección
         <input
           name="addressLine"
@@ -49,28 +49,28 @@ export function AddressForm({ zones, center }: Props) {
           minLength={5}
           maxLength={200}
           placeholder="Cra 43A # 1-50"
-          className="rounded-md border border-neutral-400 px-3 py-2"
+          className="field"
         />
-        {errors.addressLine ? <span className="text-sm text-red-700">{errors.addressLine}</span> : null}
+        {errors.addressLine ? <span className="field-error">{errors.addressLine}</span> : null}
       </label>
 
-      <label className="flex flex-col gap-1">
+      <label className="field-label">
         Detalles (opcional)
-        <input name="details" maxLength={200} placeholder="Apartamento, torre, punto de referencia" className="rounded-md border border-neutral-400 px-3 py-2" />
-        {errors.details ? <span className="text-sm text-red-700">{errors.details}</span> : null}
+        <input name="details" maxLength={200} placeholder="Apartamento, torre, punto de referencia" className="field" />
+        {errors.details ? <span className="field-error">{errors.details}</span> : null}
       </label>
 
-      <fieldset className="flex flex-col gap-1">
-        <legend>Punto de entrega en el mapa</legend>
+      <fieldset className="flex flex-col gap-2">
+        <legend className="mb-2 text-[13px] font-medium">Punto de entrega en el mapa</legend>
         <AddressMap center={center} value={point} onChange={setPoint} />
         <input type="hidden" name="lat" value={point?.lat ?? ""} />
         <input type="hidden" name="lng" value={point?.lng ?? ""} />
-        {errors.lat ? <span className="text-sm text-red-700">{errors.lat}</span> : null}
+        {errors.lat ? <span className="field-error">{errors.lat}</span> : null}
       </fieldset>
 
-      <FormSubmitButton pendingLabel="Guardando…">Guardar dirección</FormSubmitButton>
+      <FormSubmitButton pendingLabel="Guardando…" className="w-full">Guardar dirección</FormSubmitButton>
       {state.message ? (
-        <p role="status" className={state.status === "error" ? "text-red-700" : ""}>
+        <p role="status" className={`notice ${state.status === "error" ? "notice-danger" : "notice-success"}`}>
           {state.message}
         </p>
       ) : null}

@@ -5,12 +5,13 @@ import { Suspense } from "react";
 import { ProductList } from "@/modules/catalog";
 import { getCurrentCustomer } from "@/modules/customers";
 import { getCatalog } from "@/modules/pricing";
+import { PageHeader } from "@/shared/ui/page-header";
 
 export default function Home() {
   return (
-    <section className="flex flex-col gap-6">
-      <h1 className="text-2xl font-semibold">Catálogo</h1>
-      <Suspense fallback={<p className="text-neutral-600">Cargando productos…</p>}>
+    <section className="page flex flex-col gap-10">
+      <PageHeader eyebrow="El tiempo se saborea" title="Nuestra cava" />
+      <Suspense fallback={<p className="text-muted">Cargando productos…</p>}>
         <Catalog />
       </Suspense>
     </section>
@@ -26,29 +27,22 @@ async function Catalog() {
   return (
     <>
       {customer === null ? (
-        <p className="text-sm text-neutral-700">
+        <p className="notice notice-info">
           Ves precios al detal.{" "}
-          <Link href="/signup" className="underline">
+          <Link href="/signup" className="link">
             Crea tu cuenta
           </Link>{" "}
           para comprar.
         </p>
       ) : null}
       {customer?.wholesaleStatus === "pending" ? (
-        <p role="status" className="rounded-md border border-amber-600 bg-amber-50 p-3 text-sm">
+        <p role="status" className="notice notice-warning">
           Tu cuenta de mayorista está en revisión. Mientras tanto ves y compras con precios al
           detal.
         </p>
       ) : null}
       {customer?.wholesaleStatus === "approved" ? (
-        <p className="text-sm text-neutral-700">Precios mayoristas, por caja.</p>
-      ) : null}
-      {customer ? (
-        <p className="text-sm">
-          <Link href="/cart" className="underline">
-            Ver mi carrito
-          </Link>
-        </p>
+        <p className="notice notice-info">Precios mayoristas, por caja.</p>
       ) : null}
       <ProductList items={items} canBuy={customer !== null} />
     </>

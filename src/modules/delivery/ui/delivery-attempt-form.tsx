@@ -71,12 +71,12 @@ export function DeliveryAttemptForm({ orderId }: { orderId: string }) {
   return (
     <div className="flex flex-col gap-5">
       <fieldset className="flex flex-col gap-2">
-        <legend className="mb-1 font-medium">Resultado</legend>
-        <label className="flex items-center gap-2">
+        <legend className="mb-2 text-[13px] font-medium">Resultado</legend>
+        <label className="option flex items-center gap-3" aria-current={outcome === "delivered" ? "true" : undefined}>
           <input type="radio" name="outcome" checked={outcome === "delivered"} onChange={() => setOutcome("delivered")} />
           Entregado
         </label>
-        <label className="flex items-center gap-2">
+        <label className="option flex items-center gap-3" aria-current={outcome === "failed" ? "true" : undefined}>
           <input type="radio" name="outcome" checked={outcome === "failed"} onChange={() => setOutcome("failed")} />
           No se pudo entregar
         </label>
@@ -84,17 +84,17 @@ export function DeliveryAttemptForm({ orderId }: { orderId: string }) {
 
       {outcome === "delivered" ? (
         <>
-          <label className="flex flex-col gap-1">
+          <label className="field-label">
             Nombre de quien recibe
             <input
               value={recipientName}
               onChange={(e) => setRecipientName(e.target.value)}
               maxLength={120}
               autoComplete="off"
-              className="rounded-md border border-neutral-400 px-3 py-2"
+              className="field"
             />
           </label>
-          <label className="flex flex-col gap-1">
+          <label className="field-label">
             Número de cédula
             <input
               value={documentNumber}
@@ -102,25 +102,25 @@ export function DeliveryAttemptForm({ orderId }: { orderId: string }) {
               inputMode="numeric"
               maxLength={16}
               autoComplete="off"
-              className="rounded-md border border-neutral-400 px-3 py-2"
+              className="field"
             />
           </label>
-          <label className="flex items-start gap-2">
-            <input type="checkbox" checked={ageConfirmed} onChange={(e) => setAgeConfirmed(e.target.checked)} className="mt-1" />
+          <label className="flex items-start gap-3 text-sm leading-relaxed">
+            <input type="checkbox" checked={ageConfirmed} onChange={(e) => setAgeConfirmed(e.target.checked)} className="mt-1 shrink-0" />
             <span>Revisé la cédula y quien recibe es mayor de edad.</span>
           </label>
-          <div className="flex flex-col gap-1">
-            <span>Firma de quien recibe</span>
+          <div className="flex flex-col gap-2">
+            <span className="text-[13px] font-medium">Firma de quien recibe</span>
             <SignaturePad onChange={setSignature} />
           </div>
         </>
       ) : (
-        <label className="flex flex-col gap-1">
+        <label className="field-label">
           Motivo
           <select
             value={failureReason}
             onChange={(e) => setFailureReason(e.target.value as FailureReason | "")}
-            className="rounded-md border border-neutral-400 px-3 py-2"
+            className="field"
           >
             <option value="">Elige el motivo</option>
             {FAILURE_REASONS.map((reason) => (
@@ -132,20 +132,21 @@ export function DeliveryAttemptForm({ orderId }: { orderId: string }) {
         </label>
       )}
 
-      <label className="flex flex-col gap-1">
+      <label className="field-label">
         Notas (opcional)
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           maxLength={500}
           rows={2}
-          className="rounded-md border border-neutral-400 px-3 py-2"
+          className="field"
         />
       </label>
 
-      {missing ? <p className="text-sm text-neutral-700">{missing}</p> : null}
+      {missing ? <p className="text-sm text-warning">{missing}</p> : null}
       <ActionButton
         mode="completion"
+        className="w-full"
         onAccept={send}
         disabled={missing !== null}
         onFinished={(status) => {
@@ -155,7 +156,7 @@ export function DeliveryAttemptForm({ orderId }: { orderId: string }) {
         {outcome === "delivered" ? "Confirmar entrega" : "Registrar intento fallido"}
       </ActionButton>
       {error ? (
-        <p role="alert" className="text-red-700">
+        <p role="alert" className="notice notice-danger">
           {error}
         </p>
       ) : null}

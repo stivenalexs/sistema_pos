@@ -71,9 +71,9 @@ export function AddressMap({ center, value, onChange }: Props) {
       } else {
         markerRef.current = L.circleMarker([value.lat, value.lng], {
           radius: 9,
-          color: "#991b1b",
+          color: "#21180f",
           weight: 3,
-          fillColor: "#ef4444",
+          fillColor: "#c4a16b",
           fillOpacity: 0.9,
         }).addTo(map);
       }
@@ -102,15 +102,15 @@ export function AddressMap({ center, value, onChange }: Props) {
         ref={containerRef}
         role="application"
         aria-label="Mapa para marcar el punto de entrega"
-        className="h-72 w-full rounded-md border border-neutral-400"
+        className="h-72 w-full overflow-hidden rounded-[4px] border border-line"
       />
-      {loadError ? <p className="text-sm text-red-700">No pudimos cargar el mapa. Recarga la página.</p> : null}
+      {loadError ? <p className="text-sm text-danger">No pudimos cargar el mapa. Recarga la página.</p> : null}
       <div className="flex flex-wrap items-center gap-3 text-sm">
         {/* UI helper, not an action: it only moves the marker. */}
-        <button type="button" onClick={useMyLocation} className="underline">
+        <button type="button" onClick={useMyLocation} className="link">
           Usar mi ubicación actual
         </button>
-        <span className="text-neutral-600">
+        <span className="text-muted">
           {value ? `Punto marcado: ${value.lat.toFixed(5)}, ${value.lng.toFixed(5)}` : "Toca el mapa para marcar el punto de entrega."}
         </span>
       </div>

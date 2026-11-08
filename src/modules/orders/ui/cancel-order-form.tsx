@@ -14,11 +14,11 @@ export function CancelOrderForm({ orderId }: { orderId: string }) {
   return (
     <form action={formAction} className="flex flex-col gap-2">
       <input type="hidden" name="orderId" value={orderId} />
-      <FormSubmitButton pendingLabel="Cancelando…">
+      <FormSubmitButton pendingLabel="Cancelando…" variant="secondary" className="w-full">
         Cancelar pedido
       </FormSubmitButton>
       {state.message ? (
-        <p role="status" className={state.status === "error" ? "text-red-700" : ""}>
+        <p role="status" className={state.status === "error" ? "text-sm text-danger" : "text-sm text-muted"}>
           {state.message}
         </p>
       ) : null}

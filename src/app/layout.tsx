@@ -1,25 +1,29 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import Link from "next/link";
+import { Cormorant_Garamond, Inter } from "next/font/google";
 
 import { PermanentNotice } from "@/modules/compliance";
 import { signOutAction } from "@/modules/customers";
 
+import { Brand } from "@/shared/ui/brand";
+
 import { SessionNav } from "./session-nav";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// Fonts of the Figma design (D-046), served by next/font (no new packages).
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const cormorant = Cormorant_Garamond({
+  variable: "--font-cormorant",
   subsets: ["latin"],
+  weight: ["400", "500"],
+  style: ["normal", "italic"],
 });
 
 export const metadata: Metadata = {
-  title: "Licorera",
+  title: "La Cava",
   description: "Venta de licores al por mayor y al detal en Antioquia.",
 };
 
@@ -27,16 +31,16 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="es-CO"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${cormorant.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col bg-white text-neutral-900">
-        <header className="flex items-center justify-between border-b border-neutral-300 px-4 py-3">
-          <Link href="/" className="font-semibold">
-            Licorera
-          </Link>
-          <SessionNav signOutAction={signOutAction} />
+      <body className="flex min-h-full flex-col bg-bg font-sans text-ink">
+        <header className="border-b border-line/70">
+          <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-3 px-4 py-4 sm:px-6">
+            <Brand />
+            <SessionNav signOutAction={signOutAction} />
+          </div>
         </header>
-        <main className="mx-auto w-full max-w-xl flex-1 px-4 py-8">{children}</main>
+        <main className="flex w-full flex-1 flex-col">{children}</main>
         <PermanentNotice />
       </body>
     </html>

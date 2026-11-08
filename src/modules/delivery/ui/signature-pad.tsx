@@ -77,12 +77,12 @@ export function SignaturePad({ onChange }: { onChange: (png: Blob | null) => voi
         onPointerMove={move}
         onPointerUp={end}
         onPointerCancel={end}
-        className="w-full touch-none rounded-md border border-neutral-400 bg-white"
+        className="w-full touch-none rounded-[4px] border border-gold bg-white"
       />
       <div className="flex items-center justify-between text-sm">
-        <span className="text-neutral-600">{hasInk ? "Firma capturada." : "Firma aquí con el dedo."}</span>
+        <span className="text-muted">{hasInk ? "Firma capturada." : "Firma aquí con el dedo."}</span>
         {/* UI helper, not an action: it only clears the drawing. */}
-        <button type="button" onClick={clear} className="underline">
+        <button type="button" onClick={clear} className="link min-h-10 px-2">
           Borrar firma
         </button>
       </div>

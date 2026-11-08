@@ -35,16 +35,16 @@ export function SessionNav({ signOutAction }: { signOutAction: () => Promise<voi
   }, []);
 
   if (email === undefined) {
-    return <span className="text-sm text-neutral-500">…</span>;
+    return <span className="text-sm text-muted">…</span>;
   }
 
   if (!email) {
     return (
-      <nav className="flex gap-4 text-sm">
-        <Link href="/login" className="underline">
+      <nav className="flex items-center gap-5 text-sm">
+        <Link href="/login" className="link">
           Iniciar sesión
         </Link>
-        <Link href="/signup" className="underline">
+        <Link href="/signup" className="btn btn-secondary btn-sm">
           Crear cuenta
         </Link>
       </nav>
@@ -52,11 +52,16 @@ export function SessionNav({ signOutAction }: { signOutAction: () => Promise<voi
   }
 
   return (
-    <form action={signOutAction} className="flex items-center gap-3 text-sm">
-      <span>{email}</span>
-      <FormSubmitButton pendingLabel="Saliendo…" className="px-3 py-1 text-sm">
-        Cerrar sesión
-      </FormSubmitButton>
-    </form>
+    <nav className="flex min-w-0 flex-wrap items-center gap-x-5 gap-y-2 text-sm">
+      <Link href="/cart" className="link">
+        Mi carrito
+      </Link>
+      <span className="hidden max-w-[16rem] truncate text-muted md:inline">{email}</span>
+      <form action={signOutAction}>
+        <FormSubmitButton pendingLabel="Saliendo…" variant="secondary" className="btn-sm">
+          Cerrar sesión
+        </FormSubmitButton>
+      </form>
+    </nav>
   );
 }

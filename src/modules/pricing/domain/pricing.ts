@@ -16,6 +16,8 @@ export type CatalogItem = {
   unitsPerBox: number;
   minQuantity: number;
   priceCop: number;
+  /** Public URL of the product photo (D-047), or null when it has none. */
+  imageUrl: string | null;
 };
 
 export type QuoteLineError =

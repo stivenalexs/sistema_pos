@@ -16,20 +16,18 @@ export type FulfillmentChoice = {
   quote: DeliveryQuote | null;
 };
 
-const OPTION = "block rounded-md border px-3 py-2";
-
 export function FulfillmentPicker({ choice }: { choice: FulfillmentChoice }) {
   const pickup = choice.fulfillment === "pickup";
 
   return (
-    <fieldset className="flex flex-col gap-2">
-      <legend className="mb-1 font-medium">Entrega</legend>
+    <fieldset className="flex flex-col gap-3">
+      <legend className="mb-3 font-display text-3xl">Entrega</legend>
       <Link
         href="/cart"
         replace
         scroll={false}
         aria-current={pickup ? "true" : undefined}
-        className={`${OPTION} ${pickup ? "border-neutral-900 font-medium" : "border-neutral-300"}`}
+        className={`option ${pickup ? "font-medium" : "hover:border-gold/60"}`}
       >
         {pickup ? "✓ " : ""}Recoger en la tienda (sin costo)
       </Link>
@@ -43,17 +41,17 @@ export function FulfillmentPicker({ choice }: { choice: FulfillmentChoice }) {
             replace
             scroll={false}
             aria-current={selected ? "true" : undefined}
-            className={`${OPTION} ${selected ? "border-neutral-900" : "border-neutral-300"}`}
+            className={`option ${selected ? "" : "hover:border-gold/60"}`}
           >
             <span className={selected ? "font-medium" : ""}>
               {selected ? "✓ " : ""}Domicilio a {address.label}
             </span>
-            <span className="block text-sm text-neutral-600">
+            <span className="block text-sm text-muted">
               {address.addressLine}, {address.municipality}
               {address.zoneActive ? "" : " (sin domicilio por ahora)"}
             </span>
             {selected && choice.quote ? (
-              <span className={`block text-sm ${choice.quote.ok ? "" : "text-red-700"}`}>
+              <span className={`mt-1 block text-sm ${choice.quote.ok ? "text-gold" : "text-danger"}`}>
                 {choice.quote.ok
                   ? `Domicilio: ${choice.quote.feeCop === 0 ? "gratis" : formatCop(choice.quote.feeCop)} (${formatDistance(choice.quote.distanceM)} desde la tienda)`
                   : DELIVERY_QUOTE_ERROR_MESSAGES[choice.quote.error]}
@@ -63,10 +61,10 @@ export function FulfillmentPicker({ choice }: { choice: FulfillmentChoice }) {
         );
       })}
 
-      <Link href="/addresses?volver=carrito" className="text-sm underline">
+      <Link href="/addresses?volver=carrito" className="link text-sm">
         {choice.addresses.length === 0 ? "Agregar una dirección para domicilio" : "Agregar otra dirección"}
       </Link>
-      <p className="text-xs text-neutral-500">
+      <p className="text-xs leading-relaxed text-muted">
         Domicilios solo en el Valle de Aburrá. Al recibir, quien reciba debe mostrar su cédula y firmar.
       </p>
     </fieldset>
