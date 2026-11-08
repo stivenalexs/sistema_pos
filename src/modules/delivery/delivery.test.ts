@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  encodeAssignment,
+  parseAssignment,
   formatDistance,
   isValidSignaturePng,
   MAX_SIGNATURE_BYTES,
@@ -165,5 +167,19 @@ describe("processDeliveryAttempt (worker)", () => {
     await expect(processDeliveryAttempt(null, payload, record)).rejects.toBeInstanceOf(PermanentActionError);
     await expect(processDeliveryAttempt(COURIER, { order_id: ORDER }, record)).rejects.toBeInstanceOf(PermanentActionError);
     expect(record).not.toHaveBeenCalled();
+  });
+});
+
+describe("assignment choice (D-057)", () => {
+  const provider = "9a000000-0000-4000-8000-000000000001";
+  const courier = "9b000000-0000-4000-8000-000000000002";
+  it("round-trips own couriers and third parties", () => {
+    expect(parseAssignment(encodeAssignment(provider, courier))).toEqual({ providerId: provider, courierId: courier });
+    expect(parseAssignment(encodeAssignment(provider, null))).toEqual({ providerId: provider, courierId: null });
+  });
+  it("rejects anything else", () => {
+    for (const value of ["", "own:" + provider, "third:x", `third:${provider}:${courier}`, null, 3]) {
+      expect(parseAssignment(value)).toBeNull();
+    }
   });
 });

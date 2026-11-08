@@ -197,11 +197,13 @@ select ok(
   (select is_low from public.inventory_overview() where product_id = '9a000000-0000-4000-8000-000000000002'),
   'overview: a product with no stock and threshold 0 is low'
 );
-select results_eq(
+-- Both movements share now() inside this test transaction, so their order is
+-- not defined here; the newest-first order is covered by the end-to-end test.
+select set_eq(
   $$select movement_type::text, units, recorded_by
     from public.inventory_recent_movements('9a000000-0000-4000-8000-000000000001')$$,
   $$values ('adjustment', -2, 'bodega17c@test.local'), ('purchase_in', 20, 'bodega17c@test.local')$$,
-  'movements list: newest first, filtered by product, with who recorded them'
+  'movements list: filtered by product, with who recorded them'
 );
 
 reset role;

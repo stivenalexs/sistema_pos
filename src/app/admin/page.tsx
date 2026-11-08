@@ -32,6 +32,8 @@ async function Summary() {
     { href: "/admin/reembolsos", label: "Reembolsos por registrar", value: summary.refundsPending },
     { href: "/admin/cola", label: "Trabajos fallidos", value: summary.failedActions },
     { href: "/admin/inventario", label: "Productos en stock bajo", value: summary.lowStock },
+    { href: "/admin/domicilios", label: "Domicilios por asignar", value: summary.deliveriesToAssign },
+    { href: "/admin/domicilios", label: "Entregas con intento fallido", value: summary.deliveriesFailed },
   ];
   return (
     <div className="flex flex-col gap-4">

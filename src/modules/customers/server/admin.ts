@@ -25,6 +25,8 @@ export type AdminSummary = {
   refundsPending: number;
   lowStock: number;
   stockMismatches: number;
+  deliveriesToAssign: number;
+  deliveriesFailed: number;
 };
 
 export async function getAdminSummary(): Promise<AdminSummary> {
@@ -41,6 +43,8 @@ export async function getAdminSummary(): Promise<AdminSummary> {
     refunds_pending: number;
     low_stock: number;
     stock_mismatches: number;
+    deliveries_to_assign: number;
+    deliveries_failed: number;
   };
   return {
     pendingWholesale: row.pending_wholesale,
@@ -52,6 +56,8 @@ export async function getAdminSummary(): Promise<AdminSummary> {
     refundsPending: row.refunds_pending,
     lowStock: row.low_stock,
     stockMismatches: row.stock_mismatches,
+    deliveriesToAssign: row.deliveries_to_assign,
+    deliveriesFailed: row.deliveries_failed,
   };
 }
 

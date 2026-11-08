@@ -117,6 +117,20 @@ isOneToOne: true
       referencedColumns: ["id"]
     }
                   ]
+                },"config_changes": {
+                  Row: {
+                    "changed_by": string | null,"created_at": string,"id": string,"new_row": Json | null,"old_row": Json | null,"operation": string,"row_id": string,"table_name": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "changed_by"?: string | null,"created_at"?: string,"id"?: string,"new_row"?: Json | null,"old_row"?: Json | null,"operation": string,"row_id": string,"table_name": string
+                  }
+                  Update: {
+                    "changed_by"?: string | null,"created_at"?: string,"id"?: string,"new_row"?: Json | null,"old_row"?: Json | null,"operation"?: string,"row_id"?: string,"table_name"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"couriers": {
                   Row: {
                     "created_at": string,"full_name": string,"id": string,"is_active": boolean,"phone": string | null,"provider_id": string,"updated_at": string
@@ -705,8 +719,17 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "admin_list_invoices":
+            "admin_list_deliveries":
 { Args: Record<PropertyKey, never>; Returns: Json
+                           },
+"admin_list_delivery_options":
+{ Args: Record<PropertyKey, never>; Returns: Json
+                           },
+"admin_list_invoices":
+{ Args: Record<PropertyKey, never>; Returns: Json
+                           },
+"admin_list_pos_sales":
+{ Args: { "p_limit"?: number }; Returns: Json
                            },
 "admin_list_refunds":
 { Args: Record<PropertyKey, never>; Returns: Json
