@@ -402,6 +402,14 @@ Registro de decisiones. Se lee al iniciar cada sesión (referenciado desde `agen
   - **Descartadas en la evaluación:** `better-ui` (sus valores de radios, sombras y movimiento chocarían con las variables de D-046) y `web-animation-design` (choca con agents.md §8 y con D-046/D-048; ya existe Motion AI Kit). **Impeccable** (solo revisión) y **frontend-design** (pantallas nuevas dentro de D-046) quedaron como posibles, sin instalar.
   - **Actualizar:** revisar el diff en GitHub, reemplazar los archivos y cambiar el commit en el `SKILL.md` y aquí.
 
+- **D-062 (2026-11-08)** Correcciones de accesibilidad (WCAG 2.2 AA) tras la primera auditoría con la skill `accessibility` (D-061), aprobadas por el responsable. Los textos ya cumplían de sobra (todos ≥ 7:1).
+  - **Mapa de domicilio con teclado (2.1.1):** botón **"Marcar el centro del mapa"** y una cruz fija en el centro; el mapa se mueve con las flechas y se acerca con + y − (teclado de Leaflet), y el punto marcado se anuncia (`aria-live`). Hacer clic o tocar el mapa sigue funcionando.
+  - **Borde de los campos (1.4.11):** variable nueva `--color-field-line` (`#7d6a55`, 3,3:1 contra el fondo del campo) en la utilidad `field`. Las líneas decorativas siguen con `--color-line`.
+  - **Título propio en cada página (2.4.2):** plantilla `%s · La Cava` en el layout y `metadata.title` en las 24 páginas ("Mi carrito · La Cava", "Inventario · Administración · La Cava").
+  - **Errores conectados a su campo (3.3.1, 4.1.2):** `useFieldErrors` (`src/shared/ui/field-errors.tsx`) da a cada campo con error `aria-invalid` y `aria-describedby` hacia su mensaje, y lleva el foco al primer campo inválido cuando responde el servidor. Dentro de una etiqueta el mensaje es `aria-hidden` para que no se lea dos veces (nombre y descripción). Aplicado en el registro, la invitación de personal y las direcciones; el error del punto del mapa usa `role="alert"`. Los demás formularios muestran un mensaje general con `role="status"`, que ya se anuncia.
+  - **Pendientes menores de la auditoría (sin hacer):** contorno de foco de 2 px también en los campos, enlace "Saltar al contenido", nombre en el `<nav>` del encabezado, textos de 9 a 11 px, `alt=""` en la foto de la botella del carrusel (la ficha ya la nombra) y `aria-roledescription` en un grupo en lugar del `<li>`.
+  - **Pruebas:** 4 Vitest de `useFieldErrors`. En el navegador: títulos de página; borde nuevo; registro con contraseña débil (foco en "Contraseña", `aria-invalid` y el mensaje como descripción); mapa movido con las flechas y marcado con Enter en el botón (punto y marcador correctos); 375 px sin desplazamiento horizontal.
+
 ## Pendientes de confirmar (supuestos del asistente, no decisiones)
 
 - ~~**P-001**~~ Resuelto en D-021.

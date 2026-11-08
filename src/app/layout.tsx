@@ -23,7 +23,8 @@ const cormorant = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
-  title: "La Cava",
+  // Each page sets its own title (WCAG 2.4.2, D-062): "Mi carrito · La Cava".
+  title: { default: "La Cava", template: "%s · La Cava" },
   description: "Venta de licores al por mayor y al detal en Antioquia.",
 };
 

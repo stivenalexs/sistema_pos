@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
@@ -5,6 +6,8 @@ import { Suspense } from "react";
 
 import { getAdminSummary, getStaffRole } from "@/modules/customers";
 import { PageHeader } from "@/shared/ui/page-header";
+
+export const metadata: Metadata = { title: "Administración" };
 
 export default function AdminHome() {
   return (

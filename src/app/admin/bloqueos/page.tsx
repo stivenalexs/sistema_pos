@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
@@ -16,6 +17,8 @@ import { getStaffRole } from "@/modules/customers";
 import { getConfigOverview } from "@/modules/delivery";
 import { type IdempotentField, IdempotentActionForm } from "@/shared/ui/idempotent-action-form";
 import { PageHeader } from "@/shared/ui/page-header";
+
+export const metadata: Metadata = { title: "Bloqueos de venta · Administración" };
 
 const DATE = new Intl.DateTimeFormat("es-CO", {
   timeZone: "America/Bogota",

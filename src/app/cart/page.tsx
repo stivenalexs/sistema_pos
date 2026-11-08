@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
@@ -8,6 +9,8 @@ import { getSalesBlock, SalesBlockNotice } from "@/modules/compliance";
 import { getCurrentCustomer } from "@/modules/customers";
 import { type FulfillmentChoice, getDeliveryAddresses, quoteDelivery } from "@/modules/delivery";
 import { PageHeader } from "@/shared/ui/page-header";
+
+export const metadata: Metadata = { title: "Mi carrito" };
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 

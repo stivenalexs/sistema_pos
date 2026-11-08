@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
@@ -8,6 +9,8 @@ import { listPosSalesForAdmin, POS_PAYMENT_LABELS, voidPosSaleAction } from "@/m
 import { formatCop } from "@/modules/pricing";
 import { PageHeader } from "@/shared/ui/page-header";
 import { ReasonActionForm } from "@/shared/ui/reason-action-form";
+
+export const metadata: Metadata = { title: "Ventas POS · Administración" };
 
 const DATE = new Intl.DateTimeFormat("es-CO", { timeZone: "America/Bogota", dateStyle: "medium", timeStyle: "short" });
 const INVOICE_LABELS: Record<string, string> = {

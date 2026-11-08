@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 
+import { useFieldErrors } from "@/shared/ui/field-errors";
 import { FormSubmitButton } from "@/shared/ui/form-submit-button";
 import { PasswordInput } from "@/shared/ui/password-input";
 
@@ -52,27 +53,27 @@ export function WholesaleReviewForm({ customerId }: { customerId: string }) {
 
 export function InviteStaffForm() {
   const [state, action] = useActionState<AdminFormState, FormData>(inviteStaffAction, { status: "idle" });
-  const errors = state.fieldErrors ?? {};
+  const { formRef, invalid, error } = useFieldErrors(state.fieldErrors);
   return (
-    <form action={action} className="flex flex-col gap-4">
+    <form ref={formRef} action={action} className="flex flex-col gap-4">
       <label className="field-label">
         Nombre completo
-        <input name="fullName" required minLength={3} maxLength={120} className="field" />
-        {errors.fullName ? <span className="field-error">{errors.fullName}</span> : null}
+        <input name="fullName" {...invalid("fullName")} required minLength={3} maxLength={120} className="field" />
+        {error("fullName")}
       </label>
       <label className="field-label">
         Correo
-        <input name="email" type="email" required maxLength={254} className="field" autoComplete="off" />
-        {errors.email ? <span className="field-error">{errors.email}</span> : null}
+        <input name="email" type="email" {...invalid("email")} required maxLength={254} className="field" autoComplete="off" />
+        {error("email")}
       </label>
       <label className="field-label">
         Teléfono (opcional)
-        <input name="phone" inputMode="tel" maxLength={20} className="field" />
-        {errors.phone ? <span className="field-error">{errors.phone}</span> : null}
+        <input name="phone" {...invalid("phone")} inputMode="tel" maxLength={20} className="field" />
+        {error("phone")}
       </label>
       <label className="field-label">
         Rol
-        <select name="role" required defaultValue="" className="field">
+        <select name="role" {...invalid("role")} required defaultValue="" className="field">
           <option value="" disabled>
             Elige el rol
           </option>
@@ -82,7 +83,7 @@ export function InviteStaffForm() {
             </option>
           ))}
         </select>
-        {errors.role ? <span className="field-error">{errors.role}</span> : null}
+        {error("role")}
       </label>
       <FormSubmitButton pendingLabel="Enviando…">Enviar invitación</FormSubmitButton>
       <Status state={state} />

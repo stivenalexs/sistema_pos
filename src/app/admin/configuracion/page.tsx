@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
@@ -18,6 +19,8 @@ import {
 import { formatCop } from "@/modules/pricing";
 import { type IdempotentField, IdempotentActionForm } from "@/shared/ui/idempotent-action-form";
 import { PageHeader } from "@/shared/ui/page-header";
+
+export const metadata: Metadata = { title: "Configuración · Administración" };
 
 const DATE = new Intl.DateTimeFormat("es-CO", { timeZone: "America/Bogota", dateStyle: "medium", timeStyle: "short" });
 const CUSTOMER_TYPE_LABELS = { any: "Todos los clientes", retail: "Minoristas", wholesale: "Mayoristas (por caja)" };

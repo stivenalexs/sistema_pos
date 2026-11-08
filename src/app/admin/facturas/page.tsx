@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
@@ -7,6 +8,8 @@ import { listInvoicesForAdmin, retryCreditNoteAction, retryInvoiceAction } from 
 import { formatCop } from "@/modules/pricing";
 import { PageHeader } from "@/shared/ui/page-header";
 import { ReasonActionForm } from "@/shared/ui/reason-action-form";
+
+export const metadata: Metadata = { title: "Facturas · Administración" };
 
 const DATE = new Intl.DateTimeFormat("es-CO", { timeZone: "America/Bogota", dateStyle: "medium", timeStyle: "short" });
 const STATUS: Record<string, string> = { pending: "En cola", sent: "Enviada", accepted: "Aceptada", rejected: "Rechazada" };

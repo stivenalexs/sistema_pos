@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
@@ -19,6 +20,8 @@ import { IdempotentActionForm } from "@/shared/ui/idempotent-action-form";
 import { PageHeader } from "@/shared/ui/page-header";
 
 import { MovementList } from "./movement-list";
+
+export const metadata: Metadata = { title: "Inventario · Administración" };
 
 type SearchParams = Promise<{ reservas?: string }>;
 

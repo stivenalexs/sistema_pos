@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { connection } from "next/server";
 import { type ReactNode, Suspense } from "react";
@@ -6,6 +7,8 @@ import { ProductList } from "@/modules/catalog";
 import { getSalesBlock, SalesBlockNotice } from "@/modules/compliance";
 import { getCurrentCustomer } from "@/modules/customers";
 import { getCatalog } from "@/modules/pricing";
+
+export const metadata: Metadata = { title: "Nuestra cava" };
 
 // Catalog page from the Figma "Nuestra cava · Catálogo" (D-048).
 export default function Home() {

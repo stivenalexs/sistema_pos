@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
@@ -13,6 +14,8 @@ import {
   MAP_DEFAULT_CENTER,
 } from "@/modules/delivery";
 import { PageHeader } from "@/shared/ui/page-header";
+
+export const metadata: Metadata = { title: "Mis direcciones" };
 
 export default function AddressesPage() {
   return (

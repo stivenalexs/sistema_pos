@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { connection } from "next/server";
@@ -5,6 +6,8 @@ import { Suspense } from "react";
 
 import { DeliveryAttemptForm, getCourierDelivery, getDeliveryStaff } from "@/modules/delivery";
 import { formatCop } from "@/modules/pricing";
+
+export const metadata: Metadata = { title: "Entrega" };
 
 export default function CourierDeliveryPage({ params }: PageProps<"/courier/[orderId]">) {
   return (

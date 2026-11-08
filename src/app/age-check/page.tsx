@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 
@@ -5,6 +6,8 @@ import { AGE_GATE_PATH, confirmAgeAction, LEGAL_COPY, safeNextPath } from "@/mod
 import { FormSubmitButton } from "@/shared/ui/form-submit-button";
 import { PageHeader } from "@/shared/ui/page-header";
 import { PhotoShell } from "@/shared/ui/photo-shell";
+
+export const metadata: Metadata = { title: "Mayoría de edad" };
 
 // Entry 18+ notice (D-035). Answering "yes" only stores a cookie; the real
 // verification happens at sign-up.
