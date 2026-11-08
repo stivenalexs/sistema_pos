@@ -27,7 +27,16 @@ export type IdempotentField =
       placeholder?: string;
       defaultValue?: string;
     }
-  | { kind: "number"; name: string; label: string; min: number; max: number; defaultValue?: string }
+  | {
+      kind: "number";
+      name: string;
+      label: string;
+      min: number;
+      max: number;
+      defaultValue?: string;
+      /** False: may be left empty (the server reads it as "no value"). */
+      required?: boolean;
+    }
   | { kind: "select"; name: string; label: string; options: { value: string; label: string }[]; defaultValue?: string };
 
 type Props = {
@@ -92,7 +101,7 @@ export function IdempotentActionForm({
                 name={field.name}
                 type="number"
                 inputMode="numeric"
-                required
+                required={field.required ?? true}
                 step={1}
                 min={field.min}
                 max={field.max}

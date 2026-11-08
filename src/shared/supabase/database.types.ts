@@ -719,7 +719,10 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "admin_list_deliveries":
+            "admin_config_overview":
+{ Args: Record<PropertyKey, never>; Returns: Json
+                           },
+"admin_list_deliveries":
 { Args: Record<PropertyKey, never>; Returns: Json
                            },
 "admin_list_delivery_options":
@@ -921,6 +924,9 @@ isOneToOne: false
                            },
 "set_stock_settings":
 { Args: { "p_low_stock_threshold": number,"p_product_id": string,"p_web_safety_stock": number }; Returns: Json
+                           },
+"set_store_settings":
+{ Args: { "p_lat": number,"p_lng": number,"p_max_distance_m": number,"p_zone_id": string }; Returns: Json
                            },
 "start_payment":
 { Args: { "p_idempotency_key": string,"p_order_id": string }; Returns: Json

@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   encodeAssignment,
+  parseFeeRuleInput,
   parseAssignment,
   formatDistance,
   isValidSignaturePng,
@@ -180,6 +181,34 @@ describe("assignment choice (D-057)", () => {
   it("rejects anything else", () => {
     for (const value of ["", "own:" + provider, "third:x", `third:${provider}:${courier}`, null, 3]) {
       expect(parseAssignment(value)).toBeNull();
+    }
+  });
+});
+
+describe("fee rule input (D-058)", () => {
+  const base = { name: "Hasta 1 km", customerType: "any", minBoxes: "", maxDistanceM: "1000", feeCop: "6000" };
+  it("reads empty optional fields as any", () => {
+    expect(parseFeeRuleInput(base)).toEqual({
+      ok: true,
+      value: { name: "Hasta 1 km", customerType: null, minBoxes: null, maxDistanceM: 1000, feeCop: 6000 },
+    });
+    expect(parseFeeRuleInput({ ...base, customerType: "wholesale", minBoxes: "20", maxDistanceM: "", feeCop: "0" })).toEqual({
+      ok: true,
+      value: { name: "Hasta 1 km", customerType: "wholesale", minBoxes: 20, maxDistanceM: null, feeCop: 0 },
+    });
+  });
+  it("rejects bad values", () => {
+    for (const bad of [
+      { name: "x" },
+      { customerType: "vip" },
+      { minBoxes: "0" },
+      { customerType: "retail", minBoxes: "2" },
+      { maxDistanceM: "60000" },
+      { feeCop: "" },
+      { feeCop: "-1" },
+      { feeCop: "1.5" },
+    ]) {
+      expect(parseFeeRuleInput({ ...base, ...bad }).ok).toBe(false);
     }
   });
 });
