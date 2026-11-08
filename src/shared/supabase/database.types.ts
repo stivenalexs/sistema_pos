@@ -746,6 +746,9 @@ isOneToOne: false
 "admin_queue_status":
 { Args: Record<PropertyKey, never>; Returns: Json
                            },
+"admin_sales_blocks_overview":
+{ Args: Record<PropertyKey, never>; Returns: Json
+                           },
 "admin_summary":
 { Args: Record<PropertyKey, never>; Returns: Json
                            },

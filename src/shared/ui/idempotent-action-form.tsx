@@ -37,7 +37,18 @@ export type IdempotentField =
       /** False: may be left empty (the server reads it as "no value"). */
       required?: boolean;
     }
-  | { kind: "select"; name: string; label: string; options: { value: string; label: string }[]; defaultValue?: string };
+  | { kind: "select"; name: string; label: string; options: { value: string; label: string }[]; defaultValue?: string }
+  /** Date and time without zone ("2026-11-14T18:00"); the server says which zone it is. */
+  | { kind: "datetime"; name: string; label: string; required?: boolean; defaultValue?: string }
+  | { kind: "time"; name: string; label: string; required?: boolean; defaultValue?: string }
+  /** Several values under one name; the kept value after a rejection is comma-joined. */
+  | {
+      kind: "checkboxes";
+      name: string;
+      label: string;
+      options: { value: string; label: string }[];
+      defaultValue?: string;
+    };
 
 type Props = {
   action: (previous: IdempotentFormState, formData: FormData) => Promise<IdempotentFormState>;
@@ -82,6 +93,41 @@ export function IdempotentActionForm({
       ))}
       {fields.map((field) => {
         const defaultValue = keep?.[field.name] ?? field.defaultValue;
+        if (field.kind === "checkboxes") {
+          const checked = new Set((defaultValue ?? "").split(",").filter(Boolean));
+          return (
+            <fieldset key={field.name} className="field-label min-w-40 grow">
+              <legend className="text-xs">{field.label}</legend>
+              <div className="flex flex-wrap gap-x-4 gap-y-1 pt-1">
+                {field.options.map((option) => (
+                  <label key={option.value} className="flex items-center gap-1.5 text-sm">
+                    <input
+                      type="checkbox"
+                      name={field.name}
+                      value={option.value}
+                      defaultChecked={checked.has(option.value)}
+                    />
+                    {option.label}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          );
+        }
+        if (field.kind === "datetime" || field.kind === "time") {
+          return (
+            <label key={field.name} className="field-label min-w-40 grow">
+              <span className="text-xs">{field.label}</span>
+              <input
+                name={field.name}
+                type={field.kind === "datetime" ? "datetime-local" : "time"}
+                required={field.required ?? true}
+                defaultValue={defaultValue}
+                className="field py-1.5 text-sm tabular-nums"
+              />
+            </label>
+          );
+        }
         return (
           <label key={field.name} className="field-label min-w-40 grow">
             <span className="text-xs">{field.label}</span>

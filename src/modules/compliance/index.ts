@@ -2,6 +2,16 @@
 export * from "./domain/age";
 export * from "./domain/age-gate";
 export * from "./domain/sales-block";
+export * from "./domain/sales-block-rule";
+export {
+  type BlockedNow,
+  getSalesBlocksOverview,
+  type SalesBlockChange,
+  type SalesBlockRule,
+  type SalesBlocksOverview,
+  saveSalesBlockAction,
+  setSalesBlockActiveAction,
+} from "./server/admin-sales-blocks";
 export { LEGAL_COPY, LEGAL_COPY_IS_PROVISIONAL, LEGAL_COPY_VERSION } from "./legal-copy";
 export { confirmAgeAction } from "./server/age-gate-actions";
 export { getSalesBlock } from "./server/sales-blocks";
