@@ -15,14 +15,38 @@ export async function getStaffRole(): Promise<StaffRole | null> {
   return isStaffRole(role) ? role : null;
 }
 
-export type AdminSummary = { pendingWholesale: number; staff: number; pendingInvitations: number };
+export type AdminSummary = {
+  pendingWholesale: number;
+  staff: number;
+  pendingInvitations: number;
+  invoicesAttention: number;
+  failedActions: number;
+  queueStuck: number;
+  refundsPending: number;
+};
 
 export async function getAdminSummary(): Promise<AdminSummary> {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.rpc("admin_summary");
   if (error) throw new Error(`admin_summary failed: ${error.message}`);
-  const row = data as { pending_wholesale: number; staff: number; pending_invitations: number };
-  return { pendingWholesale: row.pending_wholesale, staff: row.staff, pendingInvitations: row.pending_invitations };
+  const row = data as {
+    pending_wholesale: number;
+    staff: number;
+    pending_invitations: number;
+    invoices_attention: number;
+    failed_actions: number;
+    queue_stuck: number;
+    refunds_pending: number;
+  };
+  return {
+    pendingWholesale: row.pending_wholesale,
+    staff: row.staff,
+    pendingInvitations: row.pending_invitations,
+    invoicesAttention: row.invoices_attention,
+    failedActions: row.failed_actions,
+    queueStuck: row.queue_stuck,
+    refundsPending: row.refunds_pending,
+  };
 }
 
 export type WholesaleApplicant = {

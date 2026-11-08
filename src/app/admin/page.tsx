@@ -25,8 +25,17 @@ async function Summary() {
     { href: "/admin/mayoristas", label: "Mayoristas por revisar", value: summary.pendingWholesale },
     { href: "/admin/personal", label: "Personal activo", value: summary.staff },
     { href: "/admin/personal", label: "Invitaciones pendientes", value: summary.pendingInvitations },
+    { href: "/admin/facturas", label: "Facturas o notas rechazadas", value: summary.invoicesAttention },
+    { href: "/admin/reembolsos", label: "Reembolsos por registrar", value: summary.refundsPending },
+    { href: "/admin/cola", label: "Trabajos fallidos", value: summary.failedActions },
   ];
   return (
+    <div className="flex flex-col gap-4">
+    {summary.queueStuck > 0 ? (
+      <p role="status" className="notice notice-warning">
+        Hay {summary.queueStuck} trabajos detenidos hace más de 10 minutos: revisa la <Link href="/admin/cola" className="link">cola</Link>.
+      </p>
+    ) : null}
     <ul className="grid gap-4 sm:grid-cols-3">
       {cards.map((card) => (
         <li key={card.label}>
@@ -37,5 +46,6 @@ async function Summary() {
         </li>
       ))}
     </ul>
+    </div>
   );
 }

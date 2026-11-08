@@ -6,6 +6,9 @@ const SECTIONS = [
   { href: "/admin", label: "Resumen" },
   { href: "/admin/mayoristas", label: "Mayoristas" },
   { href: "/admin/personal", label: "Personal" },
+  { href: "/admin/facturas", label: "Facturas" },
+  { href: "/admin/reembolsos", label: "Reembolsos" },
+  { href: "/admin/cola", label: "Cola" },
 ] as const;
 
 export default function AdminLayout({ children }: LayoutProps<"/admin">) {
