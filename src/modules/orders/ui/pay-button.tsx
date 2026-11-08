@@ -41,9 +41,9 @@ export function PayButton({ orderId }: { orderId: string }) {
 
   return (
     <div className="flex flex-col gap-2">
-      <ActionButton onAccept={pay}>Pagar con Wompi</ActionButton>
+      <ActionButton onAccept={pay} className="w-full">Pagar con Wompi</ActionButton>
       {error ? (
-        <p role="alert" className="text-red-700">
+        <p role="alert" className="notice notice-danger">
           {error}
         </p>
       ) : null}

@@ -1,0 +1,43 @@
+import { NextResponse } from "next/server";
+
+import { acceptDeliveryAttempt, MAX_SIGNATURE_BYTES } from "@/modules/delivery";
+import { isUuid } from "@/shared/actions/action-types";
+import { readIdempotencyKey } from "@/shared/actions/server/accept-action";
+
+const NO_STORE = { "Cache-Control": "no-store" };
+// Form fields plus the signature PNG.
+const MAX_BODY_BYTES = MAX_SIGNATURE_BYTES + 16 * 1024;
+
+// Delivery attempt by the assigned courier or an admin (D-007, D-045).
+// Thin handler: checks the request and delegates; the module validates the
+// session, the assignment and the form, uploads the signature and enqueues
+// the attempt. Answers 202 with the tracking_id.
+export async function POST(request: Request, ctx: RouteContext<"/api/deliveries/[orderId]/attempts">) {
+  const { orderId } = await ctx.params;
+  if (!isUuid(orderId)) {
+    return NextResponse.json({ error: "not_found" }, { status: 404, headers: NO_STORE });
+  }
+
+  const idempotencyKey = readIdempotencyKey(request);
+  if (!idempotencyKey) {
+    return NextResponse.json({ error: "missing_idempotency_key" }, { status: 400, headers: NO_STORE });
+  }
+
+  const length = Number(request.headers.get("content-length") ?? "0");
+  if (length > MAX_BODY_BYTES) {
+    return NextResponse.json({ error: "payload_too_large" }, { status: 413, headers: NO_STORE });
+  }
+
+  let form: FormData;
+  try {
+    form = await request.formData();
+  } catch {
+    return NextResponse.json({ error: "invalid_form" }, { status: 400, headers: NO_STORE });
+  }
+
+  const result = await acceptDeliveryAttempt({ orderId, idempotencyKey, form });
+  if (!result.ok) {
+    return NextResponse.json({ error: result.error }, { status: result.status, headers: NO_STORE });
+  }
+  return NextResponse.json({ trackingId: result.trackingId }, { status: 202, headers: NO_STORE });
+}

@@ -40,3 +40,14 @@ insert into public.inventory_movements (product_id, movement_type, units, refere
 
 update public.products set web_safety_stock = 2, low_stock_threshold = 12
 where id = '00000000-0000-4000-8000-000000000101';
+
+-- Tax data (D-042): degrees, category and whether the product is from the FLA.
+update public.products set alcohol_degree = 29, tax_category = 'spirits', is_fla = true  where sku = 'NAC-AGU-750';
+update public.products set alcohol_degree = 35, tax_category = 'spirits', is_fla = false where sku = 'NAC-RON-750';
+update public.products set alcohol_degree = 4.5, tax_category = 'spirits', is_fla = false where sku = 'NAC-CER-330';
+update public.products set alcohol_degree = 40, tax_category = 'spirits', is_fla = false where sku = 'IMP-WHI-700';
+update public.products set alcohol_degree = 13, tax_category = 'wine', is_fla = false where sku = 'IMP-VIN-750';
+
+-- Third-party courier company (D-026, D-045). Own couriers need auth users
+-- with staff_role courier, created by the server.
+insert into public.delivery_providers (name, kind) values ('Mensajería externa de ejemplo', 'third_party');

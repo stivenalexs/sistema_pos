@@ -27,10 +27,10 @@ export function AddToCartForm({
   });
 
   return (
-    <form action={formAction} className="flex flex-wrap items-center gap-2">
+    <form action={formAction} className="flex flex-wrap items-end gap-3">
       <input type="hidden" name="productId" value={productId} />
-      <label className="flex items-center gap-2 text-sm">
-        Cantidad
+      <label className="flex flex-col gap-1.5 text-xs text-muted">
+        Cantidad ({unitLabel})
         <input
           type="number"
           name="quantity"
@@ -39,15 +39,14 @@ export function AddToCartForm({
           max={10000}
           step={1}
           defaultValue={defaultQuantity ?? minQuantity}
-          className="w-20 rounded-md border border-neutral-400 px-2 py-1"
+          className="field w-24 min-h-10 py-1.5"
         />
-        <span className="text-neutral-600">{unitLabel}</span>
       </label>
-      <FormSubmitButton pendingLabel="Guardando…" className="px-3 py-1 text-sm">
+      <FormSubmitButton pendingLabel="Guardando…" className="btn-sm flex-1">
         {submitLabel}
       </FormSubmitButton>
       {state.message ? (
-        <p role="status" className={state.status === "error" ? "text-sm text-red-700" : "text-sm"}>
+        <p role="status" className={`w-full text-xs ${state.status === "error" ? "text-danger" : "text-success"}`}>
           {state.message}
         </p>
       ) : null}

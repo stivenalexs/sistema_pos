@@ -1,19 +1,247 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+ * Visual system "La Cava" (D-046). Colors and type come from the Figma login
+ * ("Acceso a La Cava"). Dark warm theme only. Components use these tokens,
+ * never loose hex values.
+ */
+@theme {
+  --color-bg: #130f0c;
+  --color-surface: #1b1510;
+  --color-field: #211a14;
+  --color-line: #3a3027;
+  --color-ink: #f5eee3;
+  --color-muted: #c4b8a8;
+  --color-gold: #c4a16b;
+  --color-gold-strong: #d6b685;
+  --color-gold-ink: #21180f;
+  --color-danger: #f2a093;
+  --color-danger-bg: #2a1512;
+  --color-success: #b3d69a;
+  --color-success-bg: #172113;
+  --color-warning: #ecc77d;
+  --color-warning-bg: #2a2112;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-cormorant), ui-serif, Georgia, serif;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    background: var(--color-bg);
+    color: var(--color-ink);
+  }
+
+  input[type="checkbox"],
+  input[type="radio"] {
+    accent-color: var(--color-gold);
+    width: 1rem;
+    height: 1rem;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 2px;
+  }
+}
+
+/* Page widths. */
+@utility page {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 72rem;
+  padding: 2.5rem 1rem;
+  @media (width >= 40rem) {
+    padding-inline: 1.5rem;
+  }
+}
+
+@utility page-narrow {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 40rem;
+  padding: 2.5rem 1rem;
+}
+
+/* Small uppercase label above titles ("UN LUGAR PARA DISFRUTAR, SIN PRISA"). */
+@utility eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-gold);
+}
+
+@utility display-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
+}
+
+@utility link {
+  color: var(--color-gold);
+  text-underline-offset: 4px;
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+/* Form fields. */
+@utility field {
+  width: 100%;
+  min-height: 3rem;
+  border-radius: 4px;
+  border: 1px solid var(--color-line);
+  background: var(--color-field);
+  padding: 0.625rem 1rem;
+  color: var(--color-ink);
+  font-size: 0.9375rem;
+  &::placeholder {
+    color: color-mix(in srgb, var(--color-muted) 70%, transparent);
+  }
+  &:focus {
+    border-color: var(--color-gold);
+    outline: none;
+  }
+}
+
+@utility field-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-ink);
+}
+
+@utility field-error {
+  font-size: 0.8125rem;
+  font-weight: 400;
+  color: var(--color-danger);
+}
+
+@utility field-help {
+  font-size: 0.8125rem;
+  font-weight: 400;
+  color: var(--color-muted);
+}
+
+/*
+ * Buttons. The locked state must always be visible (agents.md §5.2 and §8):
+ * a dashed gold border on a muted surface, never only lower opacity, and no
+ * animation.
+ */
+@utility btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  min-height: 3.25rem;
+  border-radius: 4px;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  &:disabled,
+  &[aria-busy="true"] {
+    cursor: not-allowed;
+    background: var(--color-field);
+    color: var(--color-muted);
+    border: 1px dashed var(--color-gold);
+  }
+}
+
+@utility btn-primary {
+  background: var(--color-gold);
+  color: var(--color-gold-ink);
+  border: 1px solid var(--color-gold);
+  &:hover:not(:disabled) {
+    background: var(--color-gold-strong);
+  }
+}
+
+@utility btn-secondary {
+  background: transparent;
+  color: var(--color-ink);
+  border: 1px solid var(--color-line);
+  &:hover:not(:disabled) {
+    border-color: var(--color-gold);
+  }
+}
+
+@utility btn-sm {
+  min-height: 2.5rem;
+  padding: 0.5rem 0.875rem;
+  font-size: 0.8125rem;
+}
+
+/* Boxes. */
+@utility card {
+  border-radius: 6px;
+  border: 1px solid var(--color-line);
+  background: var(--color-surface);
+}
+
+@utility notice {
+  border-radius: 4px;
+  border: 1px solid var(--color-line);
+  border-left-width: 3px;
+  background: var(--color-surface);
+  padding: 0.875rem 1rem;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+@utility notice-success {
+  border-color: var(--color-success);
+  background: var(--color-success-bg);
+}
+
+@utility notice-warning {
+  border-color: var(--color-warning);
+  background: var(--color-warning-bg);
+}
+
+@utility notice-danger {
+  border-color: var(--color-danger);
+  background: var(--color-danger-bg);
+}
+
+@utility notice-info {
+  border-color: var(--color-gold);
+}
+
+@utility badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 2px;
+  border: 1px solid color-mix(in srgb, var(--color-gold) 45%, transparent);
+  padding: 0.125rem 0.5rem;
+  font-size: 0.625rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-gold);
+}
+
+/* Options picked with links (delivery choice). */
+@utility option {
+  display: block;
+  border-radius: 4px;
+  border: 1px solid var(--color-line);
+  background: var(--color-field);
+  padding: 0.875rem 1rem;
+  &[aria-current="true"] {
+    border-color: var(--color-gold);
+    box-shadow: inset 3px 0 0 var(--color-gold);
+  }
 }

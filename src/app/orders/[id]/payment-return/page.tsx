@@ -6,15 +6,16 @@ import { getCurrentCustomer } from "@/modules/customers";
 import { getOrder, OrderSummary, PaymentStatusRefresher } from "@/modules/orders";
 import { recordPaymentRedirect } from "@/modules/payments";
 import { isUuid } from "@/shared/actions/action-types";
+import { PageHeader } from "@/shared/ui/page-header";
 
 // Return page after the Wompi checkout (D-040). It NEVER confirms a payment:
 // the ?id= is stored only as a hint for the reconciliation job, and the page
 // shows the order status, which only the webhook changes.
 export default function PaymentReturnPage({ params, searchParams }: PageProps<"/orders/[id]/payment-return">) {
   return (
-    <section className="flex flex-col gap-6">
-      <h1 className="text-2xl font-semibold">Estado de tu pago</h1>
-      <Suspense fallback={<p className="text-neutral-600">Consultando tu pedido…</p>}>
+    <section className="page-narrow flex flex-col gap-10">
+      <PageHeader eyebrow="Tu compra" title="Estado de tu pago" />
+      <Suspense fallback={<p className="text-muted">Consultando tu pedido…</p>}>
         <PaymentReturn params={params} searchParams={searchParams} />
       </Suspense>
     </section>
@@ -42,7 +43,7 @@ async function PaymentReturn({
   return (
     <>
       {waiting ? (
-        <p role="status" className="rounded-md border border-neutral-400 p-3">
+        <p role="status" className="notice notice-info">
           Estamos confirmando tu pago con Wompi. Esta página se actualiza sola; si pagaste con PSE puede
           tardar unos minutos.
         </p>

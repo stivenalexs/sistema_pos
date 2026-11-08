@@ -19,6 +19,8 @@ import { fetchActionStatus } from "../actions/client";
 // - mode "completion" (payments): unlocks when the action finishes.
 // - No animation hides the locked state (agents.md §8).
 
+export type ButtonVariant = "primary" | "secondary";
+
 export type ActionButtonMode = "tracking" | "completion";
 
 type Phase =
@@ -41,6 +43,8 @@ export type ActionButtonProps = {
   onTracked?: (trackingId: string) => void;
   onFinished?: (status: ActionStatusResponse) => void;
   disabled?: boolean;
+  /** Visual style only; the locking rules are the same. */
+  variant?: ButtonVariant;
   className?: string;
 };
 
@@ -68,6 +72,7 @@ export function ActionButton({
   onTracked,
   onFinished,
   disabled = false,
+  variant = "primary",
   className = "",
 }: ActionButtonProps) {
   const [phase, setPhase] = useState<Phase>("idle");
@@ -151,7 +156,7 @@ export function ActionButton({
         onClick={handleClick}
         disabled={busy || disabled}
         aria-busy={busy}
-        className={`rounded-md bg-neutral-900 px-4 py-2 font-medium text-white disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
+        className={`btn ${variant === "primary" ? "btn-primary" : "btn-secondary"} ${className}`}
       >
         {busy ? "Procesando…" : children}
       </button>

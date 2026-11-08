@@ -97,6 +97,72 @@ isOneToOne: true
       referencedColumns: ["id"]
     }
                   ]
+                },"couriers": {
+                  Row: {
+                    "created_at": string,"full_name": string,"id": string,"is_active": boolean,"phone": string | null,"provider_id": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"full_name": string,"id": string,"is_active"?: boolean,"phone"?: string | null,"provider_id": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"full_name"?: string,"id"?: string,"is_active"?: boolean,"phone"?: string | null,"provider_id"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "couriers_provider_id_fkey"
+      columns: ["provider_id"]
+isOneToOne: false
+      referencedRelation: "delivery_providers"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"credit_notes": {
+                  Row: {
+                    "attempts": number,"created_at": string,"cufe": string | null,"factus_number": string | null,"id": string,"invoice_id": string,"last_error": string | null,"reason": string,"reference_code": string,"request": Json | null,"requested_by": string | null,"response": Json | null,"status": Database["public"]['Enums']["invoice_status"],"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "attempts"?: number,"created_at"?: string,"cufe"?: string | null,"factus_number"?: string | null,"id"?: string,"invoice_id": string,"last_error"?: string | null,"reason": string,"reference_code": string,"request"?: Json | null,"requested_by"?: string | null,"response"?: Json | null,"status"?: Database["public"]['Enums']["invoice_status"],"updated_at"?: string
+                  }
+                  Update: {
+                    "attempts"?: number,"created_at"?: string,"cufe"?: string | null,"factus_number"?: string | null,"id"?: string,"invoice_id"?: string,"last_error"?: string | null,"reason"?: string,"reference_code"?: string,"request"?: Json | null,"requested_by"?: string | null,"response"?: Json | null,"status"?: Database["public"]['Enums']["invoice_status"],"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "credit_notes_invoice_id_fkey"
+      columns: ["invoice_id"]
+isOneToOne: true
+      referencedRelation: "invoices"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"customer_addresses": {
+                  Row: {
+                    "address_line": string,"created_at": string,"customer_id": string,"details": string | null,"id": string,"label": string,"location": unknown,"updated_at": string,"zone_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "address_line": string,"created_at"?: string,"customer_id": string,"details"?: string | null,"id"?: string,"label": string,"location": unknown,"updated_at"?: string,"zone_id": string
+                  }
+                  Update: {
+                    "address_line"?: string,"created_at"?: string,"customer_id"?: string,"details"?: string | null,"id"?: string,"label"?: string,"location"?: unknown,"updated_at"?: string,"zone_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "customer_addresses_customer_id_fkey"
+      columns: ["customer_id"]
+isOneToOne: false
+      referencedRelation: "customers"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "customer_addresses_zone_id_fkey"
+      columns: ["zone_id"]
+isOneToOne: false
+      referencedRelation: "delivery_zones"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"customers": {
                   Row: {
                     "business_name": string | null,"created_at": string,"customer_type": Database["public"]['Enums']["customer_type"],"document_number": string | null,"document_type": Database["public"]['Enums']["document_type"] | null,"full_name": string,"id": string,"phone": string | null,"price_list_id": string | null,"updated_at": string,"wholesale_status": Database["public"]['Enums']["wholesale_status"] | null
@@ -116,6 +182,94 @@ isOneToOne: false
       referencedRelation: "price_lists"
       referencedColumns: ["id"]
     }
+                  ]
+                },"delivery_attempts": {
+                  Row: {
+                    "actor_id": string,"created_at": string,"failure_reason": string | null,"id": string,"idempotency_key": string,"location": unknown,"notes": string | null,"order_id": string,"outcome": Database["public"]['Enums']["delivery_outcome"]
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "actor_id": string,"created_at"?: string,"failure_reason"?: string | null,"id"?: string,"idempotency_key": string,"location"?: unknown,"notes"?: string | null,"order_id": string,"outcome": Database["public"]['Enums']["delivery_outcome"]
+                  }
+                  Update: {
+                    "actor_id"?: string,"created_at"?: string,"failure_reason"?: string | null,"id"?: string,"idempotency_key"?: string,"location"?: unknown,"notes"?: string | null,"order_id"?: string,"outcome"?: Database["public"]['Enums']["delivery_outcome"]
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "delivery_attempts_order_id_fkey"
+      columns: ["order_id"]
+isOneToOne: false
+      referencedRelation: "orders"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"delivery_fee_rules": {
+                  Row: {
+                    "created_at": string,"customer_type": Database["public"]['Enums']["customer_type"] | null,"fee_cop": number,"id": string,"is_active": boolean,"max_distance_m": number | null,"min_boxes": number | null,"name": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"customer_type"?: Database["public"]['Enums']["customer_type"] | null,"fee_cop": number,"id"?: string,"is_active"?: boolean,"max_distance_m"?: number | null,"min_boxes"?: number | null,"name": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"customer_type"?: Database["public"]['Enums']["customer_type"] | null,"fee_cop"?: number,"id"?: string,"is_active"?: boolean,"max_distance_m"?: number | null,"min_boxes"?: number | null,"name"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"delivery_proofs": {
+                  Row: {
+                    "age_confirmed": boolean,"attempt_id": string,"delivered_at": string,"delivered_by": string,"id": string,"order_id": string,"recipient_document_number": string,"recipient_name": string,"signature_path": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "age_confirmed": boolean,"attempt_id": string,"delivered_at"?: string,"delivered_by": string,"id"?: string,"order_id": string,"recipient_document_number": string,"recipient_name": string,"signature_path": string
+                  }
+                  Update: {
+                    "age_confirmed"?: boolean,"attempt_id"?: string,"delivered_at"?: string,"delivered_by"?: string,"id"?: string,"order_id"?: string,"recipient_document_number"?: string,"recipient_name"?: string,"signature_path"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "delivery_proofs_attempt_id_fkey"
+      columns: ["attempt_id"]
+isOneToOne: true
+      referencedRelation: "delivery_attempts"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "delivery_proofs_order_id_fkey"
+      columns: ["order_id"]
+isOneToOne: true
+      referencedRelation: "orders"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"delivery_providers": {
+                  Row: {
+                    "created_at": string,"id": string,"is_active": boolean,"kind": Database["public"]['Enums']["delivery_provider_kind"],"name": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"is_active"?: boolean,"kind": Database["public"]['Enums']["delivery_provider_kind"],"name": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"is_active"?: boolean,"kind"?: Database["public"]['Enums']["delivery_provider_kind"],"name"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"delivery_zones": {
+                  Row: {
+                    "created_at": string,"dane_code": string,"id": string,"is_active": boolean,"municipality": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"dane_code": string,"id"?: string,"is_active"?: boolean,"municipality": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"dane_code"?: string,"id"?: string,"is_active"?: boolean,"municipality"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    
                   ]
                 },"inventory_movements": {
                   Row: {
@@ -140,6 +294,52 @@ isOneToOne: false
       columns: ["reservation_id"]
 isOneToOne: false
       referencedRelation: "stock_reservations"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"invoice_lines": {
+                  Row: {
+                    "ad_valorem_cop": number,"base_cop": number,"exploitation_cop": number,"final_cop": number,"id": string,"invoice_id": string,"iva_cop": number,"line_kind": string,"name": string,"net_cop": number | null,"product_id": string | null,"quantity_units": number,"sku": string,"specific_cop": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "ad_valorem_cop": number,"base_cop": number,"exploitation_cop": number,"final_cop": number,"id"?: string,"invoice_id": string,"iva_cop": number,"line_kind"?: string,"name": string,"net_cop"?: never,"product_id"?: string | null,"quantity_units": number,"sku": string,"specific_cop": number
+                  }
+                  Update: {
+                    "ad_valorem_cop"?: number,"base_cop"?: number,"exploitation_cop"?: number,"final_cop"?: number,"id"?: string,"invoice_id"?: string,"iva_cop"?: number,"line_kind"?: string,"name"?: string,"net_cop"?: never,"product_id"?: string | null,"quantity_units"?: number,"sku"?: string,"specific_cop"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "invoice_lines_invoice_id_fkey"
+      columns: ["invoice_id"]
+isOneToOne: false
+      referencedRelation: "invoices"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "invoice_lines_product_id_fkey"
+      columns: ["product_id"]
+isOneToOne: false
+      referencedRelation: "products"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"invoices": {
+                  Row: {
+                    "accepted_at": string | null,"attempts": number,"base_cop": number,"created_at": string,"cufe": string | null,"customer": NonNullable<Json>,"dian_errors": Json | null,"exploitation_cop": number,"factus_number": string | null,"id": string,"iva_cop": number,"last_error": string | null,"order_id": string,"participation_cop": number,"payment_method_code": string,"public_url": string | null,"qr_url": string | null,"reference_code": string,"rejected_at": string | null,"request": Json | null,"response": Json | null,"sent_at": string | null,"status": Database["public"]['Enums']["invoice_status"],"total_cop": number,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "accepted_at"?: string | null,"attempts"?: number,"base_cop": number,"created_at"?: string,"cufe"?: string | null,"customer": NonNullable<Json>,"dian_errors"?: Json | null,"exploitation_cop": number,"factus_number"?: string | null,"id"?: string,"iva_cop": number,"last_error"?: string | null,"order_id": string,"participation_cop": number,"payment_method_code": string,"public_url"?: string | null,"qr_url"?: string | null,"reference_code": string,"rejected_at"?: string | null,"request"?: Json | null,"response"?: Json | null,"sent_at"?: string | null,"status"?: Database["public"]['Enums']["invoice_status"],"total_cop": number,"updated_at"?: string
+                  }
+                  Update: {
+                    "accepted_at"?: string | null,"attempts"?: number,"base_cop"?: number,"created_at"?: string,"cufe"?: string | null,"customer"?: NonNullable<Json>,"dian_errors"?: Json | null,"exploitation_cop"?: number,"factus_number"?: string | null,"id"?: string,"iva_cop"?: number,"last_error"?: string | null,"order_id"?: string,"participation_cop"?: number,"payment_method_code"?: string,"public_url"?: string | null,"qr_url"?: string | null,"reference_code"?: string,"rejected_at"?: string | null,"request"?: Json | null,"response"?: Json | null,"sent_at"?: string | null,"status"?: Database["public"]['Enums']["invoice_status"],"total_cop"?: number,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "invoices_order_id_fkey"
+      columns: ["order_id"]
+isOneToOne: true
+      referencedRelation: "orders"
       referencedColumns: ["id"]
     }
                   ]
@@ -205,21 +405,33 @@ isOneToOne: false
                   ]
                 },"orders": {
                   Row: {
-                    "cancel_after": string | null,"cancel_reason": string | null,"cancelled_at": string | null,"channel": Database["public"]['Enums']["order_channel"],"created_at": string,"customer_id": string | null,"delivery_fee_cop": number,"fulfillment": Database["public"]['Enums']["fulfillment_method"],"id": string,"idempotency_key": string,"needs_refund": boolean,"paid_at": string | null,"payment_deadline": string | null,"refund_reason": string | null,"sale_unit": string,"status": Database["public"]['Enums']["order_status"],"subtotal_cop": number,"total_base_units": number,"total_boxes": number,"total_cop": number,"updated_at": string
+                    "assigned_at": string | null,"cancel_after": string | null,"cancel_reason": string | null,"cancelled_at": string | null,"channel": Database["public"]['Enums']["order_channel"],"courier_id": string | null,"created_at": string,"customer_id": string | null,"delivered_at": string | null,"delivery_address": Json | null,"delivery_distance_m": number | null,"delivery_external_ref": string | null,"delivery_fee_cop": number,"delivery_provider_id": string | null,"fulfillment": Database["public"]['Enums']["fulfillment_method"],"id": string,"idempotency_key": string,"needs_refund": boolean,"paid_at": string | null,"payment_deadline": string | null,"refund_reason": string | null,"sale_unit": string,"status": Database["public"]['Enums']["order_status"],"subtotal_cop": number,"total_base_units": number,"total_boxes": number,"total_cop": number,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "cancel_after"?: string | null,"cancel_reason"?: string | null,"cancelled_at"?: string | null,"channel": Database["public"]['Enums']["order_channel"],"created_at"?: string,"customer_id"?: string | null,"delivery_fee_cop"?: number,"fulfillment": Database["public"]['Enums']["fulfillment_method"],"id"?: string,"idempotency_key": string,"needs_refund"?: boolean,"paid_at"?: string | null,"payment_deadline"?: string | null,"refund_reason"?: string | null,"sale_unit": string,"status"?: Database["public"]['Enums']["order_status"],"subtotal_cop": number,"total_base_units": number,"total_boxes"?: number,"total_cop": number,"updated_at"?: string
+                    "assigned_at"?: string | null,"cancel_after"?: string | null,"cancel_reason"?: string | null,"cancelled_at"?: string | null,"channel": Database["public"]['Enums']["order_channel"],"courier_id"?: string | null,"created_at"?: string,"customer_id"?: string | null,"delivered_at"?: string | null,"delivery_address"?: Json | null,"delivery_distance_m"?: number | null,"delivery_external_ref"?: string | null,"delivery_fee_cop"?: number,"delivery_provider_id"?: string | null,"fulfillment": Database["public"]['Enums']["fulfillment_method"],"id"?: string,"idempotency_key": string,"needs_refund"?: boolean,"paid_at"?: string | null,"payment_deadline"?: string | null,"refund_reason"?: string | null,"sale_unit": string,"status"?: Database["public"]['Enums']["order_status"],"subtotal_cop": number,"total_base_units": number,"total_boxes"?: number,"total_cop": number,"updated_at"?: string
                   }
                   Update: {
-                    "cancel_after"?: string | null,"cancel_reason"?: string | null,"cancelled_at"?: string | null,"channel"?: Database["public"]['Enums']["order_channel"],"created_at"?: string,"customer_id"?: string | null,"delivery_fee_cop"?: number,"fulfillment"?: Database["public"]['Enums']["fulfillment_method"],"id"?: string,"idempotency_key"?: string,"needs_refund"?: boolean,"paid_at"?: string | null,"payment_deadline"?: string | null,"refund_reason"?: string | null,"sale_unit"?: string,"status"?: Database["public"]['Enums']["order_status"],"subtotal_cop"?: number,"total_base_units"?: number,"total_boxes"?: number,"total_cop"?: number,"updated_at"?: string
+                    "assigned_at"?: string | null,"cancel_after"?: string | null,"cancel_reason"?: string | null,"cancelled_at"?: string | null,"channel"?: Database["public"]['Enums']["order_channel"],"courier_id"?: string | null,"created_at"?: string,"customer_id"?: string | null,"delivered_at"?: string | null,"delivery_address"?: Json | null,"delivery_distance_m"?: number | null,"delivery_external_ref"?: string | null,"delivery_fee_cop"?: number,"delivery_provider_id"?: string | null,"fulfillment"?: Database["public"]['Enums']["fulfillment_method"],"id"?: string,"idempotency_key"?: string,"needs_refund"?: boolean,"paid_at"?: string | null,"payment_deadline"?: string | null,"refund_reason"?: string | null,"sale_unit"?: string,"status"?: Database["public"]['Enums']["order_status"],"subtotal_cop"?: number,"total_base_units"?: number,"total_boxes"?: number,"total_cop"?: number,"updated_at"?: string
                   }
                   Relationships: [
                     {
+      foreignKeyName: "orders_courier_id_fkey"
+      columns: ["courier_id"]
+isOneToOne: false
+      referencedRelation: "couriers"
+      referencedColumns: ["id"]
+    },{
       foreignKeyName: "orders_customer_id_fkey"
       columns: ["customer_id"]
 isOneToOne: false
       referencedRelation: "customers"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "orders_delivery_provider_id_fkey"
+      columns: ["delivery_provider_id"]
+isOneToOne: false
+      referencedRelation: "delivery_providers"
       referencedColumns: ["id"]
     }
                   ]
@@ -319,14 +531,14 @@ isOneToOne: true
                   ]
                 },"products": {
                   Row: {
-                    "allow_retail_by_unit": boolean,"brand": string | null,"created_at": string,"description": string | null,"id": string,"is_active": boolean,"low_stock_threshold": number,"name": string,"origin": Database["public"]['Enums']["product_origin"],"retail_min_units": number,"sku": string,"units_per_box": number,"updated_at": string,"volume_ml": number | null,"web_safety_stock": number,"wholesale_min_boxes": number
+                    "alcohol_degree": number | null,"allow_retail_by_unit": boolean,"brand": string | null,"created_at": string,"description": string | null,"id": string,"image_path": string | null,"is_active": boolean,"is_fla": boolean,"low_stock_threshold": number,"name": string,"origin": Database["public"]['Enums']["product_origin"],"retail_min_units": number,"sku": string,"tax_category": Database["public"]['Enums']["tax_category"] | null,"units_per_box": number,"updated_at": string,"volume_ml": number | null,"web_safety_stock": number,"wholesale_min_boxes": number
                   }
                   ComputedFields: never
                   Insert: {
-                    "allow_retail_by_unit"?: boolean,"brand"?: string | null,"created_at"?: string,"description"?: string | null,"id"?: string,"is_active"?: boolean,"low_stock_threshold"?: number,"name": string,"origin": Database["public"]['Enums']["product_origin"],"retail_min_units"?: number,"sku": string,"units_per_box": number,"updated_at"?: string,"volume_ml"?: number | null,"web_safety_stock"?: number,"wholesale_min_boxes"?: number
+                    "alcohol_degree"?: number | null,"allow_retail_by_unit"?: boolean,"brand"?: string | null,"created_at"?: string,"description"?: string | null,"id"?: string,"image_path"?: string | null,"is_active"?: boolean,"is_fla"?: boolean,"low_stock_threshold"?: number,"name": string,"origin": Database["public"]['Enums']["product_origin"],"retail_min_units"?: number,"sku": string,"tax_category"?: Database["public"]['Enums']["tax_category"] | null,"units_per_box": number,"updated_at"?: string,"volume_ml"?: number | null,"web_safety_stock"?: number,"wholesale_min_boxes"?: number
                   }
                   Update: {
-                    "allow_retail_by_unit"?: boolean,"brand"?: string | null,"created_at"?: string,"description"?: string | null,"id"?: string,"is_active"?: boolean,"low_stock_threshold"?: number,"name"?: string,"origin"?: Database["public"]['Enums']["product_origin"],"retail_min_units"?: number,"sku"?: string,"units_per_box"?: number,"updated_at"?: string,"volume_ml"?: number | null,"web_safety_stock"?: number,"wholesale_min_boxes"?: number
+                    "alcohol_degree"?: number | null,"allow_retail_by_unit"?: boolean,"brand"?: string | null,"created_at"?: string,"description"?: string | null,"id"?: string,"image_path"?: string | null,"is_active"?: boolean,"is_fla"?: boolean,"low_stock_threshold"?: number,"name"?: string,"origin"?: Database["public"]['Enums']["product_origin"],"retail_min_units"?: number,"sku"?: string,"tax_category"?: Database["public"]['Enums']["tax_category"] | null,"units_per_box"?: number,"updated_at"?: string,"volume_ml"?: number | null,"web_safety_stock"?: number,"wholesale_min_boxes"?: number
                   }
                   Relationships: [
                     
@@ -351,6 +563,20 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"tax_rates": {
+                  Row: {
+                    "ad_valorem_pct": number,"created_at": string,"exploitation_pct": number,"id": string,"specific_per_degree_cop": number,"tax_category": Database["public"]['Enums']["tax_category"],"year": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "ad_valorem_pct": number,"created_at"?: string,"exploitation_pct"?: number,"id"?: string,"specific_per_degree_cop": number,"tax_category": Database["public"]['Enums']["tax_category"],"year": number
+                  }
+                  Update: {
+                    "ad_valorem_pct"?: number,"created_at"?: string,"exploitation_pct"?: number,"id"?: string,"specific_per_degree_cop"?: number,"tax_category"?: Database["public"]['Enums']["tax_category"],"year"?: number
+                  }
+                  Relationships: [
+                    
+                  ]
                 }
           }
           Views: {
@@ -359,6 +585,12 @@ isOneToOne: false
           Functions: {
             "apply_payment_event":
 { Args: { "p_event_id": string }; Returns: string
+                           },
+"assign_delivery":
+{ Args: { "p_courier_id"?: string,"p_external_ref"?: string,"p_order_id": string,"p_provider_id": string }; Returns: undefined
+                           },
+"can_deliver_order":
+{ Args: { "p_order_id": string }; Returns: boolean
                            },
 "cancel_abandoned_orders":
 { Args: Record<PropertyKey, never>; Returns: number
@@ -371,11 +603,17 @@ isOneToOne: false
               "action_id": string,"attempt": number,"max_attempts": number,"payload": Json,"type": string,"user_id": string
             }[]
                            },
+"clear_mismatched_payment_hint":
+{ Args: { "p_attempt_id": string,"p_transaction_id": string,"p_wompi_reference": string }; Returns: boolean
+                           },
 "complete_action":
 { Args: { "p_action_id": string,"p_result"?: Json }; Returns: undefined
                            },
 "consume_reservation":
 { Args: { "p_idempotency_key": string,"p_items": Json,"p_reference": string }; Returns: number
+                           },
+"delete_delivery_address":
+{ Args: { "p_address_id": string }; Returns: boolean
                            },
 "enqueue_action":
 { Args: { "p_idempotency_key": string,"p_max_attempts"?: number,"p_payload"?: Json,"p_type": string,"p_user_id": string }; Returns: {
@@ -391,6 +629,11 @@ isOneToOne: false
 "get_catalog":
 { Args: Record<PropertyKey, never>; Returns: {
               "brand": string,"description": string,"min_quantity": number,"name": string,"origin": Database["public"]['Enums']["product_origin"],"price_cop": number,"price_list_id": string,"product_id": string,"sale_unit": string,"sku": string,"units_per_box": number,"volume_ml": number
+            }[]
+                           },
+"get_delivery_addresses":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "address_line": string,"details": string,"distance_m": number,"id": string,"label": string,"lat": number,"lng": number,"municipality": string,"zone_active": boolean,"zone_id": string
             }[]
                            },
 "get_web_availability":
@@ -409,7 +652,13 @@ isOneToOne: false
             }[]
                            },
 "place_order":
-{ Args: { "p_fulfillment"?: Database["public"]['Enums']["fulfillment_method"],"p_idempotency_key": string }; Returns: Json
+{ Args: { "p_address_id"?: string,"p_fulfillment"?: Database["public"]['Enums']["fulfillment_method"],"p_idempotency_key": string }; Returns: Json
+                           },
+"prepare_invoice":
+{ Args: { "p_order_id": string }; Returns: Json
+                           },
+"quote_delivery":
+{ Args: { "p_address_id": string }; Returns: Json
                            },
 "quote_items":
 { Args: { "p_items": Json }; Returns: Json
@@ -421,6 +670,15 @@ isOneToOne: false
                            },
 "record_count":
 { Args: { "p_counted_units": number,"p_idempotency_key": string,"p_product_id": string,"p_reason": string }; Returns: string
+                           },
+"record_credit_note_result":
+{ Args: { "p_credit_note_id": string,"p_error"?: string,"p_outcome": string,"p_request": Json,"p_response": Json }; Returns: undefined
+                           },
+"record_delivery_attempt":
+{ Args: { "p_actor_id": string,"p_age_confirmed": boolean,"p_document_number": string,"p_failure_reason": string,"p_idempotency_key": string,"p_lat"?: number,"p_lng"?: number,"p_notes": string,"p_order_id": string,"p_outcome": Database["public"]['Enums']["delivery_outcome"],"p_recipient_name": string,"p_signature_path": string }; Returns: Json
+                           },
+"record_invoice_result":
+{ Args: { "p_error"?: string,"p_invoice_id": string,"p_outcome": string,"p_request": Json,"p_response": Json }; Returns: undefined
                            },
 "record_payment_redirect":
 { Args: { "p_order_id": string,"p_transaction_id": string }; Returns: undefined
@@ -437,8 +695,14 @@ isOneToOne: false
 "release_reservation":
 { Args: { "p_reference": string }; Returns: number
                            },
+"request_credit_note":
+{ Args: { "p_invoice_id": string,"p_reason": string }; Returns: string
+                           },
 "reserve_stock":
 { Args: { "p_items": Json,"p_reference": string,"p_ttl_minutes"?: number }; Returns: string[]
+                           },
+"save_delivery_address":
+{ Args: { "p_address_line": string,"p_details": string,"p_label": string,"p_lat": number,"p_lng": number,"p_zone_id": string }; Returns: string
                            },
 "set_cart_item":
 { Args: { "p_product_id": string,"p_quantity": number }; Returns: undefined
@@ -451,7 +715,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "action_status": "queued"|"processing"|"succeeded"|"failed","customer_type": "retail"|"wholesale","document_type": "cc"|"ce"|"nit"|"passport","fulfillment_method": "pickup"|"delivery","inventory_movement_type": "purchase_in"|"web_sale"|"pos_sale"|"adjustment"|"waste"|"return_in"|"reservation"|"reservation_release","legal_document": "age_gate"|"terms"|"privacy","order_channel": "web"|"pos","order_status": "draft"|"awaiting_payment"|"paid"|"preparing"|"out_for_delivery"|"delivered"|"cancelled"|"refunded","payment_attempt_status": "pending"|"approved"|"declined"|"voided"|"error"|"abandoned","product_origin": "national"|"imported","reservation_status": "active"|"consumed"|"released"|"expired","staff_role": "admin"|"cashier"|"courier"|"warehouse","wholesale_status": "pending"|"approved"|"rejected"
+            "action_status": "queued"|"processing"|"succeeded"|"failed","customer_type": "retail"|"wholesale","delivery_outcome": "delivered"|"failed","delivery_provider_kind": "own"|"third_party","document_type": "cc"|"ce"|"nit"|"passport","fulfillment_method": "pickup"|"delivery","inventory_movement_type": "purchase_in"|"web_sale"|"pos_sale"|"adjustment"|"waste"|"return_in"|"reservation"|"reservation_release","invoice_status": "pending"|"sent"|"accepted"|"rejected","legal_document": "age_gate"|"terms"|"privacy","order_channel": "web"|"pos","order_status": "draft"|"awaiting_payment"|"paid"|"preparing"|"out_for_delivery"|"delivered"|"cancelled"|"refunded","payment_attempt_status": "pending"|"approved"|"declined"|"voided"|"error"|"abandoned","product_origin": "national"|"imported","reservation_status": "active"|"consumed"|"released"|"expired","staff_role": "admin"|"cashier"|"courier"|"warehouse","tax_category": "spirits"|"wine"|"non_wine_aperitif","wholesale_status": "pending"|"approved"|"rejected"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -571,7 +835,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "action_status": ["queued", "processing", "succeeded", "failed"],"customer_type": ["retail", "wholesale"],"document_type": ["cc", "ce", "nit", "passport"],"fulfillment_method": ["pickup", "delivery"],"inventory_movement_type": ["purchase_in", "web_sale", "pos_sale", "adjustment", "waste", "return_in", "reservation", "reservation_release"],"legal_document": ["age_gate", "terms", "privacy"],"order_channel": ["web", "pos"],"order_status": ["draft", "awaiting_payment", "paid", "preparing", "out_for_delivery", "delivered", "cancelled", "refunded"],"payment_attempt_status": ["pending", "approved", "declined", "voided", "error", "abandoned"],"product_origin": ["national", "imported"],"reservation_status": ["active", "consumed", "released", "expired"],"staff_role": ["admin", "cashier", "courier", "warehouse"],"wholesale_status": ["pending", "approved", "rejected"]
+            "action_status": ["queued", "processing", "succeeded", "failed"],"customer_type": ["retail", "wholesale"],"delivery_outcome": ["delivered", "failed"],"delivery_provider_kind": ["own", "third_party"],"document_type": ["cc", "ce", "nit", "passport"],"fulfillment_method": ["pickup", "delivery"],"inventory_movement_type": ["purchase_in", "web_sale", "pos_sale", "adjustment", "waste", "return_in", "reservation", "reservation_release"],"invoice_status": ["pending", "sent", "accepted", "rejected"],"legal_document": ["age_gate", "terms", "privacy"],"order_channel": ["web", "pos"],"order_status": ["draft", "awaiting_payment", "paid", "preparing", "out_for_delivery", "delivered", "cancelled", "refunded"],"payment_attempt_status": ["pending", "approved", "declined", "voided", "error", "abandoned"],"product_origin": ["national", "imported"],"reservation_status": ["active", "consumed", "released", "expired"],"staff_role": ["admin", "cashier", "courier", "warehouse"],"tax_category": ["spirits", "wine", "non_wine_aperitif"],"wholesale_status": ["pending", "approved", "rejected"]
           }
         }
 } as const

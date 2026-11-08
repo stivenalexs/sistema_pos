@@ -4,6 +4,8 @@ import { createSupabaseServerClient } from "@/shared/supabase/server";
 
 import type { CatalogItem, Quote, QuoteItemInput, QuoteLine } from "../domain/pricing";
 
+const PRODUCT_IMAGES_BUCKET = "product-images";
+
 // Server-side access to the pricing functions (D-036). They run with the
 // user's session, so RLS decides what each customer can see and pay.
 
@@ -12,8 +14,28 @@ export async function getCatalog(): Promise<CatalogItem[]> {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.rpc("get_catalog");
   if (error) throw new Error(`get_catalog failed: ${error.message}`);
+  const rows = data ?? [];
 
-  return (data ?? []).map((row) => ({
+  // Photos (D-047): read from products with the same session, so RLS decides
+  // which image paths the caller can see. Prices are not involved.
+  const imagePaths = new Map<string, string>();
+  if (rows.length > 0) {
+    const { data: images, error: imagesError } = await supabase
+      .from("products")
+      .select("id, image_path")
+      .in(
+        "id",
+        rows.map((row) => row.product_id),
+      )
+      .not("image_path", "is", null);
+    if (imagesError) throw new Error(`product images failed: ${imagesError.message}`);
+    for (const image of images ?? []) {
+      if (image.image_path) imagePaths.set(image.id, image.image_path);
+    }
+  }
+  const storage = supabase.storage.from(PRODUCT_IMAGES_BUCKET);
+
+  return rows.map((row) => ({
     productId: row.product_id,
     sku: row.sku,
     name: row.name,
@@ -25,6 +47,9 @@ export async function getCatalog(): Promise<CatalogItem[]> {
     unitsPerBox: row.units_per_box,
     minQuantity: row.min_quantity,
     priceCop: row.price_cop,
+    imageUrl: imagePaths.has(row.product_id)
+      ? storage.getPublicUrl(imagePaths.get(row.product_id) as string).data.publicUrl
+      : null,
   }));
 }
 

@@ -4,24 +4,27 @@ import { Suspense } from "react";
 
 import { LEGAL_COPY, latestAdultBirthDate, todayInColombia } from "@/modules/compliance";
 import { SignupForm, signUpAction } from "@/modules/customers";
+import { PageHeader } from "@/shared/ui/page-header";
+import { PhotoShell } from "@/shared/ui/photo-shell";
 
 export default function SignupPage() {
   return (
-    <section className="flex flex-col gap-6">
-      <h1 className="text-2xl font-semibold">Crear cuenta</h1>
-      <p className="text-neutral-700">
-        Para comprar en la tienda necesitas una cuenta y tener 18 años o más.
-      </p>
-      <Suspense>
-        <Signup />
-      </Suspense>
-      <p className="text-sm">
-        ¿Ya tienes cuenta?{" "}
-        <Link href="/login" className="underline">
-          Inicia sesión
-        </Link>
-      </p>
-    </section>
+    <PhotoShell>
+      <div className="flex flex-col gap-8">
+        <PageHeader eyebrow="Tu lugar en la cava" title="Crear cuenta">
+          Para comprar en la tienda necesitas una cuenta y tener 18 años o más.
+        </PageHeader>
+        <Suspense>
+          <Signup />
+        </Suspense>
+        <p className="text-center text-xs text-muted">
+          ¿Ya tienes cuenta?{" "}
+          <Link href="/login" className="link">
+            Inicia sesión
+          </Link>
+        </p>
+      </div>
+    </PhotoShell>
   );
 }
 

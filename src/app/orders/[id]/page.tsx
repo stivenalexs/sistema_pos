@@ -5,12 +5,13 @@ import { Suspense } from "react";
 import { isUuid } from "@/shared/actions/action-types";
 import { getCurrentCustomer } from "@/modules/customers";
 import { getOrder, OrderSummary } from "@/modules/orders";
+import { PageHeader } from "@/shared/ui/page-header";
 
 export default function OrderPage({ params }: PageProps<"/orders/[id]">) {
   return (
-    <section className="flex flex-col gap-6">
-      <h1 className="text-2xl font-semibold">Pedido</h1>
-      <Suspense fallback={<p className="text-neutral-600">Cargando pedido…</p>}>
+    <section className="page-narrow flex flex-col gap-10">
+      <PageHeader eyebrow="Tu compra" title="Pedido" />
+      <Suspense fallback={<p className="text-muted">Cargando pedido…</p>}>
         <Order params={params} />
       </Suspense>
     </section>

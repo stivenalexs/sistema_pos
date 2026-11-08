@@ -7,7 +7,7 @@ import { createSupabaseAdminClient } from "@/shared/supabase/admin";
 import type { Json } from "@/shared/supabase/database.types";
 import { createSupabaseServerClient } from "@/shared/supabase/server";
 
-import { buildCheckoutUrl } from "./checkout";
+import { buildCheckoutUrl, checkoutRedirectUrl } from "./checkout";
 import { verifyWompiEvent } from "./verify-signature";
 import { getWompiConfig } from "./wompi-config";
 
@@ -61,7 +61,7 @@ export async function startPayment(input: {
       reference: result.attempt.reference,
       amountInCents: result.attempt.amount_in_cents,
       expiresAt: result.attempt.expires_at,
-      redirectUrl: `${input.siteOrigin}/orders/${input.orderId}/payment-return`,
+      redirectUrl: checkoutRedirectUrl(input.siteOrigin, input.orderId),
       customerEmail: email,
       customerFullName: customer?.full_name ?? null,
     }),
@@ -183,6 +183,16 @@ export async function reconcilePayments(minAgeMinutes = 15): Promise<ReconcileRe
       }
       const body = (await response.json()) as { data?: WompiTransaction };
       const tx = body.data;
+      if (tx) {
+        // A browser hint can point to a transaction of another attempt: the
+        // payment is still applied by its own reference below, and the wrong
+        // hint is dropped so it is not asked about again (D-040).
+        await admin.rpc("clear_mismatched_payment_hint", {
+          p_attempt_id: row.attempt_id,
+          p_transaction_id: row.transaction_id,
+          p_wompi_reference: tx.reference,
+        });
+      }
       if (!tx || tx.status === "PENDING") {
         report.stillPending += 1;
         continue;
