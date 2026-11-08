@@ -39,7 +39,9 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const NIT = /^[0-9]{6,12}(-?[0-9])?$/;
 const PHONE = /^\+?[0-9 ]{7,15}$/;
 
-export const PASSWORD_MIN_LENGTH = 8;
+import { PASSWORD_MIN_LENGTH, passwordError } from "./password";
+
+export { PASSWORD_MIN_LENGTH };
 
 function clean(value: string | null | undefined): string {
   return (value ?? "").trim();
@@ -59,13 +61,8 @@ export function validateSignup(raw: RawSignup, today = todayInColombia()): Signu
   if (!EMAIL.test(email)) errors.email = "Escribe un correo válido.";
 
   const password = raw.password ?? "";
-  if (
-    password.length < PASSWORD_MIN_LENGTH ||
-    !/[A-Za-z]/.test(password) ||
-    !/[0-9]/.test(password)
-  ) {
-    errors.password = `La contraseña debe tener al menos ${PASSWORD_MIN_LENGTH} caracteres, con letras y números.`;
-  }
+  const passwordProblem = passwordError(password);
+  if (passwordProblem) errors.password = passwordProblem;
 
   const birthDate = clean(raw.birthDate);
   if (!isValidIsoDate(birthDate) || birthDate > today || birthDate < "1900-01-01") {

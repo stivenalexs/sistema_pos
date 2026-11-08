@@ -583,6 +583,34 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"staff_changes": {
+                  Row: {
+                    "change": string,"changed_by": string | null,"created_at": string,"id": string,"previous_role": string | null,"reason": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "change": string,"changed_by"?: string | null,"created_at"?: string,"id"?: string,"previous_role"?: string | null,"reason": string,"user_id": string
+                  }
+                  Update: {
+                    "change"?: string,"changed_by"?: string | null,"created_at"?: string,"id"?: string,"previous_role"?: string | null,"reason"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"staff_invitations": {
+                  Row: {
+                    "accepted_at": string | null,"created_at": string,"email": string,"expires_at": string,"full_name": string,"id": string,"invited_by": string | null,"phone": string | null,"revoked_at": string | null,"staff_role": Database["public"]['Enums']["staff_role"],"status": Database["public"]['Enums']["staff_invitation_status"],"token_hash": string,"updated_at": string,"user_id": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "accepted_at"?: string | null,"created_at"?: string,"email": string,"expires_at"?: string,"full_name": string,"id"?: string,"invited_by"?: string | null,"phone"?: string | null,"revoked_at"?: string | null,"staff_role": Database["public"]['Enums']["staff_role"],"status"?: Database["public"]['Enums']["staff_invitation_status"],"token_hash": string,"updated_at"?: string,"user_id"?: string | null
+                  }
+                  Update: {
+                    "accepted_at"?: string | null,"created_at"?: string,"email"?: string,"expires_at"?: string,"full_name"?: string,"id"?: string,"invited_by"?: string | null,"phone"?: string | null,"revoked_at"?: string | null,"staff_role"?: Database["public"]['Enums']["staff_role"],"status"?: Database["public"]['Enums']["staff_invitation_status"],"token_hash"?: string,"updated_at"?: string,"user_id"?: string | null
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"stock_reservations": {
                   Row: {
                     "created_at": string,"created_by": string | null,"expires_at": string,"id": string,"product_id": string,"reference": string,"status": Database["public"]['Enums']["reservation_status"],"units": number,"updated_at": string
@@ -617,13 +645,42 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"wholesale_reviews": {
+                  Row: {
+                    "created_at": string,"customer_id": string,"decision": Database["public"]['Enums']["wholesale_status"],"id": string,"reason": string,"reviewed_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"customer_id": string,"decision": Database["public"]['Enums']["wholesale_status"],"id"?: string,"reason": string,"reviewed_by"?: string | null
+                  }
+                  Update: {
+                    "created_at"?: string,"customer_id"?: string,"decision"?: Database["public"]['Enums']["wholesale_status"],"id"?: string,"reason"?: string,"reviewed_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "wholesale_reviews_customer_id_fkey"
+      columns: ["customer_id"]
+isOneToOne: false
+      referencedRelation: "customers"
+      referencedColumns: ["id"]
+    }
+                  ]
                 }
           }
           Views: {
             [_ in never]: never
           }
           Functions: {
-            "apply_payment_event":
+            "admin_list_staff":
+{ Args: Record<PropertyKey, never>; Returns: Json
+                           },
+"admin_list_wholesale":
+{ Args: { "p_status"?: string }; Returns: Json
+                           },
+"admin_summary":
+{ Args: Record<PropertyKey, never>; Returns: Json
+                           },
+"apply_payment_event":
 { Args: { "p_event_id": string }; Returns: string
                            },
 "assign_delivery":
@@ -654,6 +711,9 @@ isOneToOne: false
                            },
 "create_pos_sale":
 { Args: { "p_age_confirmed": boolean,"p_cash_received_cop": number,"p_customer_id": string,"p_idempotency_key": string,"p_items": Json,"p_payment_method": string }; Returns: Json
+                           },
+"deactivate_staff":
+{ Args: { "p_reason": string,"p_user_id": string }; Returns: Json
                            },
 "delete_delivery_address":
 { Args: { "p_address_id": string }; Returns: boolean
@@ -692,6 +752,9 @@ isOneToOne: false
 { Args: Record<PropertyKey, never>; Returns: {
               "available_sale_units": number,"available_units": number,"product_id": string
             }[]
+                           },
+"invite_staff":
+{ Args: { "p_email": string,"p_full_name": string,"p_phone": string,"p_staff_role": string }; Returns: Json
                            },
 "low_stock_products":
 { Args: Record<PropertyKey, never>; Returns: {
@@ -753,6 +816,12 @@ isOneToOne: false
 "reserve_stock":
 { Args: { "p_items": Json,"p_reference": string,"p_ttl_minutes"?: number }; Returns: string[]
                            },
+"review_wholesale":
+{ Args: { "p_customer_id": string,"p_decision": string,"p_reason": string }; Returns: Json
+                           },
+"revoke_staff_invitation":
+{ Args: { "p_invitation_id": string }; Returns: boolean
+                           },
 "save_delivery_address":
 { Args: { "p_address_line": string,"p_details": string,"p_label": string,"p_lat": number,"p_lng": number,"p_zone_id": string }; Returns: string
                            },
@@ -770,7 +839,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "action_status": "queued"|"processing"|"succeeded"|"failed","customer_type": "retail"|"wholesale","delivery_outcome": "delivered"|"failed","delivery_provider_kind": "own"|"third_party","document_type": "cc"|"ce"|"nit"|"passport","fulfillment_method": "pickup"|"delivery","inventory_movement_type": "purchase_in"|"web_sale"|"pos_sale"|"adjustment"|"waste"|"return_in"|"reservation"|"reservation_release","invoice_status": "pending"|"sent"|"accepted"|"rejected","legal_document": "age_gate"|"terms"|"privacy","order_channel": "web"|"pos","order_status": "draft"|"awaiting_payment"|"paid"|"preparing"|"out_for_delivery"|"delivered"|"cancelled"|"refunded","payment_attempt_status": "pending"|"approved"|"declined"|"voided"|"error"|"abandoned","product_origin": "national"|"imported","reservation_status": "active"|"consumed"|"released"|"expired","sales_block_kind": "date_range"|"weekly","staff_role": "admin"|"cashier"|"courier"|"warehouse","tax_category": "spirits"|"wine"|"non_wine_aperitif","wholesale_status": "pending"|"approved"|"rejected"
+            "action_status": "queued"|"processing"|"succeeded"|"failed","customer_type": "retail"|"wholesale","delivery_outcome": "delivered"|"failed","delivery_provider_kind": "own"|"third_party","document_type": "cc"|"ce"|"nit"|"passport","fulfillment_method": "pickup"|"delivery","inventory_movement_type": "purchase_in"|"web_sale"|"pos_sale"|"adjustment"|"waste"|"return_in"|"reservation"|"reservation_release","invoice_status": "pending"|"sent"|"accepted"|"rejected","legal_document": "age_gate"|"terms"|"privacy","order_channel": "web"|"pos","order_status": "draft"|"awaiting_payment"|"paid"|"preparing"|"out_for_delivery"|"delivered"|"cancelled"|"refunded","payment_attempt_status": "pending"|"approved"|"declined"|"voided"|"error"|"abandoned","product_origin": "national"|"imported","reservation_status": "active"|"consumed"|"released"|"expired","sales_block_kind": "date_range"|"weekly","staff_invitation_status": "pending"|"accepted"|"revoked","staff_role": "admin"|"cashier"|"courier"|"warehouse","tax_category": "spirits"|"wine"|"non_wine_aperitif","wholesale_status": "pending"|"approved"|"rejected"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -890,7 +959,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "action_status": ["queued", "processing", "succeeded", "failed"],"customer_type": ["retail", "wholesale"],"delivery_outcome": ["delivered", "failed"],"delivery_provider_kind": ["own", "third_party"],"document_type": ["cc", "ce", "nit", "passport"],"fulfillment_method": ["pickup", "delivery"],"inventory_movement_type": ["purchase_in", "web_sale", "pos_sale", "adjustment", "waste", "return_in", "reservation", "reservation_release"],"invoice_status": ["pending", "sent", "accepted", "rejected"],"legal_document": ["age_gate", "terms", "privacy"],"order_channel": ["web", "pos"],"order_status": ["draft", "awaiting_payment", "paid", "preparing", "out_for_delivery", "delivered", "cancelled", "refunded"],"payment_attempt_status": ["pending", "approved", "declined", "voided", "error", "abandoned"],"product_origin": ["national", "imported"],"reservation_status": ["active", "consumed", "released", "expired"],"sales_block_kind": ["date_range", "weekly"],"staff_role": ["admin", "cashier", "courier", "warehouse"],"tax_category": ["spirits", "wine", "non_wine_aperitif"],"wholesale_status": ["pending", "approved", "rejected"]
+            "action_status": ["queued", "processing", "succeeded", "failed"],"customer_type": ["retail", "wholesale"],"delivery_outcome": ["delivered", "failed"],"delivery_provider_kind": ["own", "third_party"],"document_type": ["cc", "ce", "nit", "passport"],"fulfillment_method": ["pickup", "delivery"],"inventory_movement_type": ["purchase_in", "web_sale", "pos_sale", "adjustment", "waste", "return_in", "reservation", "reservation_release"],"invoice_status": ["pending", "sent", "accepted", "rejected"],"legal_document": ["age_gate", "terms", "privacy"],"order_channel": ["web", "pos"],"order_status": ["draft", "awaiting_payment", "paid", "preparing", "out_for_delivery", "delivered", "cancelled", "refunded"],"payment_attempt_status": ["pending", "approved", "declined", "voided", "error", "abandoned"],"product_origin": ["national", "imported"],"reservation_status": ["active", "consumed", "released", "expired"],"sales_block_kind": ["date_range", "weekly"],"staff_invitation_status": ["pending", "accepted", "revoked"],"staff_role": ["admin", "cashier", "courier", "warehouse"],"tax_category": ["spirits", "wine", "non_wine_aperitif"],"wholesale_status": ["pending", "approved", "rejected"]
           }
         }
 } as const
