@@ -3,6 +3,7 @@ import { connection } from "next/server";
 import { type ReactNode, Suspense } from "react";
 
 import { ProductList } from "@/modules/catalog";
+import { getSalesBlock, SalesBlockNotice } from "@/modules/compliance";
 import { getCurrentCustomer } from "@/modules/customers";
 import { getCatalog } from "@/modules/pricing";
 
@@ -28,7 +29,8 @@ export default function Home() {
 async function Catalog() {
   // Always per request (the Supabase client reads the clock to check the token).
   await connection();
-  const [customer, items] = await Promise.all([getCurrentCustomer(), getCatalog()]);
+  // Sales block of the store municipality (D-051): a notice, the cart still works.
+  const [customer, items, block] = await Promise.all([getCurrentCustomer(), getCatalog(), getSalesBlock()]);
 
   let message: ReactNode = null;
   if (customer === null) {
@@ -48,6 +50,7 @@ async function Catalog() {
 
   return (
     <>
+      {block ? <SalesBlockNotice block={block} /> : null}
       <div
         role={customer?.wholesaleStatus === "pending" ? "status" : undefined}
         className={`flex flex-wrap items-center justify-between gap-x-6 gap-y-1 rounded-[4px] border bg-surface px-[18px] py-3.5 text-[13px] ${

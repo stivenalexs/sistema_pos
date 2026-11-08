@@ -17,6 +17,7 @@ const ERRORS: Record<string, string> = {
   order_requires_customer: "Inicia sesión con tu cuenta de cliente para comprar.",
   delivery_unavailable: "El domicilio a esa dirección no está disponible. Elige otra dirección o recoge en la tienda.",
   invalid_fulfillment: "Elige cómo quieres recibir el pedido.",
+  sales_blocked: "Las ventas están suspendidas en este momento. Tu carrito queda guardado; recarga la página para ver hasta cuándo.",
 };
 
 export type OrderFulfillment = { fulfillment: "pickup" } | { fulfillment: "delivery"; addressId: string };

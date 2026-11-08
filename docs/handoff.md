@@ -1,12 +1,14 @@
 # Traspaso entre sesiones
 
-Estado al **2026-11-07**, rama `claude` (último commit antes de esta nota: `0ed609f`; el paso 14 está **sin commit** hasta que el responsable lo pida). Léelo después de `agents.md` y `docs/memoria.md`; las decisiones viven en la memoria, aquí solo está lo práctico para retomar.
+Estado al **2026-11-07**, rama `claude` (último commit antes de esta nota: `ba0c246`; el paso 15 está en su propio commit). Léelo después de `agents.md` y `docs/memoria.md`; las decisiones viven en la memoria, aquí solo está lo práctico para retomar.
 
 ## Dónde vamos
 
-- **Pasos 1 a 14 de `plan.md` hechos**: base técnica, Supabase, catálogo y precios con RLS, cola de acciones y `ActionButton`, aviso 18+ y registro, inventario con reservas, carrito y pedidos, pagos con Wompi (probado con el sandbox real), facturación con Factus (probada solo con respuestas simuladas) y domicilios con mapa, tarifa por distancia, asignación de mensajeros y prueba de entrega (D-045).
-- **Siguiente: paso 15 (bloqueos de venta por municipio, fecha y hora, skill `block-sales-rule`).** Los municipios ya existen en `delivery_zones`; para el POS no hay municipio del comprador (es la tienda). Depende en parte de P-006 (horarios y ley seca: se modelan como reglas configurables).
-- **Para el paso 17:** crear personal interno (mensajeros, administradores) con `auth.admin.createUser` falla por el trigger del registro (ver D-045). La interfaz de asignación de domicilios, zonas, tarifas y la ubicación real de la tienda (`app_settings.store_location`, hoy un supuesto) también van allí.
+- **Pasos 1 a 15 de `plan.md` hechos**: base técnica, Supabase, catálogo y precios con RLS, cola de acciones y `ActionButton`, aviso 18+ y registro, inventario con reservas, carrito y pedidos, pagos con Wompi (probado con el sandbox real), facturación con Factus (probada solo con respuestas simuladas), domicilios (D-045) y bloqueos de venta por municipio, fecha y hora (D-051).
+- **Siguiente: paso 16 (POS, skill `pos-sale`).** Ya está listo para él: el trigger de `orders` bloquea ventas `pos` con reglas vigentes, `get_sales_block('pos')` da el aviso para la caja y el municipio es el de la tienda (`store_zone_id`). Venta sin cuenta permitida con casilla de mayoría de edad (D-033); factura a consumidor final (D-042).
+- **Para el paso 17:** crear personal interno (mensajeros, administradores) con `auth.admin.createUser` falla por el trigger del registro (ver D-045). La interfaz de asignación de domicilios, zonas, tarifas, reglas de bloqueo (`sales_blocks`) y la ubicación y el municipio reales de la tienda (`app_settings.store_location` y `store_zone_id`, hoy supuestos) también van allí.
+- **Pendiente de seguridad (D-051):** `authenticated` tiene `TRUNCATE` y `TRIGGER` en todas las tablas de `public`; proponer una migración que los quite en todo el esquema y en las tablas futuras.
+- **Docker Desktop:** si `docker ps` dice "manually paused", hay que pedir al responsable que lo reanude desde el menú de la ballena; no hay comando para hacerlo desde la terminal.
 - Pendientes de pasos ya hechos:
   - **Factus:** probar con el sandbox cuando el responsable ponga las credenciales `FACTUS_*` en `.env.local` (supuestos a confirmar en D-043 y D-044: consumidor final `222222222222`, `dv` del NIT, código de concepto `2` de la nota crédito, `reference_code` repetido, duración del token).
   - **Textos legales** (`legal-copy.ts`): siguen en borrador, no aprobados (D-035). No se tocan sin aprobación.

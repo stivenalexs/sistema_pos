@@ -20,7 +20,7 @@ import { getWompiConfig } from "./wompi-config";
 
 export type StartPaymentResult =
   | { ok: true; trackingId: string; checkoutUrl: string }
-  | { ok: false; error: "insufficient_stock" | "payment_in_progress" | "payment_order_not_payable" | "idempotency_key_conflict" };
+  | { ok: false; error: "insufficient_stock" | "payment_in_progress" | "payment_order_not_payable" | "sales_blocked" | "idempotency_key_conflict" };
 
 type AttemptRow = { id: string; reference: string; amount_in_cents: number; expires_at: string };
 

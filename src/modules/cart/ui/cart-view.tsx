@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import { type FulfillmentChoice, FulfillmentPicker } from "@/modules/delivery";
 import { formatCop, QUOTE_ERROR_MESSAGES } from "@/modules/pricing";
 
@@ -6,7 +8,17 @@ import { AddToCartForm } from "./add-to-cart-form";
 import { PlaceOrderButton } from "./place-order-button";
 
 // Cart screen (D-046). No animation (agents.md §8). All prices come from the server.
-export function CartView({ cart, choice }: { cart: CartViewData; choice: FulfillmentChoice }) {
+// salesBlockNotice: while sales are blocked (D-051) the cart stays, with the
+// notice instead of "Confirmar pedido". The database refuses the order anyway.
+export function CartView({
+  cart,
+  choice,
+  salesBlockNotice = null,
+}: {
+  cart: CartViewData;
+  choice: FulfillmentChoice;
+  salesBlockNotice?: ReactNode;
+}) {
   if (cart.lines.length === 0) {
     return <p className="notice notice-info">Tu carrito está vacío.</p>;
   }
@@ -71,7 +83,9 @@ export function CartView({ cart, choice }: { cart: CartViewData; choice: Fulfill
         <p className="notice notice-danger">Corrige las líneas marcadas para poder confirmar el pedido.</p>
       )}
 
-      {cart.quote?.ok && canPlace ? (
+      {salesBlockNotice}
+
+      {cart.quote?.ok && canPlace && !salesBlockNotice ? (
         <PlaceOrderButton
           // A different choice is a different intent: remount for a new key.
           key={`${choice.fulfillment}:${choice.selectedAddressId ?? ""}`}

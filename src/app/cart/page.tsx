@@ -4,6 +4,7 @@ import { connection } from "next/server";
 import { Suspense } from "react";
 
 import { CartView, getCartView } from "@/modules/cart";
+import { getSalesBlock, SalesBlockNotice } from "@/modules/compliance";
 import { getCurrentCustomer } from "@/modules/customers";
 import { type FulfillmentChoice, getDeliveryAddresses, quoteDelivery } from "@/modules/delivery";
 import { PageHeader } from "@/shared/ui/page-header";
@@ -45,5 +46,7 @@ async function Cart({ searchParams }: { searchParams: SearchParams }) {
     quote: selected && cart.lines.length > 0 ? await quoteDelivery(selected.id) : null,
   };
 
-  return <CartView cart={cart} choice={choice} />;
+  // Municipality of the sale (D-051): the address for delivery, the store for pickup.
+  const block = cart.lines.length > 0 ? await getSalesBlock({ zoneId: selected?.zoneId ?? null }) : null;
+  return <CartView cart={cart} choice={choice} salesBlockNotice={block ? <SalesBlockNotice block={block} /> : null} />;
 }

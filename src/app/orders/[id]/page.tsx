@@ -3,6 +3,7 @@ import { connection } from "next/server";
 import { Suspense } from "react";
 
 import { isUuid } from "@/shared/actions/action-types";
+import { getSalesBlock, SalesBlockNotice } from "@/modules/compliance";
 import { getCurrentCustomer } from "@/modules/customers";
 import { getOrder, OrderSummary } from "@/modules/orders";
 import { PageHeader } from "@/shared/ui/page-header";
@@ -30,5 +31,7 @@ async function Order({ params }: Pick<PageProps<"/orders/[id]">, "params">) {
   const order = await getOrder(id);
   if (!order) notFound();
 
-  return <OrderSummary order={order} />;
+  // Sales blocks (D-051): no new payment while a rule applies to the order's municipality.
+  const block = order.status === "awaiting_payment" ? await getSalesBlock({ zoneId: order.saleZoneId }) : null;
+  return <OrderSummary order={order} paymentBlockedNotice={block ? <SalesBlockNotice block={block} /> : null} />;
 }
