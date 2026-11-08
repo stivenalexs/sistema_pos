@@ -36,6 +36,10 @@ const WOMPI_TO_FACTUS_METHOD: Record<string, string> = {
   BANCOLOMBIA_TRANSFER: "47",
   BANCOLOMBIA_QR: "47",
   DAVIPLATA: "47",
+  // POS sales (D-053): cash, card terminal and bank transfer.
+  POS_CASH: "10",
+  POS_CARD: "48",
+  POS_TRANSFER: "47",
 };
 
 export function paymentMethodCode(wompiMethod: string): string {
