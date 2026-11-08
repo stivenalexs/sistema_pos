@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import { formatCop } from "@/modules/pricing";
 
 import { FULFILLMENT_LABELS, formatBogotaDateTime, ORDER_STATUS_LABELS } from "../domain/order-labels";
@@ -6,7 +8,9 @@ import { CancelOrderForm } from "./cancel-order-form";
 import { PayButton } from "./pay-button";
 
 // Order summary (D-046). No animation (agents.md §8).
-export function OrderSummary({ order }: { order: OrderDetail }) {
+// paymentBlockedNotice: shown instead of "Pagar" while sales are blocked
+// (D-051). The database refuses the payment anyway.
+export function OrderSummary({ order, paymentBlockedNotice = null }: { order: OrderDetail; paymentBlockedNotice?: ReactNode }) {
   const unit = (quantity: number) =>
     order.saleUnit === "box"
       ? quantity === 1 ? "caja" : "cajas"
@@ -77,7 +81,7 @@ export function OrderSummary({ order }: { order: OrderDetail }) {
               Te guardamos los productos hasta las {formatBogotaDateTime(order.paymentDeadline)}.
             </p>
           ) : null}
-          <PayButton orderId={order.id} />
+          {paymentBlockedNotice ?? <PayButton orderId={order.id} />}
           <CancelOrderForm orderId={order.id} />
         </div>
       ) : null}

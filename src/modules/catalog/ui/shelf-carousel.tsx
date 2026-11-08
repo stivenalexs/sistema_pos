@@ -16,7 +16,9 @@ import {
 // and each arrow turns off at its end. On a phone the barrel can be swiped.
 // How many bottles fit comes from CSS (--visible: 1, 2 or 3 by width).
 // Motion: a short slide, only in the catalog; none with prefers-reduced-motion.
-// The arrows only move the view, they are not actions.
+// The arrows only move the view, they are not actions. With a mouse they
+// appear only while the pointer is over the barrel (or on keyboard focus);
+// on touch screens they are always visible (D-050).
 
 type Props = {
   label: string;
@@ -24,15 +26,13 @@ type Props = {
   bottles: ReactNode[];
   /** One card per product, in the same order. */
   cards: ReactNode[];
-  /** Back layer: the whole barrel photo. */
+  /** The barrel photo behind the bottles. */
   backdrop: ReactNode;
-  /** Front layer: the same photo clipped to the lower rim, over the bottles. */
-  rim: ReactNode;
 };
 
 const SWIPE_PX = 40;
 
-export function ShelfCarousel({ label, bottles, cards, backdrop, rim }: Props) {
+export function ShelfCarousel({ label, bottles, cards, backdrop }: Props) {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const swipeRef = useRef<number | null>(null);
   const [visible, setVisible] = useState(1);
@@ -81,7 +81,7 @@ export function ShelfCarousel({ label, bottles, cards, backdrop, rim }: Props) {
             key={i}
             data-slide
             aria-hidden={!inView(i)}
-            className="flex h-full shrink-0 basis-[calc(100%/var(--visible))] items-end justify-center"
+            className="flex h-full shrink-0 basis-[calc(100%/var(--visible))] items-center justify-center"
           >
             {bottle}
           </li>
@@ -112,7 +112,6 @@ export function ShelfCarousel({ label, bottles, cards, backdrop, rim }: Props) {
             <div className="absolute inset-0 -z-10">{backdrop}</div>
             {/* Cavity of the barrel: x 35.5%–66%, y 20%–77% of the photo. */}
             <div className="absolute top-[20%] bottom-[23%] left-[35.5%] w-[30.5%] px-[1%]">{cavity}</div>
-            <div className="pointer-events-none absolute inset-0 [clip-path:inset(77.5%_33%_0_33%)]">{rim}</div>
             <ShelfArrow direction={-1} disabled={current === 0} onClick={() => move(-1)} />
             <ShelfArrow direction={1} disabled={current >= lastIndex} onClick={() => move(1)} />
           </div>
@@ -155,7 +154,7 @@ function ShelfArrow({
       onClick={onClick}
       disabled={disabled}
       aria-label={direction === 1 ? "Ver la siguiente botella" : "Ver la botella anterior"}
-      className={`absolute top-[45%] z-20 flex size-11 items-center justify-center rounded-full border border-gold bg-bg/80 text-gold hover:bg-field disabled:cursor-default disabled:border-line disabled:text-line ${
+      className={`shelf-arrow absolute top-[48.5%] z-20 flex size-11 -translate-y-1/2 items-center justify-center rounded-full border border-gold bg-bg/80 text-gold hover:bg-field disabled:cursor-default disabled:border-line disabled:text-line ${
         direction === 1 ? "left-[66%] ml-2" : "right-[64.5%] mr-2"
       }`}
     >

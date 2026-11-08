@@ -7,9 +7,8 @@ import barrel from "./assets/barril.jpg";
 import { ShelfCarousel } from "./shelf-carousel";
 
 // Catalog "inside the barrel" (Figma "Nuestra cava · Catálogo", D-048, D-049).
-// Three layers built from the same photo: the barrel at the back (edges faded
-// into the page), the bottles inside its cavity, and the lower rim in front
-// so the bottles stand behind it. No shelf. The cards go below the barrel.
+// The barrel photo at the back (edges faded into the page) and the bottles
+// centered in its cavity (D-049, D-050). No shelf. The cards go below.
 // Prices arrive already computed by the server for the current customer;
 // this component only displays them.
 // canBuy: only signed-in customers can add to the cart (D-032).
@@ -33,7 +32,6 @@ export function ProductList({ items, canBuy = false }: { items: CatalogItem[]; c
     <ShelfCarousel
       label="Botellas de nuestra cava"
       backdrop={photo}
-      rim={<Image src={barrel} alt="" fill sizes="(min-width: 1024px) 1440px, (min-width: 640px) 160vw, 210vw" className="object-cover" />}
       bottles={items.map((item) => (
         <Bottle key={item.productId} item={item} />
       ))}
@@ -44,14 +42,10 @@ export function ProductList({ items, canBuy = false }: { items: CatalogItem[]; c
   );
 }
 
-// Bottle standing on the floor of the cavity, with a soft shadow.
+// Bottle centered in the middle of the barrel cavity (D-050).
 function Bottle({ item }: { item: CatalogItem }) {
   return (
     <div className="relative flex h-[74%] w-[88%] items-end justify-center sm:h-[70%] lg:h-[70%]">
-      <span
-        aria-hidden
-        className="absolute bottom-[-2%] left-1/2 h-[5%] w-[70%] -translate-x-1/2 rounded-full bg-black/60 blur-[5px]"
-      />
       {item.imageUrl ? (
         <Image
           src={item.imageUrl}

@@ -10,7 +10,7 @@ export type PlaceOrderResult =
   | { ok: true; created: boolean; trackingId: string; orderId: string }
   | {
       ok: false;
-      error: "cart_empty" | "quote_failed" | "insufficient_stock" | "delivery_unavailable" | "idempotency_key_conflict";
+      error: "cart_empty" | "quote_failed" | "insufficient_stock" | "delivery_unavailable" | "sales_blocked" | "idempotency_key_conflict";
       reason?: string;
     };
 
@@ -39,7 +39,7 @@ export async function placeOrder(idempotencyKey: string, choice: Fulfillment = {
     created?: boolean;
     tracking_id?: string;
     order_id?: string;
-    error?: "cart_empty" | "quote_failed" | "insufficient_stock" | "delivery_unavailable";
+    error?: "cart_empty" | "quote_failed" | "insufficient_stock" | "delivery_unavailable" | "sales_blocked";
     reason?: string;
   };
   if (result.ok && result.tracking_id && result.order_id) {
@@ -77,6 +77,8 @@ export type OrderDetail = {
     distanceM: number | null;
   } | null;
   deliveredAt: string | null;
+  /** Municipality of the sale, for sales blocks (D-051). */
+  saleZoneId: string | null;
   items: {
     productName: string;
     sku: string;
@@ -92,7 +94,7 @@ export async function getOrder(orderId: string): Promise<OrderDetail | null> {
   const { data } = await supabase
     .from("orders")
     .select(
-      "id, status, fulfillment, sale_unit, subtotal_cop, delivery_fee_cop, total_cop, payment_deadline, cancel_after, created_at, needs_refund, delivery_address, delivery_distance_m, delivered_at, order_items (product_name, sku, quantity, unit_price_cop, line_total_cop)",
+      "id, status, fulfillment, sale_unit, subtotal_cop, delivery_fee_cop, total_cop, payment_deadline, cancel_after, created_at, needs_refund, sale_zone_id, delivery_address, delivery_distance_m, delivered_at, order_items (product_name, sku, quantity, unit_price_cop, line_total_cop)",
     )
     .eq("id", orderId)
     .maybeSingle();
@@ -112,6 +114,7 @@ export async function getOrder(orderId: string): Promise<OrderDetail | null> {
     needsRefund: data.needs_refund,
     delivery: deliverySnapshot(data.delivery_address, data.delivery_distance_m),
     deliveredAt: data.delivered_at,
+    saleZoneId: data.sale_zone_id,
     items: data.order_items
       .map((item) => ({
         productName: item.product_name,

@@ -14,6 +14,7 @@ export type DeliveryAddress = {
   label: string;
   addressLine: string;
   details: string | null;
+  zoneId: string;
   municipality: string;
   zoneActive: boolean;
   lat: number;
@@ -47,6 +48,7 @@ export async function getDeliveryAddresses(): Promise<DeliveryAddress[]> {
     label: row.label,
     addressLine: row.address_line,
     details: row.details,
+    zoneId: row.zone_id,
     municipality: row.municipality,
     zoneActive: row.zone_active,
     lat: row.lat,

@@ -15,7 +15,6 @@ function renderShelf(count: number) {
     <ShelfCarousel
       label="Botellas"
       backdrop={<span />}
-      rim={<span />}
       bottles={Array.from({ length: count }, (_, i) => (
         <p key={i}>Botella {i + 1}</p>
       ))}

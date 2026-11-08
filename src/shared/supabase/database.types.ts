@@ -405,14 +405,14 @@ isOneToOne: false
                   ]
                 },"orders": {
                   Row: {
-                    "assigned_at": string | null,"cancel_after": string | null,"cancel_reason": string | null,"cancelled_at": string | null,"channel": Database["public"]['Enums']["order_channel"],"courier_id": string | null,"created_at": string,"customer_id": string | null,"delivered_at": string | null,"delivery_address": Json | null,"delivery_distance_m": number | null,"delivery_external_ref": string | null,"delivery_fee_cop": number,"delivery_provider_id": string | null,"fulfillment": Database["public"]['Enums']["fulfillment_method"],"id": string,"idempotency_key": string,"needs_refund": boolean,"paid_at": string | null,"payment_deadline": string | null,"refund_reason": string | null,"sale_unit": string,"status": Database["public"]['Enums']["order_status"],"subtotal_cop": number,"total_base_units": number,"total_boxes": number,"total_cop": number,"updated_at": string
+                    "assigned_at": string | null,"cancel_after": string | null,"cancel_reason": string | null,"cancelled_at": string | null,"channel": Database["public"]['Enums']["order_channel"],"courier_id": string | null,"created_at": string,"customer_id": string | null,"delivered_at": string | null,"delivery_address": Json | null,"delivery_distance_m": number | null,"delivery_external_ref": string | null,"delivery_fee_cop": number,"delivery_provider_id": string | null,"fulfillment": Database["public"]['Enums']["fulfillment_method"],"id": string,"idempotency_key": string,"needs_refund": boolean,"paid_at": string | null,"payment_deadline": string | null,"refund_reason": string | null,"sale_unit": string,"sale_zone_id": string | null,"status": Database["public"]['Enums']["order_status"],"subtotal_cop": number,"total_base_units": number,"total_boxes": number,"total_cop": number,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "assigned_at"?: string | null,"cancel_after"?: string | null,"cancel_reason"?: string | null,"cancelled_at"?: string | null,"channel": Database["public"]['Enums']["order_channel"],"courier_id"?: string | null,"created_at"?: string,"customer_id"?: string | null,"delivered_at"?: string | null,"delivery_address"?: Json | null,"delivery_distance_m"?: number | null,"delivery_external_ref"?: string | null,"delivery_fee_cop"?: number,"delivery_provider_id"?: string | null,"fulfillment": Database["public"]['Enums']["fulfillment_method"],"id"?: string,"idempotency_key": string,"needs_refund"?: boolean,"paid_at"?: string | null,"payment_deadline"?: string | null,"refund_reason"?: string | null,"sale_unit": string,"status"?: Database["public"]['Enums']["order_status"],"subtotal_cop": number,"total_base_units": number,"total_boxes"?: number,"total_cop": number,"updated_at"?: string
+                    "assigned_at"?: string | null,"cancel_after"?: string | null,"cancel_reason"?: string | null,"cancelled_at"?: string | null,"channel": Database["public"]['Enums']["order_channel"],"courier_id"?: string | null,"created_at"?: string,"customer_id"?: string | null,"delivered_at"?: string | null,"delivery_address"?: Json | null,"delivery_distance_m"?: number | null,"delivery_external_ref"?: string | null,"delivery_fee_cop"?: number,"delivery_provider_id"?: string | null,"fulfillment": Database["public"]['Enums']["fulfillment_method"],"id"?: string,"idempotency_key": string,"needs_refund"?: boolean,"paid_at"?: string | null,"payment_deadline"?: string | null,"refund_reason"?: string | null,"sale_unit": string,"sale_zone_id"?: string | null,"status"?: Database["public"]['Enums']["order_status"],"subtotal_cop": number,"total_base_units": number,"total_boxes"?: number,"total_cop": number,"updated_at"?: string
                   }
                   Update: {
-                    "assigned_at"?: string | null,"cancel_after"?: string | null,"cancel_reason"?: string | null,"cancelled_at"?: string | null,"channel"?: Database["public"]['Enums']["order_channel"],"courier_id"?: string | null,"created_at"?: string,"customer_id"?: string | null,"delivered_at"?: string | null,"delivery_address"?: Json | null,"delivery_distance_m"?: number | null,"delivery_external_ref"?: string | null,"delivery_fee_cop"?: number,"delivery_provider_id"?: string | null,"fulfillment"?: Database["public"]['Enums']["fulfillment_method"],"id"?: string,"idempotency_key"?: string,"needs_refund"?: boolean,"paid_at"?: string | null,"payment_deadline"?: string | null,"refund_reason"?: string | null,"sale_unit"?: string,"status"?: Database["public"]['Enums']["order_status"],"subtotal_cop"?: number,"total_base_units"?: number,"total_boxes"?: number,"total_cop"?: number,"updated_at"?: string
+                    "assigned_at"?: string | null,"cancel_after"?: string | null,"cancel_reason"?: string | null,"cancelled_at"?: string | null,"channel"?: Database["public"]['Enums']["order_channel"],"courier_id"?: string | null,"created_at"?: string,"customer_id"?: string | null,"delivered_at"?: string | null,"delivery_address"?: Json | null,"delivery_distance_m"?: number | null,"delivery_external_ref"?: string | null,"delivery_fee_cop"?: number,"delivery_provider_id"?: string | null,"fulfillment"?: Database["public"]['Enums']["fulfillment_method"],"id"?: string,"idempotency_key"?: string,"needs_refund"?: boolean,"paid_at"?: string | null,"payment_deadline"?: string | null,"refund_reason"?: string | null,"sale_unit"?: string,"sale_zone_id"?: string | null,"status"?: Database["public"]['Enums']["order_status"],"subtotal_cop"?: number,"total_base_units"?: number,"total_boxes"?: number,"total_cop"?: number,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -432,6 +432,12 @@ isOneToOne: false
       columns: ["delivery_provider_id"]
 isOneToOne: false
       referencedRelation: "delivery_providers"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "orders_sale_zone_id_fkey"
+      columns: ["sale_zone_id"]
+isOneToOne: false
+      referencedRelation: "delivery_zones"
       referencedColumns: ["id"]
     }
                   ]
@@ -543,6 +549,40 @@ isOneToOne: true
                   Relationships: [
                     
                   ]
+                },"sales_block_changes": {
+                  Row: {
+                    "actor_id": string | null,"block_id": string,"created_at": string,"id": string,"new_row": Json | null,"old_row": Json | null,"operation": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "actor_id"?: string | null,"block_id": string,"created_at"?: string,"id"?: string,"new_row"?: Json | null,"old_row"?: Json | null,"operation": string
+                  }
+                  Update: {
+                    "actor_id"?: string | null,"block_id"?: string,"created_at"?: string,"id"?: string,"new_row"?: Json | null,"old_row"?: Json | null,"operation"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"sales_blocks": {
+                  Row: {
+                    "channels": (string)[],"created_at": string,"created_by": string | null,"end_time": string | null,"ends_at": string | null,"id": string,"is_active": boolean,"kind": Database["public"]['Enums']["sales_block_kind"],"message": string,"name": string,"start_time": string | null,"starts_at": string | null,"updated_at": string,"updated_by": string | null,"weekdays": (number)[] | null,"zone_id": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "channels"?: (string)[],"created_at"?: string,"created_by"?: string | null,"end_time"?: string | null,"ends_at"?: string | null,"id"?: string,"is_active"?: boolean,"kind": Database["public"]['Enums']["sales_block_kind"],"message": string,"name": string,"start_time"?: string | null,"starts_at"?: string | null,"updated_at"?: string,"updated_by"?: string | null,"weekdays"?: (number)[] | null,"zone_id"?: string | null
+                  }
+                  Update: {
+                    "channels"?: (string)[],"created_at"?: string,"created_by"?: string | null,"end_time"?: string | null,"ends_at"?: string | null,"id"?: string,"is_active"?: boolean,"kind"?: Database["public"]['Enums']["sales_block_kind"],"message"?: string,"name"?: string,"start_time"?: string | null,"starts_at"?: string | null,"updated_at"?: string,"updated_by"?: string | null,"weekdays"?: (number)[] | null,"zone_id"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "sales_blocks_zone_id_fkey"
+      columns: ["zone_id"]
+isOneToOne: false
+      referencedRelation: "delivery_zones"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"stock_reservations": {
                   Row: {
                     "created_at": string,"created_by": string | null,"expires_at": string,"id": string,"product_id": string,"reference": string,"status": Database["public"]['Enums']["reservation_status"],"units": number,"updated_at": string
@@ -636,6 +676,9 @@ isOneToOne: false
               "address_line": string,"details": string,"distance_m": number,"id": string,"label": string,"lat": number,"lng": number,"municipality": string,"zone_active": boolean,"zone_id": string
             }[]
                            },
+"get_sales_block":
+{ Args: { "p_channel"?: string,"p_zone_id"?: string }; Returns: Json
+                           },
 "get_web_availability":
 { Args: Record<PropertyKey, never>; Returns: {
               "available_sale_units": number,"available_units": number,"product_id": string
@@ -715,7 +758,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "action_status": "queued"|"processing"|"succeeded"|"failed","customer_type": "retail"|"wholesale","delivery_outcome": "delivered"|"failed","delivery_provider_kind": "own"|"third_party","document_type": "cc"|"ce"|"nit"|"passport","fulfillment_method": "pickup"|"delivery","inventory_movement_type": "purchase_in"|"web_sale"|"pos_sale"|"adjustment"|"waste"|"return_in"|"reservation"|"reservation_release","invoice_status": "pending"|"sent"|"accepted"|"rejected","legal_document": "age_gate"|"terms"|"privacy","order_channel": "web"|"pos","order_status": "draft"|"awaiting_payment"|"paid"|"preparing"|"out_for_delivery"|"delivered"|"cancelled"|"refunded","payment_attempt_status": "pending"|"approved"|"declined"|"voided"|"error"|"abandoned","product_origin": "national"|"imported","reservation_status": "active"|"consumed"|"released"|"expired","staff_role": "admin"|"cashier"|"courier"|"warehouse","tax_category": "spirits"|"wine"|"non_wine_aperitif","wholesale_status": "pending"|"approved"|"rejected"
+            "action_status": "queued"|"processing"|"succeeded"|"failed","customer_type": "retail"|"wholesale","delivery_outcome": "delivered"|"failed","delivery_provider_kind": "own"|"third_party","document_type": "cc"|"ce"|"nit"|"passport","fulfillment_method": "pickup"|"delivery","inventory_movement_type": "purchase_in"|"web_sale"|"pos_sale"|"adjustment"|"waste"|"return_in"|"reservation"|"reservation_release","invoice_status": "pending"|"sent"|"accepted"|"rejected","legal_document": "age_gate"|"terms"|"privacy","order_channel": "web"|"pos","order_status": "draft"|"awaiting_payment"|"paid"|"preparing"|"out_for_delivery"|"delivered"|"cancelled"|"refunded","payment_attempt_status": "pending"|"approved"|"declined"|"voided"|"error"|"abandoned","product_origin": "national"|"imported","reservation_status": "active"|"consumed"|"released"|"expired","sales_block_kind": "date_range"|"weekly","staff_role": "admin"|"cashier"|"courier"|"warehouse","tax_category": "spirits"|"wine"|"non_wine_aperitif","wholesale_status": "pending"|"approved"|"rejected"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -835,7 +878,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "action_status": ["queued", "processing", "succeeded", "failed"],"customer_type": ["retail", "wholesale"],"delivery_outcome": ["delivered", "failed"],"delivery_provider_kind": ["own", "third_party"],"document_type": ["cc", "ce", "nit", "passport"],"fulfillment_method": ["pickup", "delivery"],"inventory_movement_type": ["purchase_in", "web_sale", "pos_sale", "adjustment", "waste", "return_in", "reservation", "reservation_release"],"invoice_status": ["pending", "sent", "accepted", "rejected"],"legal_document": ["age_gate", "terms", "privacy"],"order_channel": ["web", "pos"],"order_status": ["draft", "awaiting_payment", "paid", "preparing", "out_for_delivery", "delivered", "cancelled", "refunded"],"payment_attempt_status": ["pending", "approved", "declined", "voided", "error", "abandoned"],"product_origin": ["national", "imported"],"reservation_status": ["active", "consumed", "released", "expired"],"staff_role": ["admin", "cashier", "courier", "warehouse"],"tax_category": ["spirits", "wine", "non_wine_aperitif"],"wholesale_status": ["pending", "approved", "rejected"]
+            "action_status": ["queued", "processing", "succeeded", "failed"],"customer_type": ["retail", "wholesale"],"delivery_outcome": ["delivered", "failed"],"delivery_provider_kind": ["own", "third_party"],"document_type": ["cc", "ce", "nit", "passport"],"fulfillment_method": ["pickup", "delivery"],"inventory_movement_type": ["purchase_in", "web_sale", "pos_sale", "adjustment", "waste", "return_in", "reservation", "reservation_release"],"invoice_status": ["pending", "sent", "accepted", "rejected"],"legal_document": ["age_gate", "terms", "privacy"],"order_channel": ["web", "pos"],"order_status": ["draft", "awaiting_payment", "paid", "preparing", "out_for_delivery", "delivered", "cancelled", "refunded"],"payment_attempt_status": ["pending", "approved", "declined", "voided", "error", "abandoned"],"product_origin": ["national", "imported"],"reservation_status": ["active", "consumed", "released", "expired"],"sales_block_kind": ["date_range", "weekly"],"staff_role": ["admin", "cashier", "courier", "warehouse"],"tax_category": ["spirits", "wine", "non_wine_aperitif"],"wholesale_status": ["pending", "approved", "rejected"]
           }
         }
 } as const

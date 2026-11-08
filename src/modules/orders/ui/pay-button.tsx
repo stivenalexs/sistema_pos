@@ -14,6 +14,7 @@ const ERRORS: Record<string, string> = {
   insufficient_stock: "Uno de los productos se agotó mientras tanto. No se hizo ningún cobro.",
   payment_in_progress: "Ya tienes un pago en proceso. Espera la respuesta del banco antes de intentar de nuevo.",
   payment_order_not_payable: "Este pedido ya no se puede pagar.",
+  sales_blocked: "Las ventas están suspendidas en este momento. No se hizo ningún cobro; podrás pagar cuando termine la restricción.",
 };
 
 export function PayButton({ orderId }: { orderId: string }) {
