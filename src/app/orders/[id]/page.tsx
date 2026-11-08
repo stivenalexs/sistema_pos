@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
@@ -7,6 +8,8 @@ import { getSalesBlock, SalesBlockNotice } from "@/modules/compliance";
 import { getCurrentCustomer } from "@/modules/customers";
 import { getOrder, OrderSummary } from "@/modules/orders";
 import { PageHeader } from "@/shared/ui/page-header";
+
+export const metadata: Metadata = { title: "Pedido" };
 
 export default function OrderPage({ params }: PageProps<"/orders/[id]">) {
   return (

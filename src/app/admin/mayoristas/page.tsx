@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
@@ -5,6 +6,8 @@ import { Suspense } from "react";
 
 import { getStaffRole, listWholesale, WholesaleReviewForm } from "@/modules/customers";
 import { PageHeader } from "@/shared/ui/page-header";
+
+export const metadata: Metadata = { title: "Mayoristas · Administración" };
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
@@ -22,7 +25,7 @@ const DATE = new Intl.DateTimeFormat("es-CO", { timeZone: "America/Bogota", date
 export default function WholesalePage({ searchParams }: { searchParams: SearchParams }) {
   return (
     <section className="flex flex-col gap-8">
-      <PageHeader eyebrow="Panel" title="Mayoristas">
+      <PageHeader size="compact" title="Mayoristas">
         Verifica la razón social y el NIT antes de aprobar. El motivo queda en el historial.
       </PageHeader>
       <Suspense fallback={<p className="text-muted">Cargando…</p>}>

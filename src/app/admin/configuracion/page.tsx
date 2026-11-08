@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
@@ -18,6 +19,8 @@ import {
 import { formatCop } from "@/modules/pricing";
 import { type IdempotentField, IdempotentActionForm } from "@/shared/ui/idempotent-action-form";
 import { PageHeader } from "@/shared/ui/page-header";
+
+export const metadata: Metadata = { title: "Configuración · Administración" };
 
 const DATE = new Intl.DateTimeFormat("es-CO", { timeZone: "America/Bogota", dateStyle: "medium", timeStyle: "short" });
 const CUSTOMER_TYPE_LABELS = { any: "Todos los clientes", retail: "Minoristas", wholesale: "Mayoristas (por caja)" };
@@ -48,7 +51,7 @@ const SETTING_LABELS: Record<string, string> = {
 export default function ConfigurationPage() {
   return (
     <section className="flex flex-col gap-8">
-      <PageHeader eyebrow="Panel" title="Configuración">
+      <PageHeader size="compact" title="Configuración">
         Dónde está la tienda, a qué municipios se lleva domicilio y cuánto cuesta. Cada cambio queda registrado con quién
         lo hizo.
       </PageHeader>

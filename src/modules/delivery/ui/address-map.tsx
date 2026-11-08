@@ -96,22 +96,42 @@ export function AddressMap({ center, value, onChange }: Props) {
     );
   }
 
+  // Keyboard alternative (WCAG 2.1.1, D-062): the map moves with the arrow
+  // keys and zooms with + and −; this button marks its center, shown by the
+  // cross. Clicking or tapping the map still works.
+  function markCenter() {
+    const center = mapRef.current?.getCenter();
+    if (!center) return;
+    onChangeRef.current({ lat: round(center.lat), lng: round(center.lng) });
+  }
+
   return (
     <div className="flex flex-col gap-2">
-      <div
-        ref={containerRef}
-        role="application"
-        aria-label="Mapa para marcar el punto de entrega"
-        className="h-72 w-full overflow-hidden rounded-[4px] border border-line"
-      />
+      <div className="relative">
+        <div
+          ref={containerRef}
+          role="application"
+          aria-label="Mapa para marcar el punto de entrega. Con el teclado, muévelo con las flechas, acerca con + y −, y usa el botón Marcar el centro del mapa."
+          className="h-72 w-full overflow-hidden rounded-[4px] border border-line"
+        />
+        <span
+          aria-hidden
+          className="pointer-events-none absolute top-1/2 left-1/2 z-[500] -translate-x-1/2 -translate-y-1/2 text-2xl leading-none font-light text-gold-ink [text-shadow:0_0_2px_#fff,0_0_4px_#fff]"
+        >
+          +
+        </span>
+      </div>
       {loadError ? <p className="text-sm text-danger">No pudimos cargar el mapa. Recarga la página.</p> : null}
       <div className="flex flex-wrap items-center gap-3 text-sm">
         {/* UI helper, not an action: it only moves the marker. */}
-        <button type="button" onClick={useMyLocation} className="link">
+        <button type="button" onClick={markCenter} className="link min-h-6">
+          Marcar el centro del mapa
+        </button>
+        <button type="button" onClick={useMyLocation} className="link min-h-6">
           Usar mi ubicación actual
         </button>
-        <span className="text-muted">
-          {value ? `Punto marcado: ${value.lat.toFixed(5)}, ${value.lng.toFixed(5)}` : "Toca el mapa para marcar el punto de entrega."}
+        <span aria-live="polite" className="text-muted">
+          {value ? `Punto marcado: ${value.lat.toFixed(5)}, ${value.lng.toFixed(5)}` : "Toca el mapa o centra la cruz y pulsa Marcar el centro del mapa."}
         </span>
       </div>
     </div>

@@ -1,9 +1,12 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
 
 import { getStaffRole, SetPasswordForm } from "@/modules/customers";
 import { PageHeader } from "@/shared/ui/page-header";
+
+export const metadata: Metadata = { title: "Crea tu contraseña" };
 
 // First password of an invited staff member (D-054). The session comes from
 // the invitation link verified in /auth/confirm.

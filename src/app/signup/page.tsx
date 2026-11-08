@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
@@ -6,6 +7,8 @@ import { LEGAL_COPY, latestAdultBirthDate, todayInColombia } from "@/modules/com
 import { SignupForm, signUpAction } from "@/modules/customers";
 import { PageHeader } from "@/shared/ui/page-header";
 import { PhotoShell } from "@/shared/ui/photo-shell";
+
+export const metadata: Metadata = { title: "Crear cuenta" };
 
 export default function SignupPage() {
   return (

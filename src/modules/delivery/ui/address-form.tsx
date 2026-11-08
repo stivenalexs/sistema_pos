@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 
+import { useFieldErrors } from "@/shared/ui/field-errors";
 import { FormSubmitButton } from "@/shared/ui/form-submit-button";
 
 import type { DeliveryZone } from "../server/addresses";
@@ -16,19 +17,19 @@ type Props = { zones: DeliveryZone[]; center: LatLng };
 export function AddressForm({ zones, center }: Props) {
   const [state, formAction] = useActionState<AddressFormState, FormData>(saveAddressAction, { status: "idle" });
   const [point, setPoint] = useState<LatLng | null>(null);
-  const errors = state.fieldErrors ?? {};
+  const { formRef, invalid, error } = useFieldErrors(state.fieldErrors);
 
   return (
-    <form action={formAction} className="flex flex-col gap-5">
+    <form ref={formRef} action={formAction} className="flex flex-col gap-5">
       <label className="field-label">
         Nombre de la dirección
-        <input name="label" required maxLength={60} placeholder="Casa, oficina…" className="field" />
-        {errors.label ? <span className="field-error">{errors.label}</span> : null}
+        <input name="label" {...invalid("label")} required maxLength={60} placeholder="Casa, oficina…" className="field" />
+        {error("label")}
       </label>
 
       <label className="field-label">
         Municipio
-        <select name="zoneId" required defaultValue="" className="field">
+        <select name="zoneId" {...invalid("zoneId")} required defaultValue="" className="field">
           <option value="" disabled>
             Elige el municipio
           </option>
@@ -38,26 +39,27 @@ export function AddressForm({ zones, center }: Props) {
             </option>
           ))}
         </select>
-        {errors.zoneId ? <span className="field-error">{errors.zoneId}</span> : null}
+        {error("zoneId")}
       </label>
 
       <label className="field-label">
         Dirección
         <input
           name="addressLine"
+          {...invalid("addressLine")}
           required
           minLength={5}
           maxLength={200}
           placeholder="Cra 43A # 1-50"
           className="field"
         />
-        {errors.addressLine ? <span className="field-error">{errors.addressLine}</span> : null}
+        {error("addressLine")}
       </label>
 
       <label className="field-label">
         Detalles (opcional)
-        <input name="details" maxLength={200} placeholder="Apartamento, torre, punto de referencia" className="field" />
-        {errors.details ? <span className="field-error">{errors.details}</span> : null}
+        <input name="details" {...invalid("details")} maxLength={200} placeholder="Apartamento, torre, punto de referencia" className="field" />
+        {error("details")}
       </label>
 
       <fieldset className="flex flex-col gap-2">
@@ -65,7 +67,11 @@ export function AddressForm({ zones, center }: Props) {
         <AddressMap center={center} value={point} onChange={setPoint} />
         <input type="hidden" name="lat" value={point?.lat ?? ""} />
         <input type="hidden" name="lng" value={point?.lng ?? ""} />
-        {errors.lat ? <span className="field-error">{errors.lat}</span> : null}
+        {state.fieldErrors?.lat ? (
+          <span role="alert" className="field-error">
+            {state.fieldErrors.lat}
+          </span>
+        ) : null}
       </fieldset>
 
       <FormSubmitButton pendingLabel="Guardando…" className="w-full">Guardar dirección</FormSubmitButton>

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
@@ -16,6 +17,8 @@ import { getStaffRole } from "@/modules/customers";
 import { getConfigOverview } from "@/modules/delivery";
 import { type IdempotentField, IdempotentActionForm } from "@/shared/ui/idempotent-action-form";
 import { PageHeader } from "@/shared/ui/page-header";
+
+export const metadata: Metadata = { title: "Bloqueos de venta · Administración" };
 
 const DATE = new Intl.DateTimeFormat("es-CO", {
   timeZone: "America/Bogota",
@@ -50,7 +53,7 @@ type Zone = { id: string; municipality: string };
 export default function SalesBlocksPage() {
   return (
     <section className="flex flex-col gap-8">
-      <PageHeader eyebrow="Panel" title="Bloqueos de venta">
+      <PageHeader size="compact" title="Bloqueos de venta">
         Ley seca, horarios y otras restricciones por municipio, fecha y hora. Mientras una regla aplica, la tienda web no
         deja pedir ni pagar y el POS no deja cobrar. Todas las horas son de Colombia.
       </PageHeader>

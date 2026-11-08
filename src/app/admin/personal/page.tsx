@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
@@ -12,13 +13,15 @@ import {
 } from "@/modules/customers";
 import { PageHeader } from "@/shared/ui/page-header";
 
+export const metadata: Metadata = { title: "Personal · Administración" };
+
 const DATE = new Intl.DateTimeFormat("es-CO", { timeZone: "America/Bogota", dateStyle: "medium", timeStyle: "short" });
 
 // Staff (D-054): invitations by email and deactivation.
 export default function StaffPage() {
   return (
     <section className="flex flex-col gap-8">
-      <PageHeader eyebrow="Panel" title="Personal">
+      <PageHeader size="compact" title="Personal">
         Invita por correo a cajeros, mensajeros, bodega y administradores. La persona crea su contraseña desde el
         enlace; nadie más la conoce.
       </PageHeader>

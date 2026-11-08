@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 
@@ -5,6 +6,8 @@ import { safeNextPath } from "@/modules/compliance";
 import { LoginForm, signInAction } from "@/modules/customers";
 import { PageHeader } from "@/shared/ui/page-header";
 import { PhotoShell } from "@/shared/ui/photo-shell";
+
+export const metadata: Metadata = { title: "Iniciar sesión" };
 
 export default function LoginPage({ searchParams }: PageProps<"/login">) {
   return (

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Inter } from "next/font/google";
+import { Suspense } from "react";
 
 import { PermanentNotice } from "@/modules/compliance";
 import { signOutAction } from "@/modules/customers";
@@ -23,7 +24,8 @@ const cormorant = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
-  title: "La Cava",
+  // Each page sets its own title (WCAG 2.4.2, D-062): "Mi carrito · La Cava".
+  title: { default: "La Cava", template: "%s · La Cava" },
   description: "Venta de licores al por mayor y al detal en Antioquia.",
 };
 
@@ -37,7 +39,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <header className="border-b border-line/70">
           <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-3 px-4 py-4 sm:px-6">
             <Brand />
-            <SessionNav signOutAction={signOutAction} />
+            {/* SessionNav reads the current path (D-065), so it needs a boundary. */}
+            <Suspense fallback={<span className="text-sm text-muted">…</span>}>
+              <SessionNav signOutAction={signOutAction} />
+            </Suspense>
           </div>
         </header>
         <main className="flex w-full flex-1 flex-col">{children}</main>

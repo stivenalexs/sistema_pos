@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
@@ -7,6 +8,8 @@ import { listRefunds, markRefundedAction } from "@/modules/orders";
 import { formatCop } from "@/modules/pricing";
 import { PageHeader } from "@/shared/ui/page-header";
 import { ReasonActionForm } from "@/shared/ui/reason-action-form";
+
+export const metadata: Metadata = { title: "Reembolsos · Administración" };
 
 const DATE = new Intl.DateTimeFormat("es-CO", { timeZone: "America/Bogota", dateStyle: "medium", timeStyle: "short" });
 const REASONS: Record<string, string> = {
@@ -19,7 +22,7 @@ const REASONS: Record<string, string> = {
 export default function RefundsPage() {
   return (
     <section className="flex flex-col gap-8">
-      <PageHeader eyebrow="Panel" title="Reembolsos">
+      <PageHeader size="compact" title="Reembolsos">
         Pedidos con un pago que no se puede cumplir. Devuelve el dinero desde el panel de Wompi (con el id de la
         transacción) y registra aquí la referencia del reembolso.
       </PageHeader>

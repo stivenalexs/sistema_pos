@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
@@ -5,6 +6,8 @@ import { Suspense } from "react";
 
 import { formatDistance, getDeliveryStaff, listCourierDeliveries } from "@/modules/delivery";
 import { PageHeader } from "@/shared/ui/page-header";
+
+export const metadata: Metadata = { title: "Mis entregas" };
 
 // Courier screen (mobile first, no animation; D-045). Shows only the orders
 // assigned to the courier (RLS); an administrator sees every order on its way.

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
@@ -6,6 +7,8 @@ import { getStaffRole } from "@/modules/customers";
 import { getQueueStatus, retryActionAction } from "@/shared/actions/server/admin-queue";
 import { PageHeader } from "@/shared/ui/page-header";
 import { ReasonActionForm } from "@/shared/ui/reason-action-form";
+
+export const metadata: Metadata = { title: "Cola de trabajos · Administración" };
 
 const DATE = new Intl.DateTimeFormat("es-CO", { timeZone: "America/Bogota", dateStyle: "medium", timeStyle: "short" });
 
@@ -21,7 +24,7 @@ const TYPE_LABELS: Record<string, string> = {
 export default function QueuePage() {
   return (
     <section className="flex flex-col gap-8">
-      <PageHeader eyebrow="Panel" title="Cola de trabajos">
+      <PageHeader size="compact" title="Cola de trabajos">
         Facturas, notas crédito, pagos y entregas se procesan en segundo plano. Reintentar es seguro: cada trabajo se
         puede repetir sin duplicar efectos.
       </PageHeader>

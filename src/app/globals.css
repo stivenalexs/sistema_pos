@@ -10,6 +10,8 @@
   --color-surface: #1b1510;
   --color-field: #211a14;
   --color-line: #3a3027;
+  /* Border of form fields: 3.3:1 against the field (WCAG 1.4.11, D-062). */
+  --color-field-line: #7d6a55;
   --color-ink: #f5eee3;
   --color-muted: #c4b8a8;
   --color-gold: #c4a16b;
@@ -99,7 +101,7 @@
   width: 100%;
   min-height: 3rem;
   border-radius: 4px;
-  border: 1px solid var(--color-line);
+  border: 1px solid var(--color-field-line);
   background: var(--color-field);
   padding: 0.625rem 1rem;
   color: var(--color-ink);

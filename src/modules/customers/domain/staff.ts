@@ -28,6 +28,18 @@ export function isStaffRole(value: unknown): value is StaffRole {
   return typeof value === "string" && (STAFF_ROLES as readonly string[]).includes(value);
 }
 
+/** Pages only for people without a session (D-065). */
+export const SIGNED_OUT_ONLY_PATHS = ["/login", "/signup"] as const;
+
+/**
+ * Where a signed-in person goes when they open a signed-out-only page:
+ * the safe `next` they asked for, otherwise their role home (customers, "/").
+ */
+export function signedInDestination(role: unknown, safeNext: string | null): string {
+  if (safeNext && safeNext !== "/") return safeNext;
+  return isStaffRole(role) ? STAFF_HOME[role] : "/";
+}
+
 export type InviteInput = { email: string; fullName: string; phone: string | null; role: StaffRole };
 export type InviteField = keyof InviteInput;
 
