@@ -188,6 +188,33 @@ describe("issueInvoice (worker)", () => {
     expect(results).toEqual([{ outcome: "accepted", error: undefined }]);
   });
 
+  function notInvoiceableDb(order: { voided_at: string | null; needs_refund: boolean } | null) {
+    return {
+      rpc: vi.fn(async () => ({ data: null, error: { message: "invoice_order_not_invoiceable" } })),
+      from: () => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: order, error: null }) }) }) }),
+    } as never;
+  }
+
+  it("ends without an alert when the POS sale was voided or the order is to refund (D-057)", async () => {
+    const client = fakeClient(201, {});
+    for (const order of [
+      { voided_at: "2026-11-08T15:00:00Z", needs_refund: false },
+      { voided_at: null, needs_refund: true },
+    ]) {
+      await expect(
+        issueInvoice("o-1", { db: notInvoiceableDb(order), client, numberingRangeId: null }),
+      ).resolves.toMatchObject({ outcome: "skipped_not_invoiceable" });
+    }
+    expect(client.post).not.toHaveBeenCalled();
+  });
+
+  it("still fails for good when an order is not invoiceable for another reason", async () => {
+    const db = notInvoiceableDb({ voided_at: null, needs_refund: false });
+    await expect(issueInvoice("o-1", { db, client: fakeClient(201, {}), numberingRangeId: null })).rejects.toBeInstanceOf(
+      PermanentActionError,
+    );
+  });
+
   it("does nothing when the worker runs twice for an accepted invoice", async () => {
     const { db } = fakeDb({ ...PREPARED, status: "accepted" });
     const client = fakeClient(201, {});

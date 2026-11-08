@@ -177,3 +177,101 @@ export function formatDistance(meters: number): string {
   if (meters < 1000) return `${meters} m`;
   return `${(meters / 1000).toLocaleString("es-CO", { maximumFractionDigits: 1 })} km`;
 }
+
+// ---------------------------------------------------------------------------
+// Assignment from the admin panel (D-057)
+// ---------------------------------------------------------------------------
+
+/**
+ * One value per option of the assignment select, so a courier never goes
+ * with another provider: "own:<provider>:<courier>" or "third:<provider>".
+ */
+export function encodeAssignment(providerId: string, courierId: string | null): string {
+  return courierId ? `own:${providerId}:${courierId}` : `third:${providerId}`;
+}
+
+const UUID_PART = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
+const OWN_ASSIGNMENT = new RegExp(`^own:(${UUID_PART}):(${UUID_PART})$`, "i");
+const THIRD_ASSIGNMENT = new RegExp(`^third:(${UUID_PART})$`, "i");
+
+export function parseAssignment(value: unknown): { providerId: string; courierId: string | null } | null {
+  if (typeof value !== "string") return null;
+  const own = OWN_ASSIGNMENT.exec(value);
+  if (own) return { providerId: own[1]!, courierId: own[2]! };
+  const third = THIRD_ASSIGNMENT.exec(value);
+  return third ? { providerId: third[1]!, courierId: null } : null;
+}
+
+// ---------------------------------------------------------------------------
+// Store settings and fee rules from the admin panel (D-058)
+// ---------------------------------------------------------------------------
+
+export const STORE_SETTINGS_ERROR_MESSAGES: Record<string, string> = {
+  admin_forbidden: "Solo un administrador puede cambiar los datos de la tienda.",
+  location_outside_valley:
+    "El punto marcado está fuera del Valle de Aburrá, donde se hacen los domicilios. Márcalo donde está la tienda.",
+  unknown_zone: "Elige el municipio de la tienda.",
+  invalid_max_distance: "El radio máximo de domicilio debe estar entre 1 y 50 km.",
+};
+
+export type FeeRuleInput = {
+  name: string;
+  customerType: "retail" | "wholesale" | null;
+  minBoxes: number | null;
+  maxDistanceM: number | null;
+  feeCop: number;
+};
+
+function optionalWhole(value: string, min: number, max: number): number | null | undefined {
+  if (value === "") return null;
+  if (!/^\d{1,7}$/.test(value)) return undefined;
+  const n = Number(value);
+  return n >= min && n <= max ? n : undefined;
+}
+
+/** Fee rule typed by the administrator. Empty optional fields mean "any". */
+export function parseFeeRuleInput(raw: {
+  name: string;
+  customerType: string;
+  minBoxes: string;
+  maxDistanceM: string;
+  feeCop: string;
+}): { ok: true; value: FeeRuleInput } | { ok: false; message: string } {
+  const name = raw.name.trim();
+  if (name.length < 3 || name.length > 80) return { ok: false, message: "Escribe un nombre entre 3 y 80 caracteres." };
+  if (!["any", "retail", "wholesale"].includes(raw.customerType)) {
+    return { ok: false, message: "Elige a qué clientes aplica." };
+  }
+  const minBoxes = optionalWhole(raw.minBoxes.trim(), 1, 10_000);
+  if (minBoxes === undefined) return { ok: false, message: "Las cajas mínimas deben ser un número entero desde 1." };
+  // A retail purchase is always by unit (D-024): such a rule would never apply.
+  if (raw.customerType === "retail" && minBoxes !== null) {
+    return { ok: false, message: "Los minoristas compran por unidad: deja vacías las cajas mínimas." };
+  }
+  const maxDistanceM = optionalWhole(raw.maxDistanceM.trim(), 1, 50_000);
+  if (maxDistanceM === undefined) {
+    return { ok: false, message: "La distancia máxima debe estar entre 1 y 50.000 metros." };
+  }
+  const feeCop = optionalWhole(raw.feeCop.trim(), 0, 1_000_000);
+  if (feeCop === undefined || feeCop === null) {
+    return { ok: false, message: "El valor debe estar entre $ 0 y $ 1.000.000." };
+  }
+  return {
+    ok: true,
+    value: {
+      name,
+      customerType: raw.customerType === "any" ? null : (raw.customerType as "retail" | "wholesale"),
+      minBoxes,
+      maxDistanceM,
+      feeCop,
+    },
+  };
+}
+
+export const ASSIGNMENT_ERROR_MESSAGES: Record<string, string> = {
+  delivery_forbidden: "Solo un administrador puede asignar domicilios.",
+  delivery_order_not_assignable:
+    "Ese pedido ya no se puede asignar (no está pagado, ya se entregó o está marcado para reembolso).",
+  delivery_unknown_provider: "Ese proveedor no existe o está inactivo.",
+  delivery_invalid_courier: "Ese mensajero no está activo o no pertenece al proveedor.",
+};

@@ -33,6 +33,17 @@ export async function issueInvoice(orderId: string, deps: Deps = {}): Promise<Js
   const { data, error } = await db.rpc("prepare_invoice", { p_order_id: orderId });
   if (error) {
     if (error.message.includes("invoice_order_not_invoiceable")) {
+      // Expected when the POS sale was voided or the order was marked for
+      // refund after the job was queued: there is no sale to invoice, so the
+      // job ends without an alert (D-057). Anything else is a real failure.
+      const { data: order } = await db
+        .from("orders")
+        .select("voided_at, needs_refund")
+        .eq("id", orderId)
+        .maybeSingle();
+      if (order && (order.voided_at !== null || order.needs_refund)) {
+        return { outcome: "skipped_not_invoiceable", order_id: orderId };
+      }
       throw new PermanentActionError("invoice_order_not_invoiceable");
     }
     throw new Error(`prepare_invoice failed: ${error.message}`);

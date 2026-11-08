@@ -16,4 +16,5 @@ export {
   type PosSaleResult,
   type PosStaff,
 } from "./server/pos";
+export { type AdminPosSale, listPosSalesForAdmin, voidPosSaleAction } from "./server/admin-sales";
 export { PosTerminal } from "./ui/pos-terminal";

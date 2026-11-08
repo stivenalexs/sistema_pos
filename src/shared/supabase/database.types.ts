@@ -117,6 +117,20 @@ isOneToOne: true
       referencedColumns: ["id"]
     }
                   ]
+                },"config_changes": {
+                  Row: {
+                    "changed_by": string | null,"created_at": string,"id": string,"new_row": Json | null,"old_row": Json | null,"operation": string,"row_id": string,"table_name": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "changed_by"?: string | null,"created_at"?: string,"id"?: string,"new_row"?: Json | null,"old_row"?: Json | null,"operation": string,"row_id": string,"table_name": string
+                  }
+                  Update: {
+                    "changed_by"?: string | null,"created_at"?: string,"id"?: string,"new_row"?: Json | null,"old_row"?: Json | null,"operation"?: string,"row_id"?: string,"table_name"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"couriers": {
                   Row: {
                     "created_at": string,"full_name": string,"id": string,"is_active": boolean,"phone": string | null,"provider_id": string,"updated_at": string
@@ -651,6 +665,20 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"stock_settings_changes": {
+                  Row: {
+                    "changed_by": string | null,"created_at": string,"id": string,"new_low_stock_threshold": number,"new_web_safety_stock": number,"old_low_stock_threshold": number,"old_web_safety_stock": number,"product_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "changed_by"?: string | null,"created_at"?: string,"id"?: string,"new_low_stock_threshold": number,"new_web_safety_stock": number,"old_low_stock_threshold": number,"old_web_safety_stock": number,"product_id": string
+                  }
+                  Update: {
+                    "changed_by"?: string | null,"created_at"?: string,"id"?: string,"new_low_stock_threshold"?: number,"new_web_safety_stock"?: number,"old_low_stock_threshold"?: number,"old_web_safety_stock"?: number,"product_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"tax_rates": {
                   Row: {
                     "ad_valorem_pct": number,"created_at": string,"exploitation_pct": number,"id": string,"specific_per_degree_cop": number,"tax_category": Database["public"]['Enums']["tax_category"],"year": number
@@ -691,8 +719,20 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "admin_list_invoices":
+            "admin_config_overview":
 { Args: Record<PropertyKey, never>; Returns: Json
+                           },
+"admin_list_deliveries":
+{ Args: Record<PropertyKey, never>; Returns: Json
+                           },
+"admin_list_delivery_options":
+{ Args: Record<PropertyKey, never>; Returns: Json
+                           },
+"admin_list_invoices":
+{ Args: Record<PropertyKey, never>; Returns: Json
+                           },
+"admin_list_pos_sales":
+{ Args: { "p_limit"?: number }; Returns: Json
                            },
 "admin_list_refunds":
 { Args: Record<PropertyKey, never>; Returns: Json
@@ -782,6 +822,19 @@ isOneToOne: false
               "available_sale_units": number,"available_units": number,"product_id": string
             }[]
                            },
+"inventory_alerts":
+{ Args: Record<PropertyKey, never>; Returns: Json
+                           },
+"inventory_overview":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "available": number,"is_active": boolean,"is_low": boolean,"low_stock_threshold": number,"name": string,"on_hand": number,"origin": Database["public"]['Enums']["product_origin"],"product_id": string,"reserved": number,"sku": string,"units_per_box": number,"web_safety_stock": number
+            }[]
+                           },
+"inventory_recent_movements":
+{ Args: { "p_include_reservations"?: boolean,"p_limit"?: number,"p_product_id"?: string }; Returns: {
+              "created_at": string,"movement_id": string,"movement_type": Database["public"]['Enums']["inventory_movement_type"],"product_id": string,"product_name": string,"reason": string,"recorded_by": string,"reference": string,"sku": string,"units": number
+            }[]
+                           },
 "invite_staff":
 { Args: { "p_email": string,"p_full_name": string,"p_phone": string,"p_staff_role": string }; Returns: Json
                            },
@@ -868,6 +921,12 @@ isOneToOne: false
                            },
 "set_cart_item":
 { Args: { "p_product_id": string,"p_quantity": number }; Returns: undefined
+                           },
+"set_stock_settings":
+{ Args: { "p_low_stock_threshold": number,"p_product_id": string,"p_web_safety_stock": number }; Returns: Json
+                           },
+"set_store_settings":
+{ Args: { "p_lat": number,"p_lng": number,"p_max_distance_m": number,"p_zone_id": string }; Returns: Json
                            },
 "start_payment":
 { Args: { "p_idempotency_key": string,"p_order_id": string }; Returns: Json

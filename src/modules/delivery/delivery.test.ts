@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  encodeAssignment,
+  parseFeeRuleInput,
+  parseAssignment,
   formatDistance,
   isValidSignaturePng,
   MAX_SIGNATURE_BYTES,
@@ -165,5 +168,47 @@ describe("processDeliveryAttempt (worker)", () => {
     await expect(processDeliveryAttempt(null, payload, record)).rejects.toBeInstanceOf(PermanentActionError);
     await expect(processDeliveryAttempt(COURIER, { order_id: ORDER }, record)).rejects.toBeInstanceOf(PermanentActionError);
     expect(record).not.toHaveBeenCalled();
+  });
+});
+
+describe("assignment choice (D-057)", () => {
+  const provider = "9a000000-0000-4000-8000-000000000001";
+  const courier = "9b000000-0000-4000-8000-000000000002";
+  it("round-trips own couriers and third parties", () => {
+    expect(parseAssignment(encodeAssignment(provider, courier))).toEqual({ providerId: provider, courierId: courier });
+    expect(parseAssignment(encodeAssignment(provider, null))).toEqual({ providerId: provider, courierId: null });
+  });
+  it("rejects anything else", () => {
+    for (const value of ["", "own:" + provider, "third:x", `third:${provider}:${courier}`, null, 3]) {
+      expect(parseAssignment(value)).toBeNull();
+    }
+  });
+});
+
+describe("fee rule input (D-058)", () => {
+  const base = { name: "Hasta 1 km", customerType: "any", minBoxes: "", maxDistanceM: "1000", feeCop: "6000" };
+  it("reads empty optional fields as any", () => {
+    expect(parseFeeRuleInput(base)).toEqual({
+      ok: true,
+      value: { name: "Hasta 1 km", customerType: null, minBoxes: null, maxDistanceM: 1000, feeCop: 6000 },
+    });
+    expect(parseFeeRuleInput({ ...base, customerType: "wholesale", minBoxes: "20", maxDistanceM: "", feeCop: "0" })).toEqual({
+      ok: true,
+      value: { name: "Hasta 1 km", customerType: "wholesale", minBoxes: 20, maxDistanceM: null, feeCop: 0 },
+    });
+  });
+  it("rejects bad values", () => {
+    for (const bad of [
+      { name: "x" },
+      { customerType: "vip" },
+      { minBoxes: "0" },
+      { customerType: "retail", minBoxes: "2" },
+      { maxDistanceM: "60000" },
+      { feeCop: "" },
+      { feeCop: "-1" },
+      { feeCop: "1.5" },
+    ]) {
+      expect(parseFeeRuleInput({ ...base, ...bad }).ok).toBe(false);
+    }
   });
 });
