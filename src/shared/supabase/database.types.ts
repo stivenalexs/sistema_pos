@@ -23,7 +23,27 @@ export type Database = {
           }
         },"public": {
           Tables: {
-            "actions": {
+            "action_retries": {
+                  Row: {
+                    "action_id": string,"action_type": string,"created_at": string,"id": string,"previous_error": string | null,"reason": string,"retried_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "action_id": string,"action_type": string,"created_at"?: string,"id"?: string,"previous_error"?: string | null,"reason": string,"retried_by"?: string | null
+                  }
+                  Update: {
+                    "action_id"?: string,"action_type"?: string,"created_at"?: string,"id"?: string,"previous_error"?: string | null,"reason"?: string,"retried_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "action_retries_action_id_fkey"
+      columns: ["action_id"]
+isOneToOne: false
+      referencedRelation: "actions"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"actions": {
                   Row: {
                     "attempts": number,"created_at": string,"error": string | null,"finished_at": string | null,"id": string,"idempotency_key": string,"max_attempts": number,"next_attempt_at": string | null,"payload": NonNullable<Json>,"queue_msg_id": number | null,"result": Json | null,"started_at": string | null,"status": Database["public"]['Enums']["action_status"],"type": string,"updated_at": string,"user_id": string | null
                   }
@@ -405,14 +425,14 @@ isOneToOne: false
                   ]
                 },"orders": {
                   Row: {
-                    "age_confirmed": boolean | null,"assigned_at": string | null,"cancel_after": string | null,"cancel_reason": string | null,"cancelled_at": string | null,"cash_received_cop": number | null,"cashier_id": string | null,"change_cop": number | null,"channel": Database["public"]['Enums']["order_channel"],"courier_id": string | null,"created_at": string,"customer_id": string | null,"delivered_at": string | null,"delivery_address": Json | null,"delivery_distance_m": number | null,"delivery_external_ref": string | null,"delivery_fee_cop": number,"delivery_provider_id": string | null,"fulfillment": Database["public"]['Enums']["fulfillment_method"],"id": string,"idempotency_key": string,"needs_refund": boolean,"paid_at": string | null,"payment_deadline": string | null,"pos_payment_method": string | null,"refund_reason": string | null,"sale_unit": string,"sale_zone_id": string | null,"status": Database["public"]['Enums']["order_status"],"subtotal_cop": number,"total_base_units": number,"total_boxes": number,"total_cop": number,"updated_at": string,"void_reason": string | null,"voided_at": string | null,"voided_by": string | null
+                    "age_confirmed": boolean | null,"assigned_at": string | null,"cancel_after": string | null,"cancel_reason": string | null,"cancelled_at": string | null,"cash_received_cop": number | null,"cashier_id": string | null,"change_cop": number | null,"channel": Database["public"]['Enums']["order_channel"],"courier_id": string | null,"created_at": string,"customer_id": string | null,"delivered_at": string | null,"delivery_address": Json | null,"delivery_distance_m": number | null,"delivery_external_ref": string | null,"delivery_fee_cop": number,"delivery_provider_id": string | null,"fulfillment": Database["public"]['Enums']["fulfillment_method"],"id": string,"idempotency_key": string,"needs_refund": boolean,"paid_at": string | null,"payment_deadline": string | null,"pos_payment_method": string | null,"refund_note": string | null,"refund_reason": string | null,"refund_reference": string | null,"refunded_at": string | null,"refunded_by": string | null,"sale_unit": string,"sale_zone_id": string | null,"status": Database["public"]['Enums']["order_status"],"subtotal_cop": number,"total_base_units": number,"total_boxes": number,"total_cop": number,"updated_at": string,"void_reason": string | null,"voided_at": string | null,"voided_by": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "age_confirmed"?: boolean | null,"assigned_at"?: string | null,"cancel_after"?: string | null,"cancel_reason"?: string | null,"cancelled_at"?: string | null,"cash_received_cop"?: number | null,"cashier_id"?: string | null,"change_cop"?: number | null,"channel": Database["public"]['Enums']["order_channel"],"courier_id"?: string | null,"created_at"?: string,"customer_id"?: string | null,"delivered_at"?: string | null,"delivery_address"?: Json | null,"delivery_distance_m"?: number | null,"delivery_external_ref"?: string | null,"delivery_fee_cop"?: number,"delivery_provider_id"?: string | null,"fulfillment": Database["public"]['Enums']["fulfillment_method"],"id"?: string,"idempotency_key": string,"needs_refund"?: boolean,"paid_at"?: string | null,"payment_deadline"?: string | null,"pos_payment_method"?: string | null,"refund_reason"?: string | null,"sale_unit": string,"sale_zone_id"?: string | null,"status"?: Database["public"]['Enums']["order_status"],"subtotal_cop": number,"total_base_units": number,"total_boxes"?: number,"total_cop": number,"updated_at"?: string,"void_reason"?: string | null,"voided_at"?: string | null,"voided_by"?: string | null
+                    "age_confirmed"?: boolean | null,"assigned_at"?: string | null,"cancel_after"?: string | null,"cancel_reason"?: string | null,"cancelled_at"?: string | null,"cash_received_cop"?: number | null,"cashier_id"?: string | null,"change_cop"?: number | null,"channel": Database["public"]['Enums']["order_channel"],"courier_id"?: string | null,"created_at"?: string,"customer_id"?: string | null,"delivered_at"?: string | null,"delivery_address"?: Json | null,"delivery_distance_m"?: number | null,"delivery_external_ref"?: string | null,"delivery_fee_cop"?: number,"delivery_provider_id"?: string | null,"fulfillment": Database["public"]['Enums']["fulfillment_method"],"id"?: string,"idempotency_key": string,"needs_refund"?: boolean,"paid_at"?: string | null,"payment_deadline"?: string | null,"pos_payment_method"?: string | null,"refund_note"?: string | null,"refund_reason"?: string | null,"refund_reference"?: string | null,"refunded_at"?: string | null,"refunded_by"?: string | null,"sale_unit": string,"sale_zone_id"?: string | null,"status"?: Database["public"]['Enums']["order_status"],"subtotal_cop": number,"total_base_units": number,"total_boxes"?: number,"total_cop": number,"updated_at"?: string,"void_reason"?: string | null,"voided_at"?: string | null,"voided_by"?: string | null
                   }
                   Update: {
-                    "age_confirmed"?: boolean | null,"assigned_at"?: string | null,"cancel_after"?: string | null,"cancel_reason"?: string | null,"cancelled_at"?: string | null,"cash_received_cop"?: number | null,"cashier_id"?: string | null,"change_cop"?: number | null,"channel"?: Database["public"]['Enums']["order_channel"],"courier_id"?: string | null,"created_at"?: string,"customer_id"?: string | null,"delivered_at"?: string | null,"delivery_address"?: Json | null,"delivery_distance_m"?: number | null,"delivery_external_ref"?: string | null,"delivery_fee_cop"?: number,"delivery_provider_id"?: string | null,"fulfillment"?: Database["public"]['Enums']["fulfillment_method"],"id"?: string,"idempotency_key"?: string,"needs_refund"?: boolean,"paid_at"?: string | null,"payment_deadline"?: string | null,"pos_payment_method"?: string | null,"refund_reason"?: string | null,"sale_unit"?: string,"sale_zone_id"?: string | null,"status"?: Database["public"]['Enums']["order_status"],"subtotal_cop"?: number,"total_base_units"?: number,"total_boxes"?: number,"total_cop"?: number,"updated_at"?: string,"void_reason"?: string | null,"voided_at"?: string | null,"voided_by"?: string | null
+                    "age_confirmed"?: boolean | null,"assigned_at"?: string | null,"cancel_after"?: string | null,"cancel_reason"?: string | null,"cancelled_at"?: string | null,"cash_received_cop"?: number | null,"cashier_id"?: string | null,"change_cop"?: number | null,"channel"?: Database["public"]['Enums']["order_channel"],"courier_id"?: string | null,"created_at"?: string,"customer_id"?: string | null,"delivered_at"?: string | null,"delivery_address"?: Json | null,"delivery_distance_m"?: number | null,"delivery_external_ref"?: string | null,"delivery_fee_cop"?: number,"delivery_provider_id"?: string | null,"fulfillment"?: Database["public"]['Enums']["fulfillment_method"],"id"?: string,"idempotency_key"?: string,"needs_refund"?: boolean,"paid_at"?: string | null,"payment_deadline"?: string | null,"pos_payment_method"?: string | null,"refund_note"?: string | null,"refund_reason"?: string | null,"refund_reference"?: string | null,"refunded_at"?: string | null,"refunded_by"?: string | null,"sale_unit"?: string,"sale_zone_id"?: string | null,"status"?: Database["public"]['Enums']["order_status"],"subtotal_cop"?: number,"total_base_units"?: number,"total_boxes"?: number,"total_cop"?: number,"updated_at"?: string,"void_reason"?: string | null,"voided_at"?: string | null,"voided_by"?: string | null
                   }
                   Relationships: [
                     {
@@ -671,11 +691,20 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "admin_list_staff":
+            "admin_list_invoices":
+{ Args: Record<PropertyKey, never>; Returns: Json
+                           },
+"admin_list_refunds":
+{ Args: Record<PropertyKey, never>; Returns: Json
+                           },
+"admin_list_staff":
 { Args: Record<PropertyKey, never>; Returns: Json
                            },
 "admin_list_wholesale":
 { Args: { "p_status"?: string }; Returns: Json
+                           },
+"admin_queue_status":
+{ Args: Record<PropertyKey, never>; Returns: Json
                            },
 "admin_summary":
 { Args: Record<PropertyKey, never>; Returns: Json
@@ -761,6 +790,9 @@ isOneToOne: false
               "name": string,"on_hand": number,"product_id": string,"reserved": number,"sku": string,"threshold": number
             }[]
                            },
+"mark_order_refunded":
+{ Args: { "p_note": string,"p_order_id": string,"p_reference": string }; Returns: Json
+                           },
 "payments_to_reconcile":
 { Args: { "p_limit"?: number,"p_min_age_minutes"?: number }; Returns: {
               "attempt_id": string,"transaction_id": string
@@ -815,6 +847,15 @@ isOneToOne: false
                            },
 "reserve_stock":
 { Args: { "p_items": Json,"p_reference": string,"p_ttl_minutes"?: number }; Returns: string[]
+                           },
+"retry_action":
+{ Args: { "p_action_id": string,"p_reason": string }; Returns: Json
+                           },
+"retry_credit_note":
+{ Args: { "p_credit_note_id": string,"p_reason": string }; Returns: Json
+                           },
+"retry_invoice":
+{ Args: { "p_invoice_id": string,"p_reason": string }; Returns: Json
                            },
 "review_wholesale":
 { Args: { "p_customer_id": string,"p_decision": string,"p_reason": string }; Returns: Json

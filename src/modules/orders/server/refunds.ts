@@ -1,0 +1,66 @@
+"use server";
+
+import { refresh } from "next/cache";
+
+import { createSupabaseServerClient } from "@/shared/supabase/server";
+import type { ReasonFormState } from "@/shared/ui/reason-action-form";
+
+// Orders whose money must be returned (D-040, D-055). The administrator
+// returns it in the Wompi dashboard and records it here.
+
+export type RefundRow = {
+  orderId: string;
+  status: string;
+  totalCop: number;
+  refundReason: string;
+  paidAt: string | null;
+  customer: string;
+  email: string | null;
+  transactionId: string | null;
+};
+
+export async function listRefunds(): Promise<RefundRow[]> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.rpc("admin_list_refunds");
+  if (error) throw new Error(`admin_list_refunds failed: ${error.message}`);
+  return ((data ?? []) as {
+    order_id: string; status: string; total_cop: number; refund_reason: string; paid_at: string | null;
+    customer: string; email: string | null; transaction_id: string | null;
+  }[]).map((r) => ({
+    orderId: r.order_id,
+    status: r.status,
+    totalCop: r.total_cop,
+    refundReason: r.refund_reason,
+    paidAt: r.paid_at,
+    customer: r.customer,
+    email: r.email,
+    transactionId: r.transaction_id,
+  }));
+}
+
+const MESSAGES: Record<string, string> = {
+  admin_forbidden: "Solo un administrador puede hacer esto.",
+  invalid_reference: "Escribe la referencia del reembolso en Wompi (entre 3 y 120 caracteres).",
+  invalid_reason: "Escribe una nota (entre 3 y 300 caracteres).",
+  order_not_refundable: "Ese pedido no está marcado para reembolso.",
+};
+
+export async function markRefundedAction(_previous: ReasonFormState, formData: FormData): Promise<ReasonFormState> {
+  const orderId = formData.get("orderId");
+  const reference = formData.get("reference");
+  const note = formData.get("note");
+  if (typeof orderId !== "string" || typeof reference !== "string" || typeof note !== "string") {
+    return { status: "error", message: MESSAGES.invalid_reference };
+  }
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.rpc("mark_order_refunded", {
+    p_order_id: orderId,
+    p_reference: reference.trim(),
+    p_note: note.trim(),
+  });
+  const result = data as { ok: boolean; error?: string } | null;
+  const code = error ? Object.keys(MESSAGES).find((k) => error.message.includes(k)) : result?.ok ? null : result?.error;
+  if (error || code) return { status: "error", message: (code && MESSAGES[code]) ?? "No se pudo registrar." };
+  refresh();
+  return { status: "ok", message: "Reembolso registrado." };
+}
