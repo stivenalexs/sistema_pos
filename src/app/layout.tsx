@@ -41,6 +41,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           </div>
         </header>
         <main className="flex w-full flex-1 flex-col">{children}</main>
+        <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-3 px-4 pt-4 pb-6 text-[10px] text-muted sm:px-6">
+          <p>© 2026 La Cava. Todos los derechos reservados.</p>
+          <p className="flex items-center gap-3 text-[9px] tracking-[0.22em] text-gold">
+            <span aria-hidden className="h-px w-6 bg-gold" />
+            LICORES CON HISTORIA
+          </p>
+        </div>
         <PermanentNotice />
       </body>
     </html>

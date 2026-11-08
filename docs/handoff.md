@@ -11,7 +11,7 @@ Estado al **2026-11-07**, rama `claude` (último commit antes de esta nota: `0ed
   - **Factus:** probar con el sandbox cuando el responsable ponga las credenciales `FACTUS_*` en `.env.local` (supuestos a confirmar en D-043 y D-044: consumidor final `222222222222`, `dv` del NIT, código de concepto `2` de la nota crédito, `reference_code` repetido, duración del token).
   - **Textos legales** (`legal-copy.ts`): siguen en borrador, no aprobados (D-035). No se tocan sin aprobación.
   - **P-006** (abogado) y **P-013** (documentos del mayorista) siguen abiertos.
-- **Parte visual hecha (D-046, D-047):** tema oscuro "La Cava" tomado del login de Figma; imágenes de producto en Storage (políticas aprobadas; la pantalla de subida llega en el paso 17). Al crear pantallas nuevas, usar las utilidades de `globals.css` y `PageHeader`/`PhotoShell` de `src/shared/ui`, nunca colores sueltos ni animaciones. El proyecto no saldrá a vender: se permiten supuestos marcados `SUPUESTO DEL PROYECTO` (D-041).
+- **Parte visual hecha (D-046, D-047):** tema oscuro "La Cava" tomado del login de Figma; imágenes de producto en Storage (políticas aprobadas; la pantalla de subida llega en el paso 17). El catálogo es un carrusel dentro de un barril (D-048 y D-049: tres capas con la misma foto, posiciones en % de la foto; única excepción de movimiento). Las fotos de ejemplo se suben solas con `db:reset`. Al crear pantallas nuevas, usar las utilidades de `globals.css` y `PageHeader`/`PhotoShell` de `src/shared/ui`, nunca colores sueltos ni animaciones. El proyecto no saldrá a vender: se permiten supuestos marcados `SUPUESTO DEL PROYECTO` (D-041).
 
 ## Forma de trabajo acordada con el responsable
 
