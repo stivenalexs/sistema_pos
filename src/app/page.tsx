@@ -1,16 +1,22 @@
 import Link from "next/link";
 import { connection } from "next/server";
-import { Suspense } from "react";
+import { type ReactNode, Suspense } from "react";
 
 import { ProductList } from "@/modules/catalog";
 import { getCurrentCustomer } from "@/modules/customers";
 import { getCatalog } from "@/modules/pricing";
-import { PageHeader } from "@/shared/ui/page-header";
 
+// Catalog page from the Figma "Nuestra cava · Catálogo" (D-048).
 export default function Home() {
   return (
-    <section className="page flex flex-col gap-10">
-      <PageHeader eyebrow="El tiempo se saborea" title="Nuestra cava" />
+    <section className="page flex flex-col gap-6 pt-9">
+      <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
+        <div className="flex flex-col gap-2">
+          <p className="eyebrow">El tiempo se saborea</p>
+          <h1 className="display-title text-[56px] leading-[1.05]">Nuestra cava</h1>
+        </div>
+        <p className="font-display text-[23px] text-muted italic">Cada licor, una historia.</p>
+      </header>
       <Suspense fallback={<p className="text-muted">Cargando productos…</p>}>
         <Catalog />
       </Suspense>
@@ -24,26 +30,35 @@ async function Catalog() {
   await connection();
   const [customer, items] = await Promise.all([getCurrentCustomer(), getCatalog()]);
 
+  let message: ReactNode = null;
+  if (customer === null) {
+    message = (
+      <>
+        Ves precios al detal.{" "}
+        <Link href="/signup" className="link">
+          Crea tu cuenta para comprar.
+        </Link>
+      </>
+    );
+  } else if (customer.wholesaleStatus === "pending") {
+    message = "Tu cuenta de mayorista está en revisión. Mientras tanto ves y compras con precios al detal.";
+  } else if (customer.wholesaleStatus === "approved") {
+    message = "Precios mayoristas, por caja.";
+  }
+
   return (
     <>
-      {customer === null ? (
-        <p className="notice notice-info">
-          Ves precios al detal.{" "}
-          <Link href="/signup" className="link">
-            Crea tu cuenta
-          </Link>{" "}
-          para comprar.
+      <div
+        role={customer?.wholesaleStatus === "pending" ? "status" : undefined}
+        className={`flex flex-wrap items-center justify-between gap-x-6 gap-y-1 rounded-[4px] border bg-surface px-[18px] py-3.5 text-[13px] ${
+          customer?.wholesaleStatus === "pending" ? "border-warning" : "border-line"
+        }`}
+      >
+        <p>{message}</p>
+        <p className="text-[10px] tracking-[0.15em] text-muted uppercase">
+          {String(items.length).padStart(2, "0")} {items.length === 1 ? "producto" : "productos"}
         </p>
-      ) : null}
-      {customer?.wholesaleStatus === "pending" ? (
-        <p role="status" className="notice notice-warning">
-          Tu cuenta de mayorista está en revisión. Mientras tanto ves y compras con precios al
-          detal.
-        </p>
-      ) : null}
-      {customer?.wholesaleStatus === "approved" ? (
-        <p className="notice notice-info">Precios mayoristas, por caja.</p>
-      ) : null}
+      </div>
       <ProductList items={items} canBuy={customer !== null} />
     </>
   );

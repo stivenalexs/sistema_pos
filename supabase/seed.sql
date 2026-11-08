@@ -51,3 +51,9 @@ update public.products set alcohol_degree = 13, tax_category = 'wine', is_fla = 
 -- Third-party courier company (D-026, D-045). Own couriers need auth users
 -- with staff_role courier, created by the server.
 insert into public.delivery_providers (name, kind) values ('Mensajería externa de ejemplo', 'third_party');
+
+-- Sample product photos (D-048). The files are uploaded to the
+-- product-images bucket from supabase/seed-images by the CLI.
+update public.products set image_path = 'ejemplo/aguardiente-750.png' where sku = 'NAC-AGU-750';
+update public.products set image_path = 'ejemplo/cerveza-330.png' where sku = 'NAC-CER-330';
+update public.products set image_path = 'ejemplo/ron-750.png' where sku = 'NAC-RON-750';
