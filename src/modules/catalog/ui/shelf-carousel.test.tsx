@@ -1,92 +1,81 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ShelfCarousel } from "./shelf-carousel";
 
-// jsdom has no layout: give the shelf a fixed geometry (one bottle visible,
-// 247 px each) and make scrollTo move instantly.
-const SLIDE = 247;
-
-beforeEach(() => {
-  vi.useFakeTimers();
-  vi.stubGlobal("ResizeObserver", class {
-    observe() {}
-    disconnect() {}
-  });
-  vi.stubGlobal("matchMedia", (query: string) => ({ matches: false, media: query }));
-  Object.defineProperty(HTMLElement.prototype, "offsetWidth", { configurable: true, get: () => SLIDE });
-  Object.defineProperty(HTMLElement.prototype, "clientWidth", { configurable: true, get: () => SLIDE });
-  Object.defineProperty(HTMLElement.prototype, "scrollWidth", {
-    configurable: true,
-    get(this: HTMLElement) {
-      return this.querySelectorAll("[data-slide]").length * SLIDE;
-    },
-  });
-  HTMLElement.prototype.scrollTo = function (this: HTMLElement, options?: ScrollToOptions | number) {
-    if (typeof options === "object") this.scrollLeft = options.left ?? 0;
-    fireEvent.scroll(this);
-  } as typeof HTMLElement.prototype.scrollTo;
-});
-
+// jsdom applies no CSS: --visible is read as empty, so one bottle is visible.
 afterEach(() => {
   cleanup();
-  vi.useRealTimers();
-  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
 });
 
 function renderShelf(count: number) {
-  render(
-    <ShelfCarousel label="Botellas">
-      {Array.from({ length: count }, (_, i) => (
+  const { container } = render(
+    <ShelfCarousel
+      label="Botellas"
+      backdrop={<span />}
+      rim={<span />}
+      bottles={Array.from({ length: count }, (_, i) => (
         <p key={i}>Botella {i + 1}</p>
       ))}
-    </ShelfCarousel>,
+      cards={Array.from({ length: count }, (_, i) => (
+        <p key={i}>Ficha {i + 1}</p>
+      ))}
+    />,
   );
+  const tracks = container.querySelectorAll<HTMLElement>(".shelf-track");
   return {
-    track: screen.getByRole("list"),
-    next: screen.getByRole("button", { name: "Ver la siguiente botella" }),
-    prev: screen.getByRole("button", { name: "Ver la botella anterior" }),
+    index: () => tracks[0]?.style.getPropertyValue("--i"),
+    cardsIndex: () => tracks[1]?.style.getPropertyValue("--i"),
+    next: screen.getByRole("button", { name: "Ver la siguiente botella" }) as HTMLButtonElement,
+    prev: screen.getByRole("button", { name: "Ver la botella anterior" }) as HTMLButtonElement,
+    stage: container.querySelector<HTMLElement>(".touch-pan-y") as HTMLElement,
   };
 }
 
 describe("ShelfCarousel", () => {
   it("starts with the back arrow off and the forward arrow on", () => {
-    const { next, prev } = renderShelf(3);
-    expect((prev as HTMLButtonElement).disabled).toBe(true);
-    expect((next as HTMLButtonElement).disabled).toBe(false);
+    const { next, prev, index } = renderShelf(3);
+    expect(prev.disabled).toBe(true);
+    expect(next.disabled).toBe(false);
+    expect(index()).toBe("0");
   });
 
-  it("moves one bottle per click and turns the forward arrow off at the end", () => {
-    const { track, next, prev } = renderShelf(3);
-    fireEvent.click(next);
-    expect(track.scrollLeft).toBe(SLIDE);
-    act(() => vi.advanceTimersByTime(800));
-    fireEvent.click(next);
-    expect(track.scrollLeft).toBe(2 * SLIDE);
-    expect((next as HTMLButtonElement).disabled).toBe(true);
-    expect((prev as HTMLButtonElement).disabled).toBe(false);
+  it("moves bottles and cards together, one per click, and stops at the end", () => {
+    const shelf = renderShelf(3);
+    fireEvent.click(shelf.next);
+    expect(shelf.index()).toBe("1");
+    expect(shelf.cardsIndex()).toBe("1");
+    fireEvent.click(shelf.next);
+    fireEvent.click(shelf.next);
+    expect(shelf.index()).toBe("2");
+    expect(shelf.next.disabled).toBe(true);
+    expect(shelf.prev.disabled).toBe(false);
   });
 
-  it("counts quick clicks from the bottle it is heading to", () => {
-    const { track, next } = renderShelf(5);
-    // Simulate a smooth scroll still on its way: position does not change yet.
-    HTMLElement.prototype.scrollTo = vi.fn() as typeof HTMLElement.prototype.scrollTo;
-    fireEvent.click(next);
-    fireEvent.click(next);
-    expect(HTMLElement.prototype.scrollTo).toHaveBeenLastCalledWith({ left: 2 * SLIDE, behavior: "smooth" });
-    expect(track.scrollLeft).toBe(0);
+  it("goes back one bottle and turns the back arrow off at the start", () => {
+    const shelf = renderShelf(3);
+    fireEvent.click(shelf.next);
+    fireEvent.click(shelf.prev);
+    expect(shelf.index()).toBe("0");
+    expect(shelf.prev.disabled).toBe(true);
   });
 
-  it("goes back one bottle and jumps without motion when reduced motion is on", () => {
-    vi.stubGlobal("matchMedia", (query: string) => ({ matches: true, media: query }));
-    const { track, next, prev } = renderShelf(3);
-    fireEvent.click(next);
-    act(() => vi.advanceTimersByTime(800));
-    const spy = vi.spyOn(HTMLElement.prototype, "scrollTo");
-    fireEvent.click(prev);
-    expect(spy).toHaveBeenCalledWith({ left: 0, behavior: "auto" });
-    expect(track.scrollLeft).toBe(0);
-    expect((prev as HTMLButtonElement).disabled).toBe(true);
+  it("only the visible card can be focused or read", () => {
+    const shelf = renderShelf(3);
+    fireEvent.click(shelf.next);
+    const cards = screen.getAllByRole("listitem", { hidden: true }).filter((li) => li.textContent?.startsWith("Ficha"));
+    expect(cards.map((li) => li.hasAttribute("inert"))).toEqual([true, false, true]);
+  });
+
+  it("follows a finger swipe but ignores mouse drags", () => {
+    const shelf = renderShelf(3);
+    fireEvent.pointerDown(shelf.stage, { pointerType: "touch", clientX: 200 });
+    fireEvent.pointerUp(shelf.stage, { pointerType: "touch", clientX: 120 });
+    expect(shelf.index()).toBe("1");
+    fireEvent.pointerDown(shelf.stage, { pointerType: "mouse", clientX: 200 });
+    fireEvent.pointerUp(shelf.stage, { pointerType: "mouse", clientX: 100 });
+    expect(shelf.index()).toBe("1");
   });
 });

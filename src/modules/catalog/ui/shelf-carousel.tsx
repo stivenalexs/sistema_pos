@@ -1,79 +1,141 @@
 "use client";
 
-import { Children, type ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import {
+  type CSSProperties,
+  type PointerEvent,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
-// Bottles on the barrel shelf (D-048). One bottle per click: the arrow on the
-// right of the last bottle moves forward, the one on the left of the first
-// moves back, and each arrow turns off at its end. On a phone the shelf can
-// also be swiped (native scroll with snap points, no library).
-// Motion: a short smooth scroll, only here; with prefers-reduced-motion the
-// shelf jumps instead. The arrows only move the view, they are not actions.
-export function ShelfCarousel({ children, label }: { children: ReactNode; label: string }) {
-  const trackRef = useRef<HTMLUListElement | null>(null);
-  const [atStart, setAtStart] = useState(true);
-  const [atEnd, setAtEnd] = useState(true);
-  const targetRef = useRef<number | null>(null);
-  const clearTargetRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const slides = Children.toArray(children);
+// Bottles inside the open barrel and their cards below (D-048, D-049).
+// Both rows move together, one bottle per click: the arrow on the right of
+// the last bottle moves forward, the one on the left of the first moves back,
+// and each arrow turns off at its end. On a phone the barrel can be swiped.
+// How many bottles fit comes from CSS (--visible: 1, 2 or 3 by width).
+// Motion: a short slide, only in the catalog; none with prefers-reduced-motion.
+// The arrows only move the view, they are not actions.
 
-  const update = useCallback(() => {
-    const track = trackRef.current;
-    if (!track) return;
-    setAtStart(track.scrollLeft <= 1);
-    setAtEnd(track.scrollLeft + track.clientWidth >= track.scrollWidth - 1);
+type Props = {
+  label: string;
+  /** One bottle per product, drawn inside the barrel cavity. */
+  bottles: ReactNode[];
+  /** One card per product, in the same order. */
+  cards: ReactNode[];
+  /** Back layer: the whole barrel photo. */
+  backdrop: ReactNode;
+  /** Front layer: the same photo clipped to the lower rim, over the bottles. */
+  rim: ReactNode;
+};
+
+const SWIPE_PX = 40;
+
+export function ShelfCarousel({ label, bottles, cards, backdrop, rim }: Props) {
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const swipeRef = useRef<number | null>(null);
+  const [visible, setVisible] = useState(1);
+  const [index, setIndex] = useState(0);
+  const count = bottles.length;
+  const lastIndex = Math.max(0, count - visible);
+  const current = Math.min(index, lastIndex);
+
+  const readVisible = useCallback(() => {
+    const root = rootRef.current;
+    if (!root) return;
+    const value = Number.parseInt(getComputedStyle(root).getPropertyValue("--visible"), 10);
+    setVisible(Number.isFinite(value) && value > 0 ? value : 1);
   }, []);
 
   useEffect(() => {
-    const track = trackRef.current;
-    if (!track) return;
-    update();
-    track.addEventListener("scroll", update, { passive: true });
-    const observer = new ResizeObserver(update);
-    observer.observe(track);
-    return () => {
-      track.removeEventListener("scroll", update);
-      observer.disconnect();
-      if (clearTargetRef.current) clearTimeout(clearTargetRef.current);
-    };
-  }, [update]);
+    readVisible();
+    window.addEventListener("resize", readVisible);
+    return () => window.removeEventListener("resize", readVisible);
+  }, [readVisible]);
 
-  // Quick clicks while the shelf is still sliding count from the bottle it is
-  // heading to, so no click is lost.
   function move(direction: 1 | -1) {
-    const track = trackRef.current;
-    const slide = track?.querySelector<HTMLElement>("[data-slide]");
-    if (!track || !slide) return;
-    const width = slide.offsetWidth;
-    const lastIndex = Math.max(0, Math.round((track.scrollWidth - track.clientWidth) / width));
-    const from = targetRef.current ?? Math.round(track.scrollLeft / width);
-    const to = Math.min(lastIndex, Math.max(0, from + direction));
-    targetRef.current = to;
-    if (clearTargetRef.current) clearTimeout(clearTargetRef.current);
-    clearTargetRef.current = setTimeout(() => (targetRef.current = null), 700);
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    track.scrollTo({ left: to * width, behavior: reduced ? "auto" : "smooth" });
+    setIndex((value) => Math.min(lastIndex, Math.max(0, Math.min(value, lastIndex) + direction)));
   }
 
-  return (
-    <div className="relative" role="region" aria-roledescription="carrusel" aria-label={label}>
-      <ul
-        ref={trackRef}
-        className="flex snap-x snap-mandatory overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-      >
-        {slides.map((slide, index) => (
+  function onPointerDown(event: PointerEvent<HTMLDivElement>) {
+    if (event.pointerType !== "mouse") swipeRef.current = event.clientX;
+  }
+
+  function onPointerUp(event: PointerEvent<HTMLDivElement>) {
+    const start = swipeRef.current;
+    swipeRef.current = null;
+    if (start === null) return;
+    const dx = event.clientX - start;
+    if (Math.abs(dx) >= SWIPE_PX) move(dx < 0 ? 1 : -1);
+  }
+
+  const trackStyle = { "--i": current } as CSSProperties;
+  const inView = (i: number) => i >= current && i < current + visible;
+
+  const cavity = (
+    <div className="h-full overflow-clip">
+      <ul style={trackStyle} className="shelf-track flex h-full">
+        {bottles.map((bottle, i) => (
           <li
-            key={index}
+            key={i}
             data-slide
-            aria-roledescription="botella"
-            aria-label={`${index + 1} de ${slides.length}`}
-            className="flex shrink-0 basis-full snap-start px-3 sm:basis-1/2 lg:basis-1/3"
+            aria-hidden={!inView(i)}
+            className="flex h-full shrink-0 basis-[calc(100%/var(--visible))] items-end justify-center"
           >
-            {slide}
+            {bottle}
           </li>
         ))}
       </ul>
-      <ShelfArrow direction={-1} disabled={atStart} onClick={() => move(-1)} />
-      <ShelfArrow direction={1} disabled={atEnd} onClick={() => move(1)} />
+    </div>
+  );
+
+  return (
+    <div
+      ref={rootRef}
+      role="region"
+      aria-roledescription="carrusel"
+      aria-label={label}
+      className="[--visible:1] sm:[--visible:2] lg:[--visible:3]"
+    >
+      <div
+        className="touch-pan-y select-none"
+        onPointerDown={onPointerDown}
+        onPointerUp={onPointerUp}
+        onPointerCancel={() => (swipeRef.current = null)}
+      >
+        {/* Stage: shows the middle of the canvas; the canvas keeps the photo
+            proportions and is wider than the stage on small screens, so the
+            cavity stays large enough. Every position is a % of the photo. */}
+        <div className="barrel-stage relative mx-auto aspect-[calc(1376/(768*var(--zoom)))] w-full max-w-[1104px] overflow-clip [--zoom:2.1] sm:[--zoom:1.6] lg:[--zoom:1.15]">
+          <div className="absolute top-0 left-1/2 aspect-[1376/768] w-[calc(100%*var(--zoom))] -translate-x-1/2">
+            <div className="absolute inset-0 -z-10">{backdrop}</div>
+            {/* Cavity of the barrel: x 35.5%–66%, y 20%–77% of the photo. */}
+            <div className="absolute top-[20%] bottom-[23%] left-[35.5%] w-[30.5%] px-[1%]">{cavity}</div>
+            <div className="pointer-events-none absolute inset-0 [clip-path:inset(77.5%_33%_0_33%)]">{rim}</div>
+            <ShelfArrow direction={-1} disabled={current === 0} onClick={() => move(-1)} />
+            <ShelfArrow direction={1} disabled={current >= lastIndex} onClick={() => move(1)} />
+          </div>
+        </div>
+      </div>
+      <div className="relative z-10 mx-auto -mt-[6%] w-full max-w-[400px] overflow-clip sm:max-w-[560px] lg:max-w-[680px]">
+        <ul style={trackStyle} className="shelf-track flex">
+          {cards.map((card, i) => (
+            <li
+              key={i}
+              aria-roledescription="botella"
+              aria-label={`${i + 1} de ${count}`}
+              aria-hidden={!inView(i)}
+              inert={!inView(i)}
+              className={`flex shrink-0 basis-[calc(100%/var(--visible))] px-3 ${
+                i > current && inView(i) ? "border-l border-gold/20" : ""
+              }`}
+            >
+              {card}
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }
@@ -93,8 +155,8 @@ function ShelfArrow({
       onClick={onClick}
       disabled={disabled}
       aria-label={direction === 1 ? "Ver la siguiente botella" : "Ver la botella anterior"}
-      className={`absolute top-[150px] z-10 flex size-11 items-center justify-center rounded-full border border-gold bg-bg/80 text-gold hover:bg-field disabled:cursor-default disabled:border-line disabled:text-line ${
-        direction === 1 ? "right-0 lg:-right-14" : "left-0 lg:-left-14"
+      className={`absolute top-[45%] z-20 flex size-11 items-center justify-center rounded-full border border-gold bg-bg/80 text-gold hover:bg-field disabled:cursor-default disabled:border-line disabled:text-line ${
+        direction === 1 ? "left-[66%] ml-2" : "right-[64.5%] mr-2"
       }`}
     >
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>

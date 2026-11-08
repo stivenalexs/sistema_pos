@@ -245,3 +245,27 @@
     box-shadow: inset 3px 0 0 var(--color-gold);
   }
 }
+
+/*
+ * Catalog barrel (D-049). The photo edges fade into the page background so the
+ * barrel does not read as a rectangle; the center (barrel and doors) stays
+ * untouched.
+ */
+@utility barrel-stage {
+  --barrel-fade-x: linear-gradient(90deg, transparent 0%, #000 14%, #000 86%, transparent 100%);
+  --barrel-fade-y: linear-gradient(180deg, transparent 0%, #000 12%, #000 82%, transparent 100%);
+  mask-image: var(--barrel-fade-x), var(--barrel-fade-y);
+  mask-composite: intersect;
+  -webkit-mask-image: var(--barrel-fade-x), var(--barrel-fade-y);
+  -webkit-mask-composite: source-in;
+}
+
+/* Bottles and cards rows move together, one bottle per step (D-048). Only
+   moving element of the store; no motion with prefers-reduced-motion. */
+@utility shelf-track {
+  transform: translateX(calc(var(--i, 0) * -100% / var(--visible, 1)));
+  transition: transform 450ms cubic-bezier(0.22, 1, 0.36, 1);
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
