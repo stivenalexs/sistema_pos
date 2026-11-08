@@ -15,6 +15,7 @@ const SECTIONS: { href: string; label: string; roles: readonly StaffRole[] }[] =
   { href: "/admin/domicilios", label: "Domicilios", roles: ["admin"] },
   { href: "/admin/ventas-pos", label: "Ventas POS", roles: ["admin"] },
   { href: "/admin/configuracion", label: "Configuración", roles: ["admin"] },
+  { href: "/admin/bloqueos", label: "Bloqueos", roles: ["admin"] },
   { href: "/admin/facturas", label: "Facturas", roles: ["admin"] },
   { href: "/admin/reembolsos", label: "Reembolsos", roles: ["admin"] },
   { href: "/admin/cola", label: "Cola", roles: ["admin"] },

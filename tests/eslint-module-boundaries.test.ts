@@ -17,7 +17,8 @@ async function boundaryErrors(code: string, file: string): Promise<number> {
 
 const ORDERS_FILE = "src/modules/orders/server/create-order.ts";
 
-describe("module boundaries", () => {
+// ESLint starts cold in the first test (5+ s when the whole suite runs in parallel).
+describe("module boundaries", { timeout: 20_000 }, () => {
   it("allows importing another module through its public index", async () => {
     expect(
       await boundaryErrors('export * from "@/modules/pricing";\n', ORDERS_FILE),

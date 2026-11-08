@@ -48,7 +48,10 @@ select throws_ok(
 reset role;
 
 select pg_temp.as_admin();
-set local role authenticated;
+-- Inserted as the table owner with the admin's session in the claims, so
+-- these fixtures can keep fixed ids: since D-060 the admin cannot choose the
+-- id through the API (admin_sales_blocks.test.sql covers the admin's writes).
+-- created_by still comes from the session.
 -- Weekly window that crosses midnight, every day, Medellín only, web and POS.
 insert into public.sales_blocks (id, name, kind, zone_id, weekdays, start_time, end_time, message) values
   ('f1000000-0000-4000-8000-000000000001', 'Horario nocturno', 'weekly', pg_temp.zone('Medellín'),
