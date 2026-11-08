@@ -101,6 +101,9 @@ describe("buildBillPayload", () => {
     expect(paymentMethodCode("CARD")).toBe("48");
     expect(paymentMethodCode("PSE")).toBe("47");
     expect(paymentMethodCode("SOMETHING_NEW")).toBe("ZZZ");
+    expect(paymentMethodCode("POS_CASH")).toBe("10");
+    expect(paymentMethodCode("POS_CARD")).toBe("48");
+    expect(paymentMethodCode("POS_TRANSFER")).toBe("47");
     expect(splitNit("900123456")).toEqual({ identification: "900123456", dv: null });
   });
 });
