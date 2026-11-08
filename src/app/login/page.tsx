@@ -45,6 +45,11 @@ async function Login({ searchParams }: Pick<PageProps<"/login">, "searchParams">
           Tu correo quedó confirmado. Ya puedes iniciar sesión.
         </p>
       ) : null}
+      {params.invitation === "expired" ? (
+        <p role="status" className="notice notice-warning">
+          El enlace de la invitación venció o ya se usó. Pide al administrador una invitación nueva, o inicia sesión si ya creaste tu contraseña.
+        </p>
+      ) : null}
       <LoginForm action={signInAction} next={next} />
     </div>
   );
