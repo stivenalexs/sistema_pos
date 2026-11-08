@@ -1,46 +1,67 @@
-import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
 
-import { getStaffRole, type StaffRole } from "@/modules/customers";
+import { getAdminSummary, getStaffRole, type StaffRole } from "@/modules/customers";
 
-// Admin panel shell (D-054). Every page checks the role on the server; the
-// menu is only navigation. Warehouse staff enter only the inventory section
-// (D-056), so their menu shows only that.
-const SECTIONS: { href: string; label: string; roles: readonly StaffRole[] }[] = [
-  { href: "/admin", label: "Resumen", roles: ["admin"] },
-  { href: "/admin/mayoristas", label: "Mayoristas", roles: ["admin"] },
-  { href: "/admin/personal", label: "Personal", roles: ["admin"] },
-  { href: "/admin/inventario", label: "Inventario", roles: ["admin", "warehouse"] },
-  { href: "/admin/domicilios", label: "Domicilios", roles: ["admin"] },
-  { href: "/admin/ventas-pos", label: "Ventas POS", roles: ["admin"] },
-  { href: "/admin/configuracion", label: "Configuración", roles: ["admin"] },
-  { href: "/admin/bloqueos", label: "Bloqueos", roles: ["admin"] },
-  { href: "/admin/facturas", label: "Facturas", roles: ["admin"] },
-  { href: "/admin/reembolsos", label: "Reembolsos", roles: ["admin"] },
-  { href: "/admin/cola", label: "Cola", roles: ["admin"] },
+import { AdminNav, type NavGroup } from "./admin-nav";
+import { sectionCounts } from "./admin-tasks";
+
+// Admin panel shell (D-054, D-064). Every page checks the role on the server;
+// the menu is only navigation. Warehouse staff enter only the inventory
+// section (D-056), so their menu shows only that.
+type Section = { href: string; label: string; roles: readonly StaffRole[] };
+
+const GROUPS: { label: string; sections: Section[] }[] = [
+  { label: "Hoy", sections: [{ href: "/admin", label: "Resumen", roles: ["admin"] }] },
+  {
+    label: "Ventas",
+    sections: [
+      { href: "/admin/domicilios", label: "Domicilios", roles: ["admin"] },
+      { href: "/admin/ventas-pos", label: "Ventas POS", roles: ["admin"] },
+      { href: "/admin/facturas", label: "Facturas", roles: ["admin"] },
+      { href: "/admin/reembolsos", label: "Reembolsos", roles: ["admin"] },
+    ],
+  },
+  { label: "Bodega", sections: [{ href: "/admin/inventario", label: "Inventario", roles: ["admin", "warehouse"] }] },
+  {
+    label: "Clientes y equipo",
+    sections: [
+      { href: "/admin/mayoristas", label: "Mayoristas", roles: ["admin"] },
+      { href: "/admin/personal", label: "Personal", roles: ["admin"] },
+    ],
+  },
+  {
+    label: "Tienda",
+    sections: [
+      { href: "/admin/configuracion", label: "Configuración", roles: ["admin"] },
+      { href: "/admin/bloqueos", label: "Bloqueos", roles: ["admin"] },
+    ],
+  },
+  { label: "Sistema", sections: [{ href: "/admin/cola", label: "Cola", roles: ["admin"] }] },
 ];
 
 export default function AdminLayout({ children }: LayoutProps<"/admin">) {
   return (
-    <div className="page flex flex-col gap-8 pt-9">
-      <nav aria-label="Panel de administración" className="flex flex-wrap gap-x-6 gap-y-2 border-b border-line pb-3 text-sm">
-        <span className="eyebrow">Administración</span>
-        <Suspense fallback={null}>
-          <Sections />
-        </Suspense>
-      </nav>
-      {children}
+    <div className="page grid gap-8 pt-9 lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-10">
+      <Suspense fallback={<div aria-hidden className="min-h-9" />}>
+        <Menu />
+      </Suspense>
+      <div className="min-w-0">{children}</div>
     </div>
   );
 }
 
-async function Sections() {
+async function Menu() {
   await connection();
   const role = await getStaffRole();
-  return SECTIONS.filter((section) => role !== null && section.roles.includes(role)).map((section) => (
-    <Link key={section.href} href={section.href} className="link">
-      {section.label}
-    </Link>
-  ));
+  if (role === null) return null;
+  // Pending counts only for the administrator (admin_summary is admin-only).
+  const counts = role === "admin" ? sectionCounts(await getAdminSummary()) : {};
+  const groups: NavGroup[] = GROUPS.map((group) => ({
+    label: group.label,
+    links: group.sections
+      .filter((section) => section.roles.includes(role))
+      .map((section) => ({ href: section.href, label: section.label, count: counts[section.href] ?? 0 })),
+  })).filter((group) => group.links.length > 0);
+  return <AdminNav groups={groups} />;
 }

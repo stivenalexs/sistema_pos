@@ -21,7 +21,7 @@ const DATE = new Intl.DateTimeFormat("es-CO", { timeZone: "America/Bogota", date
 export default function StaffPage() {
   return (
     <section className="flex flex-col gap-8">
-      <PageHeader eyebrow="Panel" title="Personal">
+      <PageHeader size="compact" title="Personal">
         Invita por correo a cajeros, mensajeros, bodega y administradores. La persona crea su contraseña desde el
         enlace; nadie más la conoce.
       </PageHeader>

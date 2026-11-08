@@ -22,7 +22,7 @@ const REASONS: Record<string, string> = {
 export default function RefundsPage() {
   return (
     <section className="flex flex-col gap-8">
-      <PageHeader eyebrow="Panel" title="Reembolsos">
+      <PageHeader size="compact" title="Reembolsos">
         Pedidos con un pago que no se puede cumplir. Devuelve el dinero desde el panel de Wompi (con el id de la
         transacción) y registra aquí la referencia del reembolso.
       </PageHeader>

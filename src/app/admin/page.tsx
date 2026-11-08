@@ -7,12 +7,14 @@ import { Suspense } from "react";
 import { getAdminSummary, getStaffRole } from "@/modules/customers";
 import { PageHeader } from "@/shared/ui/page-header";
 
+import { adminTasks } from "./admin-tasks";
+
 export const metadata: Metadata = { title: "Administración" };
 
 export default function AdminHome() {
   return (
     <section className="flex flex-col gap-8">
-      <PageHeader eyebrow="Panel" title="Resumen" />
+      <PageHeader title="Resumen" size="compact" />
       <Suspense fallback={<p className="text-muted">Cargando…</p>}>
         <Summary />
       </Suspense>
@@ -20,47 +22,61 @@ export default function AdminHome() {
   );
 }
 
+// Tray of what needs attention today (D-064): pending items first, ordered by
+// urgency, in gold; everything up to date goes in one quiet line.
 async function Summary() {
   await connection();
   const role = await getStaffRole();
   // Warehouse staff only have the inventory section (D-056).
   if (role === "warehouse") redirect("/admin/inventario");
   if (role !== "admin") redirect("/login?next=/admin");
+
   const summary = await getAdminSummary();
-  const cards = [
-    { href: "/admin/mayoristas", label: "Mayoristas por revisar", value: summary.pendingWholesale },
-    { href: "/admin/personal", label: "Personal activo", value: summary.staff },
-    { href: "/admin/personal", label: "Invitaciones pendientes", value: summary.pendingInvitations },
-    { href: "/admin/facturas", label: "Facturas o notas rechazadas", value: summary.invoicesAttention },
-    { href: "/admin/reembolsos", label: "Reembolsos por registrar", value: summary.refundsPending },
-    { href: "/admin/cola", label: "Trabajos fallidos", value: summary.failedActions },
-    { href: "/admin/inventario", label: "Productos en stock bajo", value: summary.lowStock },
-    { href: "/admin/domicilios", label: "Domicilios por asignar", value: summary.deliveriesToAssign },
-    { href: "/admin/domicilios", label: "Entregas con intento fallido", value: summary.deliveriesFailed },
-  ];
+  const { pending, upToDate } = adminTasks(summary);
+
   return (
-    <div className="flex flex-col gap-4">
-    {summary.stockMismatches > 0 ? (
-      <p role="alert" className="notice notice-danger">
-        {summary.stockMismatches} productos tienen un saldo que no coincide con su libro de movimientos: revisa el{" "}
-        <Link href="/admin/inventario" className="link">inventario</Link>.
+    <div className="flex flex-col gap-6">
+      {pending.length === 0 ? (
+        <div className="card flex flex-col gap-2 p-6">
+          <p className="font-display text-3xl">Todo al día.</p>
+          <p className="text-sm text-muted">No hay pedidos, facturas ni clientes esperando una decisión.</p>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-3">
+          <h2 className="text-sm font-medium text-muted">
+            {pending.length === 1 ? "1 tarea pendiente" : `${pending.length} tareas pendientes`}
+          </h2>
+          <ul className="card divide-y divide-line">
+            {pending.map((task) => (
+              <li key={task.key}>
+                <Link
+                  href={task.href}
+                  className="flex items-baseline gap-4 px-5 py-4 hover:bg-field"
+                >
+                  <span
+                    className={`w-14 shrink-0 text-right font-display text-3xl leading-none tabular-nums ${
+                      task.urgent ? "text-gold" : "text-ink"
+                    }`}
+                  >
+                    {task.count}
+                  </span>
+                  <span className="min-w-0 flex-1 text-[15px]">{task.label}</span>
+                  <span className="shrink-0 text-sm text-gold">{task.action}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {pending.length > 0 && upToDate.length > 0 ? (
+        <p className="text-sm text-muted">Al día: {upToDate.join(", ")}.</p>
+      ) : null}
+      <p className="text-sm text-muted">
+        Personal activo: {summary.staff}.{" "}
+        <Link href="/admin/personal" className="link">
+          Ver el equipo
+        </Link>
       </p>
-    ) : null}
-    {summary.queueStuck > 0 ? (
-      <p role="status" className="notice notice-warning">
-        Hay {summary.queueStuck} trabajos detenidos hace más de 10 minutos: revisa la <Link href="/admin/cola" className="link">cola</Link>.
-      </p>
-    ) : null}
-    <ul className="grid gap-4 sm:grid-cols-3">
-      {cards.map((card) => (
-        <li key={card.label}>
-          <Link href={card.href} className="card flex flex-col gap-1 p-5 hover:border-gold">
-            <span className="font-display text-4xl text-gold tabular-nums">{card.value}</span>
-            <span className="text-sm text-muted">{card.label}</span>
-          </Link>
-        </li>
-      ))}
-    </ul>
     </div>
   );
 }

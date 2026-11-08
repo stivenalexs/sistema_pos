@@ -29,7 +29,7 @@ const DATE = new Intl.DateTimeFormat("es-CO", { timeZone: "America/Bogota", date
 export default function DeliveriesPage() {
   return (
     <section className="flex flex-col gap-8">
-      <PageHeader eyebrow="Panel" title="Domicilios">
+      <PageHeader size="compact" title="Domicilios">
         Pedidos pagados para entregar. Asígnalos a un mensajero propio, que los verá en su pantalla, o a una empresa
         tercera. Puedes reasignar un pedido mientras va en camino.
       </PageHeader>

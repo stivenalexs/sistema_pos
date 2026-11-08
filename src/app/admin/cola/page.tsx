@@ -24,7 +24,7 @@ const TYPE_LABELS: Record<string, string> = {
 export default function QueuePage() {
   return (
     <section className="flex flex-col gap-8">
-      <PageHeader eyebrow="Panel" title="Cola de trabajos">
+      <PageHeader size="compact" title="Cola de trabajos">
         Facturas, notas crédito, pagos y entregas se procesan en segundo plano. Reintentar es seguro: cada trabajo se
         puede repetir sin duplicar efectos.
       </PageHeader>

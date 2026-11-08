@@ -26,7 +26,7 @@ const INVOICE_LABELS: Record<string, string> = {
 export default function PosSalesPage() {
   return (
     <section className="flex flex-col gap-8">
-      <PageHeader eyebrow="Panel" title="Ventas POS">
+      <PageHeader size="compact" title="Ventas POS">
         Las últimas 50 ventas de la caja. Anular devuelve las botellas al inventario y, si la factura ya fue aceptada,
         pide la nota crédito. Si la factura se está emitiendo, espera a que Factus responda.
       </PageHeader>

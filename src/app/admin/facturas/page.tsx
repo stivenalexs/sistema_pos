@@ -20,7 +20,7 @@ const REASON_FIELD = [{ name: "reason", label: "Motivo del reintento", placehold
 export default function InvoicesPage() {
   return (
     <section className="flex flex-col gap-8">
-      <PageHeader eyebrow="Panel" title="Facturas">
+      <PageHeader size="compact" title="Facturas">
         Facturas y notas crédito que todavía no acepta la DIAN. Corrige la causa (por ejemplo, el rango de numeración en
         Factus) antes de reintentar: se envía de nuevo con la misma referencia.
       </PageHeader>

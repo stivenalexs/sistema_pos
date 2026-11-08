@@ -51,7 +51,7 @@ const SETTING_LABELS: Record<string, string> = {
 export default function ConfigurationPage() {
   return (
     <section className="flex flex-col gap-8">
-      <PageHeader eyebrow="Panel" title="Configuración">
+      <PageHeader size="compact" title="Configuración">
         Dónde está la tienda, a qué municipios se lleva domicilio y cuánto cuesta. Cada cambio queda registrado con quién
         lo hizo.
       </PageHeader>

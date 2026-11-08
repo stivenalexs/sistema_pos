@@ -86,6 +86,7 @@ Definición de terminado: compila, pasa lint y pruebas, no deja secretos, tiene 
 - **context-mode** (servidor MCP): permitido para ahorrar contexto. Migraciones, políticas RLS y webhooks se leen **completos**, no resumidos. `.env*` queda denegado en los permisos. Versión fijada y código revisado antes de instalar.
 - **antislop** (skill): solo para textos comerciales y descripciones de producto. Nunca sobre código ni sobre textos legales.
 - **web-design-guidelines** (skill de Vercel, copia fijada en `.claude/skills/`) y **accessibility** (skill WCAG 2.2 de Addy Osmani, copia fijada): **solo auditoría**. Reportan hallazgos; nada se corrige sin aprobación. No descargan reglas ni instalan herramientas (Lighthouse, axe) sin aprobación. Las reglas de este archivo y de la memoria mandan sobre sus pautas (español sin Title Case, botón congelado sin spinner, movimiento limitado). Ver D-061.
+- **frontend-design** (skill de Anthropic, copia fijada en `.claude/skills/`): guía de dirección visual. El brief es el sistema "La Cava" de la memoria (D-046 a D-050); no agrega colores, tipografías, animaciones ni dependencias, y sus propuestas se aprueban antes de implementarse. Ver D-063.
 - **thermos** (revisión con dos subagentes en paralelo, seguridad/bugs y calidad): solo a mano, antes de fusionar a la rama principal. Sus hallazgos se reportan; no se aplican sin aprobación. No debe proponer cambiar el monolito modular ni el stack.
 
 ## 9. Skills del proyecto (`.claude/skills/`)

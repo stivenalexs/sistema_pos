@@ -30,7 +30,7 @@ type SearchParams = Promise<{ reservas?: string }>;
 export default function InventoryPage({ searchParams }: { searchParams: SearchParams }) {
   return (
     <section className="flex flex-col gap-8">
-      <PageHeader eyebrow="Panel" title="Inventario">
+      <PageHeader size="compact" title="Inventario">
         Existencias compartidas por la tienda web y el POS, en unidades. Disponible = existencias menos lo reservado para
         pedidos web pendientes de pago.
       </PageHeader>
