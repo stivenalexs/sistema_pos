@@ -360,6 +360,24 @@ Registro de decisiones. Se lee al iniciar cada sesión (referenciado desde `agen
     - **No se cambió:** el municipio de la tienda **puede ser una zona inactiva para domicilio**, porque se usa para recoger en tienda, el POS y los bloqueos (D-051), no para domicilios.
   - **Pruebas:** 28 pgTAP (`admin_store_zones_fees.test.sql`: cajero sin permiso en tienda, resumen y tarifas; punto fuera de Antioquia, municipio desconocido y radio inválido rechazados; guardar y repetir sin cambios; sin escritura directa de `app_settings`; forma de los ajustes que leen el checkout y los bloqueos; distancias medidas desde la nueva ubicación; historial con autor; zonas solo `is_active`, sin crear ni borrar; tarifas editadas y creadas, nunca borradas, con historial; resumen de la página; tras la revisión: punto en Antioquia pero fuera del Valle de Aburrá rechazado, `id` de una tarifa no editable, regla minorista con cajas y valor excesivo rechazados) y 2 Vitest de `parseFeeRuleInput` (incluye la regla minorista con cajas). **En el navegador como administrador:** mover el punto de la tienda en el mapa, cambiar municipio y radio con doble clic (botón congelado en "Guardando…"), tres cambios en el historial; desactivar Barbosa; editar el valor de una tarifa; desactivar la tarifa general (aparece el aviso) y reactivarla (desaparece); crear una tarifa mayorista con cajas mínimas y distancia. Escritorio y 375 px sin desplazamiento horizontal.
 
+### Recogida y domicilios fallidos
+- **D-059 (2026-11-08)** **Decisiones del responsable, todavía sin implementar** (resuelven los dos pendientes de D-057). Se hacen en un paso propio, con su plan, migración, pruebas y commit.
+  - **Recoger en tienda: lo confirma el propio cliente**, como protección contra malas prácticas de empleados. En la página de su pedido, el cliente pulsa **"Recogí mi pedido"** y debe confirmar un documento:
+    - **Minoristas** (y quien no tenga NIT registrado): **la cédula de quien recogerá se pide al hacer el pedido** para recoger y se guarda en el pedido; al pulsar el botón debe escribir la misma.
+    - **Mayoristas: el NIT**, comparado con el NIT ya registrado en `customers`.
+    - El empleado sigue viendo la cédula física para verificar la mayoría de edad (D-007). Con la confirmación el pedido pasa a `delivered` y queda una prueba de entrega propia de la recogida (el trigger de D-045 exige prueba para todo pedido web entregado).
+    - Descartados: cédula guardada en el perfil (dato sensible permanente) y guardar lo que escriba sin compararlo.
+  - **Domicilio fallido, caso 1: atribuible al cliente o al lugar** (el cliente no estaba, el lugar era inaccesible, sin documento o rechazó el pedido). El mensajero **devuelve el pedido a la tienda**; se **notifica al cliente por correo** con el motivo y él elige:
+    - **recogerlo en la tienda** (con la confirmación de arriba);
+    - **reprogramar el envío para el día siguiente, sin pagar de nuevo el domicilio**;
+    - **pedir el reembolso, solo del valor de los productos** (el domicilio sí se intentó).
+    - **Plazo de 3 días** para elegir; si no elige, el pedido queda para recoger en tienda y el administrador lo ve en el panel.
+    - Descartados: devolver también el domicilio y esperar sin plazo.
+  - **Menor de edad** en la entrega: no se puede vender. El pedido vuelve a la tienda y **se marca para reembolso, sin opciones**.
+  - **Domicilio fallido, caso 2: fuerza mayor** (accidente o avería del mensajero, clima o desastre: inundación, diluvio, temblor, etc.). Se **notifica al cliente por correo** con el motivo y el envío **se reprograma automáticamente para el día siguiente**.
+  - **Correo: SMTP con `nodemailer`** (dependencia nueva aprobada; se fija la versión exacta al instalarla y se revisa su licencia). En local llega a Mailpit; en producción, cualquier proveedor SMTP. Los correos se envían desde el worker de la cola (D-017), nunca en la petición. Descartados: Resend por API (no se puede probar con Mailpit) y aviso solo en la app.
+  - **Propuesta técnica (a confirmar en el plan del paso):** sin estados de pedido nuevos (agents.md los fija); columnas en `orders` para la fecha programada de envío, el resultado del intento y la elección del cliente con su plazo; motivos de fallo nuevos (`inaccessible_location` para el caso 1; `courier_accident`, `vehicle_breakdown`, `weather_or_disaster`, `other_force_majeure` para el caso 2); el reembolso usa el registro manual de D-055 con una devolución de stock (`return_in`), porque el producto vuelve a la tienda.
+
 ## Pendientes de confirmar (supuestos del asistente, no decisiones)
 
 - ~~**P-001**~~ Resuelto en D-021.
