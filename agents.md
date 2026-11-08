@@ -85,6 +85,7 @@ Definición de terminado: compila, pasa lint y pruebas, no deja secretos, tiene 
 - **Motion AI Kit** (skill `/motion` + MCP, versión gratuita): solo para animación de interfaz. Nunca oculta el estado bloqueado de `ActionButton`, respeta `prefers-reduced-motion`, y no se anima nada en checkout ni en la pantalla del POS. Preferir CSS para lo simple.
 - **context-mode** (servidor MCP): permitido para ahorrar contexto. Migraciones, políticas RLS y webhooks se leen **completos**, no resumidos. `.env*` queda denegado en los permisos. Versión fijada y código revisado antes de instalar.
 - **antislop** (skill): solo para textos comerciales y descripciones de producto. Nunca sobre código ni sobre textos legales.
+- **web-design-guidelines** (skill de Vercel, copia fijada en `.claude/skills/`) y **accessibility** (skill WCAG 2.2 de Addy Osmani, copia fijada): **solo auditoría**. Reportan hallazgos; nada se corrige sin aprobación. No descargan reglas ni instalan herramientas (Lighthouse, axe) sin aprobación. Las reglas de este archivo y de la memoria mandan sobre sus pautas (español sin Title Case, botón congelado sin spinner, movimiento limitado). Ver D-061.
 - **thermos** (revisión con dos subagentes en paralelo, seguridad/bugs y calidad): solo a mano, antes de fusionar a la rama principal. Sus hallazgos se reportan; no se aplican sin aprobación. No debe proponer cambiar el monolito modular ni el stack.
 
 ## 9. Skills del proyecto (`.claude/skills/`)
