@@ -240,6 +240,11 @@ Registro de decisiones. Se lee al iniciar cada sesión (referenciado desde `agen
   - **Pruebas:** 5 Vitest del carrusel (flechas, filas sincronizadas, retroceso, fichas ocultas inertes y deslizamiento solo táctil). Verificado en el navegador en escritorio (1440), tableta (768) y celular (375), sin desplazamiento horizontal.
   - La foto de referencia del barril-bar que entregó el responsable se usó solo como idea; no está en la app.
 
+- **D-050 (2026-11-07)** Ajustes del barril pedidos por el responsable (precisa D-049).
+  - **Botellas centradas a media altura del barril** (centro vertical de la cavidad, 48,5 % de la foto), en lugar de apoyadas en el piso. Por eso se retiraron la sombra bajo cada botella y la capa delantera del aro inferior, que ya no tapaba nada.
+  - **Flechas visibles solo al pasar el mouse sobre el barril** (utilidad `shelf-arrow`, con un fundido corto que se desactiva con `prefers-reduced-motion`). Siguen apareciendo con el foco del teclado (accesibilidad) y **en pantallas táctiles se ven siempre**, porque ahí no hay mouse. Descartado: mostrarlas solo cuando el mouse está encima de la propia flecha, porque nadie sabría dónde están.
+  - Verificado en el navegador: tableta (flechas ocultas, aparecen al pasar el mouse) y celular táctil (visibles).
+
 ## Pendientes de confirmar (supuestos del asistente, no decisiones)
 
 - ~~**P-001**~~ Resuelto en D-021.

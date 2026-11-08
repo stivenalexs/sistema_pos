@@ -269,3 +269,19 @@
     transition: none;
   }
 }
+
+/* Barrel arrows (D-050): with a mouse they show only while the pointer is
+   over the barrel, or on keyboard focus; touch screens always show them. */
+@utility shelf-arrow {
+  @media (hover: hover) {
+    opacity: 0;
+    transition: opacity 200ms ease;
+    .barrel-stage:hover &,
+    &:focus-visible {
+      opacity: 1;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
