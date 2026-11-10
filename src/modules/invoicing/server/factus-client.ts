@@ -17,6 +17,8 @@ export type FactusConfig = {
   username: string;
   password: string;
   numberingRangeId: number | null;
+  /** Credit note range: required by Factus when the account has more than one active (D-066). */
+  creditNoteRangeId: number | null;
 };
 
 const BASE_URLS: Record<FactusEnvironment, string> = {
@@ -33,6 +35,10 @@ export function parseFactusConfig(raw: Record<string, string | undefined>): Fact
   if (range && !/^\d+$/.test(range)) {
     throw new EnvError("FACTUS_NUMBERING_RANGE_ID must be a number.");
   }
+  const creditRange = raw.FACTUS_CREDIT_NOTE_RANGE_ID?.trim();
+  if (creditRange && !/^\d+$/.test(creditRange)) {
+    throw new EnvError("FACTUS_CREDIT_NOTE_RANGE_ID must be a number.");
+  }
   return {
     environment,
     baseUrl: BASE_URLS[environment],
@@ -41,6 +47,7 @@ export function parseFactusConfig(raw: Record<string, string | undefined>): Fact
     username: requireValue("FACTUS_USERNAME", raw.FACTUS_USERNAME),
     password: requireValue("FACTUS_PASSWORD", raw.FACTUS_PASSWORD),
     numberingRangeId: range ? Number(range) : null,
+    creditNoteRangeId: creditRange ? Number(creditRange) : null,
   };
 }
 
@@ -52,6 +59,7 @@ export function getFactusConfig(): FactusConfig {
     FACTUS_USERNAME: process.env.FACTUS_USERNAME,
     FACTUS_PASSWORD: process.env.FACTUS_PASSWORD,
     FACTUS_NUMBERING_RANGE_ID: process.env.FACTUS_NUMBERING_RANGE_ID,
+    FACTUS_CREDIT_NOTE_RANGE_ID: process.env.FACTUS_CREDIT_NOTE_RANGE_ID,
   });
 }
 

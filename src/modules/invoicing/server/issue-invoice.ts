@@ -18,8 +18,15 @@ type Deps = {
   client?: FactusClient;
   ivaRatePct?: number;
   numberingRangeId?: number | null;
+  creditNoteRangeId?: number | null;
   db?: ReturnType<typeof createSupabaseAdminClient>;
 };
+
+// "No responsable" (R-99-PN), the documented default. Factus' sandbox requires
+// customer.responsibilities in credit notes (D-066). PROJECT ASSUMPTION for
+// wholesale buyers with NIT: their real fiscal responsibilities (RUT) are not
+// collected yet.
+const DEFAULT_RESPONSIBILITIES = ["R-99-PN"];
 
 type FactusBody = { message?: string; data?: { is_validated?: boolean; errors?: unknown } };
 
@@ -108,15 +115,28 @@ export async function issueCreditNote(creditNoteId: string, deps: Deps = {}): Pr
     deps.ivaRatePct ?? 5,
     deps.numberingRangeId !== undefined ? deps.numberingRangeId : null,
   );
+  const creditNoteRangeId =
+    deps.creditNoteRangeId !== undefined ? deps.creditNoteRangeId : getFactusConfig().creditNoteRangeId;
   const payload = {
     reference_code: note.reference_code,
     bill_number: invoice.factus_number,
-    // PROJECT ASSUMPTION (D-044): DIAN concept 2 = annulment of the invoice
-    // (full refund). The Factus docs do not list the codes; verify in sandbox.
+    // Factus reference tables (D-066): concept 2 = "Anulación de factura
+    // electrónica"; operation 20 = credit note that references an invoice.
     correction_concept_code: "2",
     customization_id: "20",
+    // Required by Factus when there is more than one active credit note range.
+    ...(creditNoteRangeId !== null ? { numbering_range_id: creditNoteRangeId } : {}),
+    // The documentation says customer is optional (taken from the invoice);
+    // the sandbox requires it, with its fiscal responsibilities (D-066).
+    customer: { ...bill.customer, responsibilities: DEFAULT_RESPONSIBILITIES },
     observation: note.reason.slice(0, 250),
-    payment_details: bill.payment_details,
+    // Credit notes have no cash_rounding_amount: Factus totals them from the
+    // items, so the payment must equal that total (charged − rounding), not
+    // the amount charged (D-066).
+    payment_details: bill.payment_details.map((detail) => ({
+      ...detail,
+      amount: (Math.round((Number(detail.amount) - Number(bill.cash_rounding_amount)) * 100) / 100).toFixed(2),
+    })),
     items: bill.items.map((item) => ({ ...item, note: note.reason.slice(0, 250) })),
   };
 
