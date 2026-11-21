@@ -2,6 +2,7 @@
 export * from "./domain/order-labels";
 export * from "./domain/pickup";
 export { type CancelOrderState, cancelOrderAction, type ConfirmPickupState, confirmPickupAction } from "./server/order-actions";
+export { listPickupsAttention, type PickupAttention, resetPickupAttemptsAction } from "./server/pickups-admin";
 export { type Fulfillment, getOrder, type OrderDetail, placeOrder, type PlaceOrderResult } from "./server/orders";
 export { OrderSummary } from "./ui/order-summary";
 export { PaymentStatusRefresher } from "./ui/payment-status-refresher";

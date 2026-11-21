@@ -308,11 +308,17 @@ select is(
   'invalid_document_number', 'proof: the cédula number must be digits'
 );
 select is(
-  pg_temp.attempt('e4000000-0000-4000-8000-000000000003', 'e0000000-0000-4000-8000-000000000011', 'failed', null, null, null, 'recipient_underage') ->> 'outcome',
-  'failed', 'proof: an underage recipient is recorded as a failed attempt'
+  pg_temp.attempt('e4000000-0000-4000-8000-000000000003', 'e0000000-0000-4000-8000-000000000011', 'failed', null, null, null, 'vehicle_breakdown') ->> 'outcome',
+  'failed', 'proof: a failed attempt is recorded'
 );
-select is((select status::text from public.orders where id = pg_temp.order_id()), 'out_for_delivery',
-  'proof: after a failed attempt the order is still on its way');
+select is((select status::text || ':' || (courier_id is null) from public.orders where id = pg_temp.order_id()),
+  'preparing:true', 'proof: after a failed attempt the order returns to the store, unassigned (D-068)');
+-- Assigned again to go on with the delivery.
+select pg_temp.as_admin();
+set local role authenticated;
+select public.assign_delivery(pg_temp.order_id(),
+  (select id from public.delivery_providers where kind = 'own'), 'e0000000-0000-4000-8000-000000000011');
+reset role;
 
 select is(
   pg_temp.attempt('e4000000-0000-4000-8000-000000000001', 'e0000000-0000-4000-8000-000000000011', 'delivered', 'Cliente Uno', '1020304050', true, null) ->> 'outcome',

@@ -1,6 +1,6 @@
 import "server-only";
 
-import { processDeliveryAttempt } from "@/modules/delivery";
+import { processDeliveryAttempt, sendOrderEmail } from "@/modules/delivery";
 import { issueCreditNote, issueInvoice } from "@/modules/invoicing";
 import { processPaymentEvent } from "@/modules/payments";
 import { PermanentActionError, type ActionHandlers } from "@/shared/actions/server/worker";
@@ -41,4 +41,7 @@ export const actionHandlers: ActionHandlers = {
 
   // Delivery attempt with its proof (D-007, D-045). Idempotent by the key.
   confirm_delivery: async (action) => processDeliveryAttempt(action.userId, action.payload),
+
+  // Email to the customer after a failed delivery (D-068). SMTP errors retry.
+  send_email: async (action) => sendOrderEmail(action.payload),
 };

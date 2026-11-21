@@ -12,6 +12,10 @@ export type RefundRow = {
   orderId: string;
   status: string;
   totalCop: number;
+  /** What to return: the whole order, or only the products (D-068). */
+  refundAmountCop: number;
+  /** Products only: waits for the partial credit note of step 18b-2. */
+  productsOnly: boolean;
   refundReason: string;
   paidAt: string | null;
   customer: string;
@@ -24,12 +28,15 @@ export async function listRefunds(): Promise<RefundRow[]> {
   const { data, error } = await supabase.rpc("admin_list_refunds");
   if (error) throw new Error(`admin_list_refunds failed: ${error.message}`);
   return ((data ?? []) as {
-    order_id: string; status: string; total_cop: number; refund_reason: string; paid_at: string | null;
+    order_id: string; status: string; total_cop: number; refund_amount_cop: number; products_only: boolean;
+    refund_reason: string; paid_at: string | null;
     customer: string; email: string | null; transaction_id: string | null;
   }[]).map((r) => ({
     orderId: r.order_id,
     status: r.status,
     totalCop: r.total_cop,
+    refundAmountCop: r.refund_amount_cop,
+    productsOnly: r.products_only,
     refundReason: r.refund_reason,
     paidAt: r.paid_at,
     customer: r.customer,
@@ -43,6 +50,9 @@ const MESSAGES: Record<string, string> = {
   invalid_reference: "Escribe la referencia del reembolso en Wompi (entre 3 y 120 caracteres).",
   invalid_reason: "Escribe una nota (entre 3 y 300 caracteres).",
   order_not_refundable: "Ese pedido no está marcado para reembolso.",
+  // Products only after a failed delivery (D-068): completed in step 18b-2.
+  partial_refund_pending:
+    "Este reembolso es solo de los productos y necesita una nota crédito parcial, que todavía no está disponible. No lo registres aún.",
 };
 
 export async function markRefundedAction(_previous: ReasonFormState, formData: FormData): Promise<ReasonFormState> {

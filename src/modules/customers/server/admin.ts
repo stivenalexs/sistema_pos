@@ -27,6 +27,7 @@ export type AdminSummary = {
   stockMismatches: number;
   deliveriesToAssign: number;
   deliveriesFailed: number;
+  pickupsAttention: number;
 };
 
 export async function getAdminSummary(): Promise<AdminSummary> {
@@ -45,6 +46,7 @@ export async function getAdminSummary(): Promise<AdminSummary> {
     stock_mismatches: number;
     deliveries_to_assign: number;
     deliveries_failed: number;
+    pickups_attention: number;
   };
   return {
     pendingWholesale: row.pending_wholesale,
@@ -58,6 +60,7 @@ export async function getAdminSummary(): Promise<AdminSummary> {
     stockMismatches: row.stock_mismatches,
     deliveriesToAssign: row.deliveries_to_assign,
     deliveriesFailed: row.deliveries_failed,
+    pickupsAttention: row.pickups_attention,
   };
 }
 

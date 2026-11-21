@@ -84,12 +84,31 @@ export function parseAddressInput(raw: {
 // Proof of delivery (D-007)
 // ---------------------------------------------------------------------------
 
+// Grouped as the courier sees them (D-068): what each group triggers is
+// decided by the database (private.delivery_failure_kind).
+export const FAILURE_REASON_GROUPS = [
+  {
+    label: "Del cliente o del lugar (el cliente elige qué hacer)",
+    reasons: ["recipient_absent", "inaccessible_location", "no_id_document", "refused", "other"],
+  },
+  { label: "Menor de edad (se reembolsan los productos)", reasons: ["recipient_underage"] },
+  {
+    label: "Fuerza mayor (se reprograma para mañana)",
+    reasons: ["courier_accident", "vehicle_breakdown", "weather_or_disaster", "other_force_majeure"],
+  },
+] as const;
+
 export const FAILURE_REASONS = [
   "recipient_underage",
   "no_id_document",
   "recipient_absent",
   "refused",
   "other",
+  "inaccessible_location",
+  "courier_accident",
+  "vehicle_breakdown",
+  "weather_or_disaster",
+  "other_force_majeure",
 ] as const;
 
 export type FailureReason = (typeof FAILURE_REASONS)[number];
@@ -99,7 +118,12 @@ export const FAILURE_REASON_LABELS: Record<FailureReason, string> = {
   no_id_document: "No presentó la cédula",
   recipient_absent: "No había nadie para recibir",
   refused: "No quiso recibir el pedido",
-  other: "Otro motivo",
+  other: "Otro motivo del cliente o del lugar",
+  inaccessible_location: "No se pudo llegar a la dirección",
+  courier_accident: "Accidente del mensajero",
+  vehicle_breakdown: "Avería del vehículo",
+  weather_or_disaster: "Clima o emergencia (inundación, temblor…)",
+  other_force_majeure: "Otro imprevisto de fuerza mayor",
 };
 
 export const PROOF_ERROR_MESSAGES: Record<string, string> = {

@@ -7,6 +7,8 @@ import { canConfirmPickup } from "../domain/pickup";
 import type { OrderDetail } from "../server/orders";
 import { CancelOrderForm } from "./cancel-order-form";
 import { ConfirmPickupForm } from "./confirm-pickup-form";
+import { ReturnChoiceForm } from "./return-choice-form";
+import { SetPickupDocumentForm } from "./set-pickup-document-form";
 import { PayButton } from "./pay-button";
 
 // Order summary (D-046). No animation (agents.md §8).
@@ -97,6 +99,8 @@ export function OrderSummary({
         </div>
       ) : null}
 
+      <DeliveryReturnNotice order={order} withNit={pickupWithNit} />
+
       {order.status === "paid" && !order.needsRefund && order.fulfillment === "delivery" ? (
         <p role="status" className="notice notice-success">
           Pago recibido. Te avisaremos cuando tu pedido salga a domicilio. Al recibirlo, muestra tu cédula y firma.
@@ -117,6 +121,8 @@ export function OrderSummary({
             <p role="status" className="notice notice-warning">
               Se superó el número de intentos para confirmar la recogida. Pide ayuda en la tienda.
             </p>
+          ) : order.pickupNeedsDocument ? (
+            <SetPickupDocumentForm orderId={order.id} />
           ) : (
             <ConfirmPickupForm orderId={order.id} withNit={pickupWithNit} />
           )}
@@ -129,10 +135,54 @@ export function OrderSummary({
       ) : null}
       {order.needsRefund ? (
         <p role="status" className="notice notice-warning">
-          Recibimos tu pago, pero no podemos completar el pedido. Te devolveremos el dinero; nos
-          pondremos en contacto contigo.
+          {order.refundAmountCop != null && order.refundAmountCop < order.totalCop
+            ? `Te devolveremos ${formatCop(order.refundAmountCop)}, el valor de los productos. El domicilio no se devuelve porque sí se intentó. Nos pondremos en contacto contigo.`
+            : "Recibimos tu pago, pero no podemos completar el pedido. Te devolveremos el dinero; nos pondremos en contacto contigo."}
         </p>
       ) : null}
     </div>
   );
+}
+
+const DAY = new Intl.DateTimeFormat("es-CO", { timeZone: "UTC", weekday: "long", day: "numeric", month: "long" });
+const formatDay = (isoDate: string) => DAY.format(new Date(`${isoDate}T00:00:00Z`));
+
+// A failed delivery back at the store (D-059, D-068). No animation (agents.md §8).
+function DeliveryReturnNotice({ order, withNit }: { order: OrderDetail; withNit: boolean }) {
+  if (!order.returnKind || order.status !== "preparing") return null;
+
+  if (order.returnKind === "customer" && order.returnChoice === null) {
+    const expired = order.returnChoiceDeadline !== null && new Date(order.returnChoiceDeadline) <= new Date();
+    return (
+      <div className="flex flex-col gap-3">
+        <p role="status" className="notice notice-warning">
+          No pudimos entregar tu pedido y volvió a la tienda.{" "}
+          {expired
+            ? "Pasaron los 3 días para elegir: el pedido queda para recoger en la tienda."
+            : order.returnChoiceDeadline
+              ? `Elige qué prefieres antes del ${formatBogotaDateTime(order.returnChoiceDeadline)} (hora de Colombia). Si no eliges, queda para recoger en la tienda.`
+              : "Elige qué prefieres."}
+        </p>
+        {expired ? null : <ReturnChoiceForm orderId={order.id} withNit={withNit} />}
+      </div>
+    );
+  }
+  if (order.fulfillment === "delivery" && order.scheduledDeliveryOn) {
+    return (
+      <p role="status" className="notice notice-info">
+        {order.returnKind === "force_majeure"
+          ? "No pudimos entregar tu pedido por un imprevisto ajeno a ti. "
+          : "Programamos de nuevo tu domicilio. "}
+        Lo enviaremos el {formatDay(order.scheduledDeliveryOn)}, sin costo adicional.
+      </p>
+    );
+  }
+  if (order.returnChoiceDefaulted && order.fulfillment === "pickup") {
+    return (
+      <p role="status" className="notice notice-info">
+        No elegiste una opción en los 3 días, así que tu pedido quedó para recoger en la tienda.
+      </p>
+    );
+  }
+  return null;
 }

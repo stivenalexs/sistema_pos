@@ -32,6 +32,15 @@ export type AdminDelivery = {
   externalRef: string | null;
   assignedAt: string | null;
   lastFailure: { reason: FailureReason; notes: string | null; at: string } | null;
+  /** Failed delivery back at the store (D-068). */
+  returnKind: "customer" | "force_majeure" | "underage" | null;
+  returnedAt: string | null;
+  returnChoice: "pickup" | "reschedule" | "refund" | null;
+  returnChoiceDeadline: string | null;
+  /** Waiting for the customer's choice: not assignable. */
+  awaitingChoice: boolean;
+  /** Day (Colombia, YYYY-MM-DD) a rescheduled delivery should go out. */
+  scheduledDeliveryOn: string | null;
 };
 
 export async function listDeliveriesForAdmin(): Promise<AdminDelivery[]> {
@@ -58,6 +67,12 @@ export async function listDeliveriesForAdmin(): Promise<AdminDelivery[]> {
     externalRef: (r.external_ref as string | null) ?? null,
     assignedAt: (r.assigned_at as string | null) ?? null,
     lastFailure: (r.last_failure as AdminDelivery["lastFailure"]) ?? null,
+    returnKind: (r.return_kind as AdminDelivery["returnKind"]) ?? null,
+    returnedAt: (r.returned_at as string | null) ?? null,
+    returnChoice: (r.return_choice as AdminDelivery["returnChoice"]) ?? null,
+    returnChoiceDeadline: (r.return_choice_deadline as string | null) ?? null,
+    awaitingChoice: r.awaiting_choice === true,
+    scheduledDeliveryOn: (r.scheduled_delivery_on as string | null) ?? null,
   }));
 }
 

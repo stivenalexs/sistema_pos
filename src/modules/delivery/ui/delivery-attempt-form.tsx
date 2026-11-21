@@ -8,7 +8,7 @@ import { ActionButton } from "@/shared/ui/action-button";
 
 import {
   FAILURE_REASON_LABELS,
-  FAILURE_REASONS,
+  FAILURE_REASON_GROUPS,
   type FailureReason,
   parseProofInput,
   PROOF_ERROR_MESSAGES,
@@ -123,10 +123,14 @@ export function DeliveryAttemptForm({ orderId }: { orderId: string }) {
             className="field"
           >
             <option value="">Elige el motivo</option>
-            {FAILURE_REASONS.map((reason) => (
-              <option key={reason} value={reason}>
-                {FAILURE_REASON_LABELS[reason]}
-              </option>
+            {FAILURE_REASON_GROUPS.map((group) => (
+              <optgroup key={group.label} label={group.label}>
+                {group.reasons.map((reason) => (
+                  <option key={reason} value={reason}>
+                    {FAILURE_REASON_LABELS[reason]}
+                  </option>
+                ))}
+              </optgroup>
             ))}
           </select>
         </label>

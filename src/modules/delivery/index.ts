@@ -19,6 +19,7 @@ export {
   listCourierDeliveries,
   processDeliveryAttempt,
 } from "./server/courier";
+export { sendOrderEmail } from "./server/order-emails";
 export {
   type AdminCourier,
   type AdminDelivery,

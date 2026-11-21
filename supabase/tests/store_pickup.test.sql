@@ -73,7 +73,7 @@ create temporary table t_b as select pg_temp.pickup_order('1020304050') as r;
 create temporary table t_c as select pg_temp.pickup_order('43123456') as r;
 grant select on t_a, t_b, t_c to authenticated, anon;
 select is(public.get_pickup_status((select (r ->> 'order_id')::uuid from t_a)),
-  '{"locked": false, "document_last3": "050"}'::jsonb, 'status: the customer sees the last 3 digits of their order');
+  '{"locked": false, "needs_document": false, "document_last3": "050"}'::jsonb, 'status: the customer sees the last 3 digits of their order');
 reset role;
 
 select results_eq(

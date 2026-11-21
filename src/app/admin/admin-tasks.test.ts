@@ -13,6 +13,7 @@ const ZERO: SummaryCounts = {
   stockMismatches: 0,
   deliveriesToAssign: 0,
   deliveriesFailed: 0,
+  pickupsAttention: 0,
 };
 
 describe("adminTasks", () => {

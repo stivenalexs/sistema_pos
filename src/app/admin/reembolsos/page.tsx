@@ -15,6 +15,8 @@ const DATE = new Intl.DateTimeFormat("es-CO", { timeZone: "America/Bogota", date
 const REASONS: Record<string, string> = {
   insufficient_stock_after_payment: "Pagó, pero ya no había stock",
   payment_for_closed_order: "Pagó después de que el pedido se canceló",
+  recipient_underage: "En la entrega, quien recibía era menor de edad",
+  customer_chose_refund: "El domicilio falló y el cliente pidió el reembolso",
 };
 
 // Money to return (D-040, D-055). The refund is made in the Wompi dashboard;
@@ -47,7 +49,7 @@ async function Refunds() {
             <p className="font-medium">
               {r.customer} <span className="text-sm text-muted">{r.email}</span>
             </p>
-            <p className="text-lg text-gold tabular-nums">{formatCop(r.totalCop)}</p>
+            <p className="text-lg text-gold tabular-nums">{formatCop(r.refundAmountCop)}</p>
           </div>
           <p className="text-sm">
             {REASONS[r.refundReason] ?? r.refundReason}
@@ -56,6 +58,13 @@ async function Refunds() {
           <p className="text-xs text-muted">
             Pedido {r.orderId.slice(0, 8).toUpperCase()} · transacción Wompi {r.transactionId ?? "—"}
           </p>
+          {r.productsOnly ? (
+            <p role="status" className="notice notice-warning text-sm">
+              Solo los productos ({formatCop(r.refundAmountCop)} de {formatCop(r.totalCop)}): el domicilio no se devuelve.
+              Necesita una nota crédito parcial y devolver el stock, que todavía no están disponibles; no lo registres
+              aún.
+            </p>
+          ) : (
           <ReasonActionForm
             action={markRefundedAction}
             hidden={{ orderId: r.orderId }}
@@ -65,6 +74,7 @@ async function Refunds() {
             ]}
             submitLabel="Registrar reembolso"
           />
+          )}
         </li>
       ))}
     </ul>
