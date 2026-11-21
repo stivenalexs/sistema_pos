@@ -39,7 +39,7 @@ grant execute on all functions in schema pg_temp to authenticated, anon, service
 select pg_temp.as_p1();
 set local role authenticated;
 select public.set_cart_item('00000000-0000-4000-8000-000000000101', 2);
-create temporary table t_o as select (public.place_order(gen_random_uuid()) ->> 'order_id')::uuid as id;
+create temporary table t_o as select (public.place_order(gen_random_uuid(), 'pickup', null, '1020304050') ->> 'order_id')::uuid as id;
 grant select on t_o to authenticated, service_role;
 
 -- ---------------------------------------------------------------------------
@@ -167,7 +167,7 @@ select is(
 select pg_temp.as_p1();
 set local role authenticated;
 select public.set_cart_item('00000000-0000-4000-8000-000000000102', 1);
-create temporary table t_o2 as select (public.place_order(gen_random_uuid()) ->> 'order_id')::uuid as id;
+create temporary table t_o2 as select (public.place_order(gen_random_uuid(), 'pickup', null, '1020304050') ->> 'order_id')::uuid as id;
 create temporary table t_b1 as select public.start_payment((select id from t_o2), gen_random_uuid()) as r;
 grant select on t_o2, t_b1 to service_role;
 reset role;
@@ -213,7 +213,7 @@ select pg_temp.as_p1();
 set local role authenticated;
 select public.set_cart_item('00000000-0000-4000-8000-000000000201', 0);
 select public.set_cart_item('00000000-0000-4000-8000-000000000103', 6);
-create temporary table t_o3 as select (public.place_order(gen_random_uuid()) ->> 'order_id')::uuid as id;
+create temporary table t_o3 as select (public.place_order(gen_random_uuid(), 'pickup', null, '1020304050') ->> 'order_id')::uuid as id;
 create temporary table t_c1 as select public.start_payment((select id from t_o3), gen_random_uuid()) as r;
 grant select on t_o3, t_c1 to service_role;
 reset role;

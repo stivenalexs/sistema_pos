@@ -509,6 +509,26 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"pickup_confirmations": {
+                  Row: {
+                    "confirmed_at": string,"confirmed_by": string,"document_kind": string,"id": string,"order_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "confirmed_at"?: string,"confirmed_by": string,"document_kind": string,"id"?: string,"order_id": string
+                  }
+                  Update: {
+                    "confirmed_at"?: string,"confirmed_by"?: string,"document_kind"?: string,"id"?: string,"order_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "pickup_confirmations_order_id_fkey"
+      columns: ["order_id"]
+isOneToOne: true
+      referencedRelation: "orders"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"price_lists": {
                   Row: {
                     "created_at": string,"customer_type": Database["public"]['Enums']["customer_type"],"id": string,"is_default": boolean,"name": string,"updated_at": string
@@ -778,6 +798,9 @@ isOneToOne: false
 "complete_action":
 { Args: { "p_action_id": string,"p_result"?: Json }; Returns: undefined
                            },
+"confirm_pickup":
+{ Args: { "p_document": string,"p_order_id": string }; Returns: Json
+                           },
 "consume_reservation":
 { Args: { "p_idempotency_key": string,"p_items": Json,"p_reference": string }; Returns: number
                            },
@@ -813,6 +836,9 @@ isOneToOne: false
 { Args: Record<PropertyKey, never>; Returns: {
               "address_line": string,"details": string,"distance_m": number,"id": string,"label": string,"lat": number,"lng": number,"municipality": string,"zone_active": boolean,"zone_id": string
             }[]
+                           },
+"get_pickup_status":
+{ Args: { "p_order_id": string }; Returns: Json
                            },
 "get_pos_catalog":
 { Args: { "p_customer_id"?: string }; Returns: Json
@@ -855,7 +881,7 @@ isOneToOne: false
             }[]
                            },
 "place_order":
-{ Args: { "p_address_id"?: string,"p_fulfillment"?: Database["public"]['Enums']["fulfillment_method"],"p_idempotency_key": string }; Returns: Json
+{ Args: { "p_address_id"?: string,"p_fulfillment"?: Database["public"]['Enums']["fulfillment_method"],"p_idempotency_key": string,"p_pickup_document"?: string }; Returns: Json
                            },
 "prepare_invoice":
 { Args: { "p_order_id": string }; Returns: Json

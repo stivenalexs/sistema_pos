@@ -14,10 +14,13 @@ export function CartView({
   cart,
   choice,
   salesBlockNotice = null,
+  needsPickupDocument = false,
 }: {
   cart: CartViewData;
   choice: FulfillmentChoice;
   salesBlockNotice?: ReactNode;
+  /** Customers without a NIT give the cédula of who picks up (D-067). */
+  needsPickupDocument?: boolean;
 }) {
   if (cart.lines.length === 0) {
     return <p className="notice notice-info">Tu carrito está vacío.</p>;
@@ -89,6 +92,7 @@ export function CartView({
         <PlaceOrderButton
           // A different choice is a different intent: remount for a new key.
           key={`${choice.fulfillment}:${choice.selectedAddressId ?? ""}`}
+          needsPickupDocument={needsPickupDocument}
           choice={
             choice.fulfillment === "delivery" && choice.selectedAddressId
               ? { fulfillment: "delivery", addressId: choice.selectedAddressId }

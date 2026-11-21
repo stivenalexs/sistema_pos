@@ -127,7 +127,7 @@ select pg_temp.as_customer();
 set local role authenticated;
 select public.set_cart_item('00000000-0000-4000-8000-000000000101', 1);
 select is(
-  public.place_order('f3000000-0000-4000-8000-000000000001') #>> '{block,message}',
+  public.place_order('f3000000-0000-4000-8000-000000000001', 'pickup', null, '1020304050') #>> '{block,message}',
   'Ley seca en Medellín por elecciones.', 'order: pickup uses the store municipality and is blocked'
 );
 select is((select count(*)::int from public.orders), 0, 'order: nothing was created');
@@ -166,7 +166,7 @@ select pg_temp.as_customer();
 set local role authenticated;
 select public.set_cart_item('00000000-0000-4000-8000-000000000101', 1);
 select is(
-  public.place_order('f3000000-0000-4000-8000-000000000001') ->> 'ok',
+  public.place_order('f3000000-0000-4000-8000-000000000001', 'pickup', null, '1020304050') ->> 'ok',
   'true', 'order: once the block ends, the same cart can be ordered'
 );
 reset role;

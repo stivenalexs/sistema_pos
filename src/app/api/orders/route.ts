@@ -24,10 +24,15 @@ export async function POST(request: Request) {
 
   // The body says only pickup or delivery and which address. Prices and the
   // delivery fee are never read from the request (agents.md §5.1).
-  const body = (await request.json().catch(() => null)) as { fulfillment?: unknown; addressId?: unknown } | null;
+  const body = (await request.json().catch(() => null)) as
+    | { fulfillment?: unknown; addressId?: unknown; pickupDocument?: unknown }
+    | null;
   let choice: Fulfillment;
   if (!body || body.fulfillment === undefined || body.fulfillment === "pickup") {
-    choice = { fulfillment: "pickup" };
+    // Cédula of whoever picks it up (D-067); the database validates and hashes it.
+    const pickupDocument =
+      typeof body?.pickupDocument === "string" && body.pickupDocument.length <= 40 ? body.pickupDocument : undefined;
+    choice = pickupDocument ? { fulfillment: "pickup", pickupDocument } : { fulfillment: "pickup" };
   } else if (body.fulfillment === "delivery" && typeof body.addressId === "string" && isUuid(body.addressId)) {
     choice = { fulfillment: "delivery", addressId: body.addressId };
   } else {

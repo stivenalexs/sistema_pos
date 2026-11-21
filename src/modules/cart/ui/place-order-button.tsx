@@ -1,7 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useId, useState } from "react";
+
+import { normalizeIdDocument } from "@/shared/id-document";
 
 import { IDEMPOTENCY_KEY_HEADER } from "@/shared/actions/action-types";
 import { ActionButton } from "@/shared/ui/action-button";
@@ -18,13 +20,27 @@ const ERRORS: Record<string, string> = {
   delivery_unavailable: "El domicilio a esa dirección no está disponible. Elige otra dirección o recoge en la tienda.",
   invalid_fulfillment: "Elige cómo quieres recibir el pedido.",
   sales_blocked: "Las ventas están suspendidas en este momento. Tu carrito queda guardado; recarga la página para ver hasta cuándo.",
+  pickup_document_required: "Escribe la cédula de quien recogerá el pedido.",
+  invalid_pickup_document: "La cédula debe tener de 5 a 12 dígitos.",
 };
 
 export type OrderFulfillment = { fulfillment: "pickup" } | { fulfillment: "delivery"; addressId: string };
 
-export function PlaceOrderButton({ choice }: { choice: OrderFulfillment }) {
+// needsPickupDocument: customers without a NIT say, for pickup, whose cédula
+// will pick the order up (D-059, D-067). Only its HMAC is kept.
+export function PlaceOrderButton({
+  choice,
+  needsPickupDocument = false,
+}: {
+  choice: OrderFulfillment;
+  needsPickupDocument?: boolean;
+}) {
   const router = useRouter();
+  const fieldId = useId();
   const [error, setError] = useState<string | null>(null);
+  const [pickupDocument, setPickupDocument] = useState("");
+  const askDocument = needsPickupDocument && choice.fulfillment === "pickup";
+  const documentOk = !askDocument || normalizeIdDocument(pickupDocument) !== null;
 
   async function placeOrder(idempotencyKey: string) {
     setError(null);
@@ -32,7 +48,7 @@ export function PlaceOrderButton({ choice }: { choice: OrderFulfillment }) {
       method: "POST",
       headers: { "Content-Type": "application/json", [IDEMPOTENCY_KEY_HEADER]: idempotencyKey },
       // Only the choice: the fee is computed by the server.
-      body: JSON.stringify(choice),
+      body: JSON.stringify(askDocument ? { ...choice, pickupDocument } : choice),
     });
     const body = (await response.json().catch(() => ({}))) as {
       trackingId?: string;
@@ -50,7 +66,31 @@ export function PlaceOrderButton({ choice }: { choice: OrderFulfillment }) {
 
   return (
     <div className="flex flex-col gap-2">
-      <ActionButton onAccept={placeOrder} className="w-full">Confirmar pedido</ActionButton>
+      {askDocument ? (
+        <div className="mb-2 flex flex-col gap-1">
+          <label htmlFor={fieldId} className="field-label">
+            Cédula de quien recogerá el pedido
+          </label>
+          <input
+            id={fieldId}
+            name="pickupDocument"
+            inputMode="numeric"
+            autoComplete="off"
+            maxLength={20}
+            className="field"
+            value={pickupDocument}
+            onChange={(event) => setPickupDocument(event.target.value)}
+            aria-describedby={`${fieldId}-hint`}
+          />
+          <p id={`${fieldId}-hint`} className="text-xs text-muted">
+            Al recoger, el personal verá la cédula física y tú confirmarás la recogida con este número en la
+            página del pedido. Solo guardamos una huella del número y sus 3 últimos dígitos.
+          </p>
+        </div>
+      ) : null}
+      <ActionButton onAccept={placeOrder} disabled={!documentOk} className="w-full">
+        Confirmar pedido
+      </ActionButton>
       {error ? (
         <p role="alert" className="notice notice-danger">
           {error}

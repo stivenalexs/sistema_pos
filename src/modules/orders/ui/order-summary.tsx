@@ -3,14 +3,25 @@ import type { ReactNode } from "react";
 import { formatCop } from "@/modules/pricing";
 
 import { FULFILLMENT_LABELS, formatBogotaDateTime, ORDER_STATUS_LABELS } from "../domain/order-labels";
+import { canConfirmPickup } from "../domain/pickup";
 import type { OrderDetail } from "../server/orders";
 import { CancelOrderForm } from "./cancel-order-form";
+import { ConfirmPickupForm } from "./confirm-pickup-form";
 import { PayButton } from "./pay-button";
 
 // Order summary (D-046). No animation (agents.md §8).
 // paymentBlockedNotice: shown instead of "Pagar" while sales are blocked
 // (D-051). The database refuses the payment anyway.
-export function OrderSummary({ order, paymentBlockedNotice = null }: { order: OrderDetail; paymentBlockedNotice?: ReactNode }) {
+// pickupWithNit: the customer confirms the pickup with their NIT (D-067).
+export function OrderSummary({
+  order,
+  paymentBlockedNotice = null,
+  pickupWithNit = false,
+}: {
+  order: OrderDetail;
+  paymentBlockedNotice?: ReactNode;
+  pickupWithNit?: boolean;
+}) {
   const unit = (quantity: number) =>
     order.saleUnit === "box"
       ? quantity === 1 ? "caja" : "cajas"
@@ -86,12 +97,30 @@ export function OrderSummary({ order, paymentBlockedNotice = null }: { order: Or
         </div>
       ) : null}
 
-      {order.status === "paid" && !order.needsRefund ? (
+      {order.status === "paid" && !order.needsRefund && order.fulfillment === "delivery" ? (
         <p role="status" className="notice notice-success">
-          {order.fulfillment === "delivery"
-            ? "Pago recibido. Te avisaremos cuando tu pedido salga a domicilio. Al recibirlo, muestra tu cédula y firma."
-            : "Pago recibido. Te avisaremos cuando tu pedido esté listo para recoger."}
+          Pago recibido. Te avisaremos cuando tu pedido salga a domicilio. Al recibirlo, muestra tu cédula y firma.
         </p>
+      ) : null}
+      {canConfirmPickup(order) ? (
+        <div className="flex flex-col gap-3">
+          <p role="status" className="notice notice-success">
+            {order.status === "paid" ? "Pago recibido. " : ""}
+            {pickupWithNit
+              ? "Recoge en la tienda presentando una cédula y el NIT de tu empresa."
+              : order.pickupDocumentLast3
+                ? `Recoge en la tienda quien presente la cédula terminada en ${order.pickupDocumentLast3}.`
+                : "Recoge en la tienda con tu cédula."}{" "}
+            Al recibirlo, confírmalo aquí con el mismo número.
+          </p>
+          {order.pickupLocked ? (
+            <p role="status" className="notice notice-warning">
+              Se superó el número de intentos para confirmar la recogida. Pide ayuda en la tienda.
+            </p>
+          ) : (
+            <ConfirmPickupForm orderId={order.id} withNit={pickupWithNit} />
+          )}
+        </div>
       ) : null}
       {order.status === "out_for_delivery" ? (
         <p role="status" className="notice notice-info">

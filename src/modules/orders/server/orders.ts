@@ -10,12 +10,22 @@ export type PlaceOrderResult =
   | { ok: true; created: boolean; trackingId: string; orderId: string }
   | {
       ok: false;
-      error: "cart_empty" | "quote_failed" | "insufficient_stock" | "delivery_unavailable" | "sales_blocked" | "idempotency_key_conflict";
+      error: PlaceOrderError | "idempotency_key_conflict";
       reason?: string;
     };
 
+type PlaceOrderError =
+  | "cart_empty"
+  | "quote_failed"
+  | "insufficient_stock"
+  | "delivery_unavailable"
+  | "sales_blocked"
+  | "pickup_document_required"
+  | "invalid_pickup_document";
+
+/** pickupDocument: cédula of whoever picks the order up (customers without a NIT, D-067). */
 export type Fulfillment =
-  | { fulfillment: "pickup" }
+  | { fulfillment: "pickup"; pickupDocument?: string }
   | { fulfillment: "delivery"; addressId: string };
 
 export async function placeOrder(idempotencyKey: string, choice: Fulfillment = { fulfillment: "pickup" }): Promise<PlaceOrderResult> {
@@ -26,6 +36,7 @@ export async function placeOrder(idempotencyKey: string, choice: Fulfillment = {
     p_idempotency_key: idempotencyKey,
     p_fulfillment: choice.fulfillment,
     ...(choice.fulfillment === "delivery" ? { p_address_id: choice.addressId } : {}),
+    ...(choice.fulfillment === "pickup" && choice.pickupDocument ? { p_pickup_document: choice.pickupDocument } : {}),
   });
   if (error) {
     if (error.message.includes("idempotency_key_conflict")) {
@@ -39,7 +50,7 @@ export async function placeOrder(idempotencyKey: string, choice: Fulfillment = {
     created?: boolean;
     tracking_id?: string;
     order_id?: string;
-    error?: "cart_empty" | "quote_failed" | "insufficient_stock" | "delivery_unavailable" | "sales_blocked";
+    error?: PlaceOrderError;
     reason?: string;
   };
   if (result.ok && result.tracking_id && result.order_id) {
@@ -77,6 +88,10 @@ export type OrderDetail = {
     distanceM: number | null;
   } | null;
   deliveredAt: string | null;
+  /** Pickup (D-067): last 3 digits of the cédula given at order time, if any. */
+  pickupDocumentLast3: string | null;
+  /** Too many wrong documents: the store resolves it. */
+  pickupLocked: boolean;
   /** Municipality of the sale, for sales blocks (D-051). */
   saleZoneId: string | null;
   items: {
@@ -100,6 +115,14 @@ export async function getOrder(orderId: string): Promise<OrderDetail | null> {
     .maybeSingle();
   if (!data) return null;
 
+  // Pickup (D-067): the cédula digits and the lock live outside orders, which
+  // staff read in full; the customer gets only their own.
+  type PickupStatus = { document_last3: string | null; locked: boolean };
+  const pickup: PickupStatus | null =
+    data.fulfillment === "pickup"
+      ? (((await supabase.rpc("get_pickup_status", { p_order_id: data.id })).data as PickupStatus | null) ?? null)
+      : null;
+
   return {
     id: data.id,
     status: data.status,
@@ -114,6 +137,8 @@ export async function getOrder(orderId: string): Promise<OrderDetail | null> {
     needsRefund: data.needs_refund,
     delivery: deliverySnapshot(data.delivery_address, data.delivery_distance_m),
     deliveredAt: data.delivered_at,
+    pickupDocumentLast3: pickup?.document_last3 ?? null,
+    pickupLocked: pickup?.locked ?? false,
     saleZoneId: data.sale_zone_id,
     items: data.order_items
       .map((item) => ({
