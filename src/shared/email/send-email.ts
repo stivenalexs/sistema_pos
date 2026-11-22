@@ -14,6 +14,15 @@ export type EmailMessage = {
   html: string;
 };
 
+// Time limits (D-073). nodemailer waits up to 2 minutes to connect and 10 to
+// send by default, longer than the queue's visibility: the action would be
+// taken by another worker while this one is still sending.
+export const SMTP_TIMEOUTS = {
+  connectionTimeout: 10_000,
+  greetingTimeout: 10_000,
+  socketTimeout: 20_000,
+} as const;
+
 let cached: { key: string; transporter: Transporter } | null = null;
 
 export function getEmailConfig(): EmailConfig {
@@ -37,6 +46,7 @@ function transporterFor(config: EmailConfig): Transporter {
         host: config.host,
         port: config.port,
         secure: config.secure,
+        ...SMTP_TIMEOUTS,
         ...(config.auth ? { auth: config.auth } : {}),
       }),
     };

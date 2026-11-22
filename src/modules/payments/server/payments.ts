@@ -9,6 +9,7 @@ import { createSupabaseServerClient } from "@/shared/supabase/server";
 
 import { buildCheckoutUrl, checkoutRedirectUrl } from "./checkout";
 import { verifyWompiEvent } from "./verify-signature";
+import { lookupWompiTransaction, type ReconcileReport, runReconciliation } from "./reconcile";
 import { getWompiConfig } from "./wompi-config";
 
 // Payments with Wompi (D-040). The webhook is the source of truth; the
@@ -144,60 +145,39 @@ export async function processPaymentEvent(eventId: string): Promise<string> {
 // Reconciliation (worker, private key)
 // ---------------------------------------------------------------------------
 
-type WompiTransaction = {
-  id: string;
-  status: string;
-  reference: string;
-  amount_in_cents: number;
-  currency: string;
-  payment_method_type?: string;
-  status_message?: string | null;
-};
-
-export type ReconcileReport = { checked: number; resolved: number; stillPending: number; failed: number };
-
 /**
  * Asks Wompi (GET /v1/transactions/{id}, private key) about pending attempts
- * older than `minAgeMinutes` whose transaction id is known, and applies the
- * final answers with the same logic as the webhook.
+ * older than `minAgeMinutes` whose transaction id is known, by turns (D-073),
+ * and applies the final answers with the same logic as the webhook. A
+ * browser hint that Wompi does not know is dropped.
  */
 export async function reconcilePayments(minAgeMinutes = 15): Promise<ReconcileReport> {
   const config = getWompiConfig();
   const admin = createSupabaseAdminClient();
-  const { data: pending, error } = await admin.rpc("payments_to_reconcile", {
-    p_min_age_minutes: minAgeMinutes,
-  });
-  if (error) throw new Error(`payments_to_reconcile failed: ${error.message}`);
-
-  const report: ReconcileReport = { checked: 0, resolved: 0, stillPending: 0, failed: 0 };
-  for (const row of pending ?? []) {
-    report.checked += 1;
-    try {
-      const response = await fetch(`${config.apiUrl}/transactions/${encodeURIComponent(row.transaction_id)}`, {
-        headers: { Authorization: `Bearer ${config.privateKey}` },
-        cache: "no-store",
+  return runReconciliation({
+    async pending() {
+      const { data, error } = await admin.rpc("payments_to_reconcile", { p_min_age_minutes: minAgeMinutes });
+      if (error) throw new Error(`payments_to_reconcile failed: ${error.message}`);
+      return data ?? [];
+    },
+    lookup: (transactionId) => lookupWompiTransaction(config.apiUrl, config.privateKey, transactionId),
+    async clearMismatchedHint(attemptId, transactionId, wompiReference) {
+      const { error } = await admin.rpc("clear_mismatched_payment_hint", {
+        p_attempt_id: attemptId,
+        p_transaction_id: transactionId,
+        p_wompi_reference: wompiReference,
       });
-      if (!response.ok) {
-        report.failed += 1;
-        continue;
-      }
-      const body = (await response.json()) as { data?: WompiTransaction };
-      const tx = body.data;
-      if (tx) {
-        // A browser hint can point to a transaction of another attempt: the
-        // payment is still applied by its own reference below, and the wrong
-        // hint is dropped so it is not asked about again (D-040).
-        await admin.rpc("clear_mismatched_payment_hint", {
-          p_attempt_id: row.attempt_id,
-          p_transaction_id: row.transaction_id,
-          p_wompi_reference: tx.reference,
-        });
-      }
-      if (!tx || tx.status === "PENDING") {
-        report.stillPending += 1;
-        continue;
-      }
-
+      if (error) throw new Error(error.message);
+    },
+    async clearUnknownHint(attemptId, transactionId) {
+      const { data, error } = await admin.rpc("clear_unknown_payment_hint", {
+        p_attempt_id: attemptId,
+        p_transaction_id: transactionId,
+      });
+      if (error) throw new Error(error.message);
+      return data === true;
+    },
+    async applyFinal(tx) {
       const payload = { event: "transaction.updated", data: { transaction: tx }, sent_at: new Date().toISOString() };
       const { data: stored, error: storeError } = await admin.rpc("store_payment_event", {
         p_checksum: `RECONCILE-${tx.id}-${tx.status}`,
@@ -206,10 +186,6 @@ export async function reconcilePayments(minAgeMinutes = 15): Promise<ReconcileRe
       });
       if (storeError) throw new Error(storeError.message);
       await processPaymentEvent((stored as { event_id: string }).event_id);
-      report.resolved += 1;
-    } catch {
-      report.failed += 1;
-    }
-  }
-  return report;
+    },
+  });
 }

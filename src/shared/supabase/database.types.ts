@@ -477,14 +477,14 @@ isOneToOne: false
                   ]
                 },"payment_attempts": {
                   Row: {
-                    "amount_in_cents": number,"attempt_number": number,"created_at": string,"currency": string,"expires_at": string,"finalized_at": string | null,"id": string,"idempotency_key": string,"order_id": string,"payment_method_type": string | null,"reference": string,"refund_needed": boolean,"refund_note": string | null,"refund_reason": string | null,"refund_reference": string | null,"refunded_at": string | null,"refunded_by": string | null,"status": Database["public"]['Enums']["payment_attempt_status"],"status_message": string | null,"transaction_id_hint": string | null,"updated_at": string,"wompi_transaction_id": string | null
+                    "amount_in_cents": number,"attempt_number": number,"created_at": string,"currency": string,"expires_at": string,"finalized_at": string | null,"id": string,"idempotency_key": string,"last_reconciled_at": string | null,"order_id": string,"payment_method_type": string | null,"reference": string,"refund_needed": boolean,"refund_note": string | null,"refund_reason": string | null,"refund_reference": string | null,"refunded_at": string | null,"refunded_by": string | null,"status": Database["public"]['Enums']["payment_attempt_status"],"status_message": string | null,"transaction_id_hint": string | null,"updated_at": string,"wompi_transaction_id": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "amount_in_cents": number,"attempt_number": number,"created_at"?: string,"currency"?: string,"expires_at": string,"finalized_at"?: string | null,"id"?: string,"idempotency_key": string,"order_id": string,"payment_method_type"?: string | null,"reference": string,"refund_needed"?: boolean,"refund_note"?: string | null,"refund_reason"?: string | null,"refund_reference"?: string | null,"refunded_at"?: string | null,"refunded_by"?: string | null,"status"?: Database["public"]['Enums']["payment_attempt_status"],"status_message"?: string | null,"transaction_id_hint"?: string | null,"updated_at"?: string,"wompi_transaction_id"?: string | null
+                    "amount_in_cents": number,"attempt_number": number,"created_at"?: string,"currency"?: string,"expires_at": string,"finalized_at"?: string | null,"id"?: string,"idempotency_key": string,"last_reconciled_at"?: string | null,"order_id": string,"payment_method_type"?: string | null,"reference": string,"refund_needed"?: boolean,"refund_note"?: string | null,"refund_reason"?: string | null,"refund_reference"?: string | null,"refunded_at"?: string | null,"refunded_by"?: string | null,"status"?: Database["public"]['Enums']["payment_attempt_status"],"status_message"?: string | null,"transaction_id_hint"?: string | null,"updated_at"?: string,"wompi_transaction_id"?: string | null
                   }
                   Update: {
-                    "amount_in_cents"?: number,"attempt_number"?: number,"created_at"?: string,"currency"?: string,"expires_at"?: string,"finalized_at"?: string | null,"id"?: string,"idempotency_key"?: string,"order_id"?: string,"payment_method_type"?: string | null,"reference"?: string,"refund_needed"?: boolean,"refund_note"?: string | null,"refund_reason"?: string | null,"refund_reference"?: string | null,"refunded_at"?: string | null,"refunded_by"?: string | null,"status"?: Database["public"]['Enums']["payment_attempt_status"],"status_message"?: string | null,"transaction_id_hint"?: string | null,"updated_at"?: string,"wompi_transaction_id"?: string | null
+                    "amount_in_cents"?: number,"attempt_number"?: number,"created_at"?: string,"currency"?: string,"expires_at"?: string,"finalized_at"?: string | null,"id"?: string,"idempotency_key"?: string,"last_reconciled_at"?: string | null,"order_id"?: string,"payment_method_type"?: string | null,"reference"?: string,"refund_needed"?: boolean,"refund_note"?: string | null,"refund_reason"?: string | null,"refund_reference"?: string | null,"refunded_at"?: string | null,"refunded_by"?: string | null,"status"?: Database["public"]['Enums']["payment_attempt_status"],"status_message"?: string | null,"transaction_id_hint"?: string | null,"updated_at"?: string,"wompi_transaction_id"?: string | null
                   }
                   Relationships: [
                     {
@@ -806,6 +806,9 @@ isOneToOne: false
                            },
 "clear_mismatched_payment_hint":
 { Args: { "p_attempt_id": string,"p_transaction_id": string,"p_wompi_reference": string }; Returns: boolean
+                           },
+"clear_unknown_payment_hint":
+{ Args: { "p_attempt_id": string,"p_transaction_id": string }; Returns: boolean
                            },
 "complete_action":
 { Args: { "p_action_id": string,"p_result"?: Json }; Returns: undefined

@@ -69,7 +69,15 @@ export type FactusResponse = { status: number; body: unknown };
 
 type FetchLike = (url: string, init: RequestInit) => Promise<Response>;
 
-/** Transient failure (network, 5xx, 429): the worker retries with backoff. */
+/**
+ * Time limit of each request to Factus (D-073). Without it a request that
+ * hangs keeps the worker busy past the queue's visibility. A timeout is
+ * transient: the retry sends the same reference_code, and Factus answers
+ * with the existing bill (D-066), so it is never issued twice.
+ */
+export const FACTUS_TIMEOUT_MS = 20_000;
+
+/** Transient failure (network, timeout, 5xx, 429): the worker retries with backoff. */
 export class FactusTransientError extends Error {
   override name = "FactusTransientError";
 }
@@ -101,6 +109,7 @@ export class FactusClient {
             : {}),
         },
         body: new URLSearchParams(form).toString(),
+        signal: AbortSignal.timeout(FACTUS_TIMEOUT_MS),
       });
     } catch {
       throw new FactusTransientError("factus_token_network_error");
@@ -163,6 +172,7 @@ export class FactusClient {
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify(payload),
+          signal: AbortSignal.timeout(FACTUS_TIMEOUT_MS),
         });
       } catch {
         throw new FactusTransientError("factus_network_error");

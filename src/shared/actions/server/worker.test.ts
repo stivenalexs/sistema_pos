@@ -21,9 +21,10 @@ function claimed(overrides: Partial<ClaimedAction> = {}): ClaimedAction {
   };
 }
 
-function fakeQueue(batches: ClaimedAction[][]) {
+// Hands out the queued actions in order, as many as asked for.
+function fakeQueue(queued: ClaimedAction[]) {
   return {
-    claim: vi.fn(async () => batches.shift() ?? []),
+    claim: vi.fn(async (batch: number) => queued.splice(0, batch)),
     complete: vi.fn(async () => {}),
     fail: vi.fn(async () => {}),
   } satisfies ActionQueue;
@@ -31,7 +32,7 @@ function fakeQueue(batches: ClaimedAction[][]) {
 
 describe("runActionsWorker", () => {
   it("completes an action with the handler result", async () => {
-    const queue = fakeQueue([[claimed({ payload: { n: 1 } })]]);
+    const queue = fakeQueue([claimed({ payload: { n: 1 } })]);
     const report = await runActionsWorker(queue, {
       noop: async (a) => ({ echo: a.payload }),
     });
@@ -41,7 +42,7 @@ describe("runActionsWorker", () => {
   });
 
   it("fails an unknown action type permanently", async () => {
-    const queue = fakeQueue([[claimed({ type: "does_not_exist" })]]);
+    const queue = fakeQueue([claimed({ type: "does_not_exist" })]);
     await runActionsWorker(queue, {});
 
     expect(queue.fail).toHaveBeenCalledWith(
@@ -52,13 +53,13 @@ describe("runActionsWorker", () => {
   });
 
   it("does not treat inherited object keys as handlers", async () => {
-    const queue = fakeQueue([[claimed({ type: "constructor" })]]);
+    const queue = fakeQueue([claimed({ type: "constructor" })]);
     await runActionsWorker(queue, {});
     expect(queue.fail).toHaveBeenCalledWith("a-1", expect.any(String), true);
   });
 
   it("retries a handler that fails midway, then succeeds", async () => {
-    const queue = fakeQueue([[claimed({ attempt: 1 })], [claimed({ attempt: 2 })]]);
+    const queue = fakeQueue([claimed({ attempt: 1 })]);
     const handler = vi
       .fn()
       .mockRejectedValueOnce(new Error("timeout talking to provider"))
@@ -68,12 +69,14 @@ describe("runActionsWorker", () => {
     expect(queue.fail).toHaveBeenCalledWith("a-1", "timeout talking to provider", false);
     expect(queue.complete).not.toHaveBeenCalled();
 
-    await runActionsWorker(queue, { noop: handler });
-    expect(queue.complete).toHaveBeenCalledWith("a-1", { ok: true });
+    // After the backoff the queue hands it out again.
+    const retry = fakeQueue([claimed({ attempt: 2 })]);
+    await runActionsWorker(retry, { noop: handler });
+    expect(retry.complete).toHaveBeenCalledWith("a-1", { ok: true });
   });
 
   it("fails at once on a PermanentActionError", async () => {
-    const queue = fakeQueue([[claimed()]]);
+    const queue = fakeQueue([claimed()]);
     await runActionsWorker(queue, {
       noop: async () => {
         throw new PermanentActionError("invalid_payload");
@@ -82,9 +85,10 @@ describe("runActionsWorker", () => {
     expect(queue.fail).toHaveBeenCalledWith("a-1", "invalid_payload", true);
   });
 
-  it("keeps processing the batch after one action fails", async () => {
+  it("keeps processing after one action fails", async () => {
     const queue = fakeQueue([
-      [claimed({ actionId: "a-1", type: "boom" }), claimed({ actionId: "a-2" })],
+      claimed({ actionId: "a-1", type: "boom" }),
+      claimed({ actionId: "a-2" }),
     ]);
     const report = await runActionsWorker(queue, {
       boom: async () => {
@@ -93,6 +97,43 @@ describe("runActionsWorker", () => {
       noop: async () => ({ ok: true }),
     });
     expect(report).toEqual({ claimed: 2, succeeded: 1, failed: 1 });
+  });
+
+  it("claims one action at a time, only after the previous one ended (D-073)", async () => {
+    const queue = fakeQueue([]);
+    const events: string[] = [];
+    const items = [claimed({ actionId: "a-1" }), claimed({ actionId: "a-2" })];
+    queue.claim.mockImplementation(async (batch: number) => {
+      events.push(`claim:${batch}`);
+      return items.splice(0, batch);
+    });
+    await runActionsWorker(queue, {
+      noop: async (a) => {
+        events.push(`run:${a.actionId}`);
+        return null;
+      },
+    });
+    expect(events).toEqual(["claim:1", "run:a-1", "claim:1", "run:a-2", "claim:1"]);
+    expect(queue.claim).toHaveBeenCalledWith(1, 120);
+  });
+
+  it("stops claiming after its time budget and after maxActions", async () => {
+    let clock = 0;
+    const slow = fakeQueue([claimed({ actionId: "a-1" }), claimed({ actionId: "a-2" })]);
+    const report = await runActionsWorker(
+      slow,
+      {
+        noop: async () => {
+          clock += 60_000;
+          return null;
+        },
+      },
+      { now: () => clock },
+    );
+    expect(report.claimed).toBe(1);
+
+    const many = fakeQueue([claimed({ actionId: "a-1" }), claimed({ actionId: "a-2" }), claimed({ actionId: "a-3" })]);
+    expect((await runActionsWorker(many, { noop: async () => null }, { maxActions: 2 })).claimed).toBe(2);
   });
 });
 

@@ -160,6 +160,20 @@ describe("FactusClient", () => {
     const fiveHundred = new FactusClient(CONFIG, vi.fn(async (url: string) => (url.endsWith("/oauth/token") ? token.clone() : json(503, {}))));
     await expect(fiveHundred.post("/v2/bills/validate", {})).rejects.toBeInstanceOf(FactusTransientError);
   });
+
+  it("puts a time limit on every request, and a timeout is transient (D-073)", async () => {
+    const signals: (AbortSignal | null | undefined)[] = [];
+    const hangs = vi.fn(async (url: string, init: RequestInit) => {
+      signals.push(init.signal);
+      if (url.endsWith("/oauth/token")) return json(200, { access_token: "t", expires_in: 3600 });
+      throw new DOMException("The operation was aborted due to timeout", "TimeoutError");
+    });
+    await expect(new FactusClient(CONFIG, hangs).post("/v2/bills/validate", {})).rejects.toBeInstanceOf(
+      FactusTransientError,
+    );
+    expect(signals).toHaveLength(2);
+    expect(signals.every((s) => s instanceof AbortSignal)).toBe(true);
+  });
 });
 
 describe("issueInvoice (worker)", () => {

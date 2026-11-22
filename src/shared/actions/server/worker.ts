@@ -40,26 +40,42 @@ export type WorkerReport = {
 };
 
 export type WorkerOptions = {
-  batch?: number;
+  /** Most actions taken in one call. */
+  maxActions?: number;
+  /** How long a claimed message stays hidden from other workers. */
   visibilitySeconds?: number;
+  /** No new action is claimed after this time; the next call goes on. */
+  timeBudgetMs?: number;
+  now?: () => number;
 };
 
 /**
- * Processes one batch. Handlers must be idempotent: if the process dies after
- * the side effect but before complete(), the action runs again.
+ * Processes queued actions ONE AT A TIME (D-073): an action is claimed only
+ * when the previous one ended, so a slow handler never leaves other claimed
+ * actions waiting while their visibility runs out (with a batch, they
+ * reappeared and a second worker ran them too). The database also refuses
+ * to hand out again an action still being processed (claim_actions).
+ *
+ * Handlers must be idempotent: if the process dies after the side effect but
+ * before complete(), the action runs again.
  */
 export async function runActionsWorker(
   queue: ActionQueue,
   handlers: ActionHandlers,
   options: WorkerOptions = {},
 ): Promise<WorkerReport> {
-  const claimed = await queue.claim(
-    options.batch ?? 10,
-    options.visibilitySeconds ?? 60,
-  );
-  const report: WorkerReport = { claimed: claimed.length, succeeded: 0, failed: 0 };
+  const maxActions = options.maxActions ?? 10;
+  const visibilitySeconds = options.visibilitySeconds ?? 120;
+  const timeBudgetMs = options.timeBudgetMs ?? 50_000;
+  const now = options.now ?? Date.now;
+  const startedAt = now();
+  const report: WorkerReport = { claimed: 0, succeeded: 0, failed: 0 };
 
-  for (const action of claimed) {
+  while (report.claimed < maxActions && now() - startedAt < timeBudgetMs) {
+    const [action] = await queue.claim(1, visibilitySeconds);
+    if (!action) break;
+    report.claimed += 1;
+
     const handler = Object.hasOwn(handlers, action.type)
       ? handlers[action.type]
       : undefined;
