@@ -4,7 +4,7 @@ import { connection } from "next/server";
 import { Suspense } from "react";
 
 import { getStaffRole } from "@/modules/customers";
-import { listRefunds, markRefundedAction } from "@/modules/orders";
+import { listRefunds, markAttemptRefundedAction, markRefundedAction } from "@/modules/orders";
 import { formatCop } from "@/modules/pricing";
 import { PageHeader } from "@/shared/ui/page-header";
 import { ReasonActionForm } from "@/shared/ui/reason-action-form";
@@ -17,6 +17,7 @@ const REASONS: Record<string, string> = {
   payment_for_closed_order: "Pagó después de que el pedido se canceló",
   recipient_underage: "En la entrega, quien recibía era menor de edad",
   customer_chose_refund: "El domicilio falló y el cliente pidió el reembolso",
+  duplicate_payment: "Pago duplicado: el pedido ya estaba pagado con otro pago",
 };
 
 // Money to return (D-040, D-055). The refund is made in the Wompi dashboard;
@@ -44,7 +45,7 @@ async function Refunds() {
   return (
     <ul className="flex flex-col gap-3">
       {refunds.map((r) => (
-        <li key={r.orderId} className="card flex flex-col gap-3 p-4">
+        <li key={r.attemptId ?? r.orderId} className="card flex flex-col gap-3 p-4">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <p className="font-medium">
               {r.customer} <span className="text-sm text-muted">{r.email}</span>
@@ -65,9 +66,14 @@ async function Refunds() {
               una nota crédito parcial de los productos.
             </p>
           ) : null}
+          {r.kind === "payment" ? (
+            <p role="status" className="notice notice-info text-sm">
+              Devuelve solo este pago. El pedido sigue su curso normal: se entrega y su factura no cambia.
+            </p>
+          ) : null}
           <ReasonActionForm
-            action={markRefundedAction}
-            hidden={{ orderId: r.orderId }}
+            action={r.kind === "payment" ? markAttemptRefundedAction : markRefundedAction}
+            hidden={r.kind === "payment" && r.attemptId ? { attemptId: r.attemptId } : { orderId: r.orderId }}
             fields={[
               { name: "reference", label: "Referencia del reembolso en Wompi", maxLength: 120 },
               { name: "note", label: "Nota", placeholder: "Devuelto a la tarjeta del cliente" },

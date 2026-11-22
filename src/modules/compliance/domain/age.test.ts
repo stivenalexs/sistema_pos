@@ -66,4 +66,18 @@ describe("age gate", () => {
     expect(safeNextPath(null)).toBe("/");
     expect(safeNextPath("/age-check?next=/")).toBe("/");
   });
+
+  it("refuses control characters that browsers strip into //host (D-072)", () => {
+    const tab = String.fromCharCode(9);
+    const lf = String.fromCharCode(10);
+    const cr = String.fromCharCode(13);
+    const nul = String.fromCharCode(0);
+    expect(safeNextPath(`/${tab}/evil.example`)).toBe("/");
+    expect(safeNextPath(decodeURIComponent("%2F%09%2Fevil.example"))).toBe("/");
+    expect(safeNextPath(`/${lf}/evil.example`)).toBe("/");
+    expect(safeNextPath(`/${cr}${lf}/evil.example`)).toBe("/");
+    expect(safeNextPath(`/${nul}/evil.example`)).toBe("/");
+    expect(safeNextPath("/orders/abc?x=1#y")).toBe("/orders/abc?x=1#y");
+    expect(safeNextPath("/admin/facturas")).toBe("/admin/facturas");
+  });
 });

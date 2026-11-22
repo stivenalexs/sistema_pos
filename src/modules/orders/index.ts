@@ -6,4 +6,4 @@ export { listPickupsAttention, type PickupAttention, resetPickupAttemptsAction }
 export { type Fulfillment, getOrder, type OrderDetail, placeOrder, type PlaceOrderResult } from "./server/orders";
 export { OrderSummary } from "./ui/order-summary";
 export { PaymentStatusRefresher } from "./ui/payment-status-refresher";
-export { listRefunds, markRefundedAction, type RefundRow } from "./server/refunds";
+export { listRefunds, markAttemptRefundedAction, markRefundedAction, type RefundRow } from "./server/refunds";

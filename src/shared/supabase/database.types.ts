@@ -477,14 +477,14 @@ isOneToOne: false
                   ]
                 },"payment_attempts": {
                   Row: {
-                    "amount_in_cents": number,"attempt_number": number,"created_at": string,"currency": string,"expires_at": string,"finalized_at": string | null,"id": string,"idempotency_key": string,"order_id": string,"payment_method_type": string | null,"reference": string,"status": Database["public"]['Enums']["payment_attempt_status"],"status_message": string | null,"transaction_id_hint": string | null,"updated_at": string,"wompi_transaction_id": string | null
+                    "amount_in_cents": number,"attempt_number": number,"created_at": string,"currency": string,"expires_at": string,"finalized_at": string | null,"id": string,"idempotency_key": string,"order_id": string,"payment_method_type": string | null,"reference": string,"refund_needed": boolean,"refund_note": string | null,"refund_reason": string | null,"refund_reference": string | null,"refunded_at": string | null,"refunded_by": string | null,"status": Database["public"]['Enums']["payment_attempt_status"],"status_message": string | null,"transaction_id_hint": string | null,"updated_at": string,"wompi_transaction_id": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "amount_in_cents": number,"attempt_number": number,"created_at"?: string,"currency"?: string,"expires_at": string,"finalized_at"?: string | null,"id"?: string,"idempotency_key": string,"order_id": string,"payment_method_type"?: string | null,"reference": string,"status"?: Database["public"]['Enums']["payment_attempt_status"],"status_message"?: string | null,"transaction_id_hint"?: string | null,"updated_at"?: string,"wompi_transaction_id"?: string | null
+                    "amount_in_cents": number,"attempt_number": number,"created_at"?: string,"currency"?: string,"expires_at": string,"finalized_at"?: string | null,"id"?: string,"idempotency_key": string,"order_id": string,"payment_method_type"?: string | null,"reference": string,"refund_needed"?: boolean,"refund_note"?: string | null,"refund_reason"?: string | null,"refund_reference"?: string | null,"refunded_at"?: string | null,"refunded_by"?: string | null,"status"?: Database["public"]['Enums']["payment_attempt_status"],"status_message"?: string | null,"transaction_id_hint"?: string | null,"updated_at"?: string,"wompi_transaction_id"?: string | null
                   }
                   Update: {
-                    "amount_in_cents"?: number,"attempt_number"?: number,"created_at"?: string,"currency"?: string,"expires_at"?: string,"finalized_at"?: string | null,"id"?: string,"idempotency_key"?: string,"order_id"?: string,"payment_method_type"?: string | null,"reference"?: string,"status"?: Database["public"]['Enums']["payment_attempt_status"],"status_message"?: string | null,"transaction_id_hint"?: string | null,"updated_at"?: string,"wompi_transaction_id"?: string | null
+                    "amount_in_cents"?: number,"attempt_number"?: number,"created_at"?: string,"currency"?: string,"expires_at"?: string,"finalized_at"?: string | null,"id"?: string,"idempotency_key"?: string,"order_id"?: string,"payment_method_type"?: string | null,"reference"?: string,"refund_needed"?: boolean,"refund_note"?: string | null,"refund_reason"?: string | null,"refund_reference"?: string | null,"refunded_at"?: string | null,"refunded_by"?: string | null,"status"?: Database["public"]['Enums']["payment_attempt_status"],"status_message"?: string | null,"transaction_id_hint"?: string | null,"updated_at"?: string,"wompi_transaction_id"?: string | null
                   }
                   Relationships: [
                     {
@@ -883,6 +883,9 @@ isOneToOne: false
 { Args: Record<PropertyKey, never>; Returns: {
               "name": string,"on_hand": number,"product_id": string,"reserved": number,"sku": string,"threshold": number
             }[]
+                           },
+"mark_attempt_refunded":
+{ Args: { "p_attempt_id": string,"p_note": string,"p_reference": string }; Returns: Json
                            },
 "mark_order_refunded":
 { Args: { "p_note": string,"p_order_id": string,"p_reference": string }; Returns: Json
