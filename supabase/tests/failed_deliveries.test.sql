@@ -165,8 +165,8 @@ select lives_ok(
       (select id from public.delivery_providers where kind = 'own'), 'd3000000-0000-4000-8000-000000000003')$$,
   'panel: a rescheduled order is assigned again'
 );
-select is(public.mark_order_refunded('d4000000-0000-4000-8000-000000000003', 'WOMPI-123', 'Menor de edad') ->> 'error',
-  'partial_refund_pending', 'refund: a refund of the products only waits for step 18b-2');
+select is(public.mark_order_refunded('d4000000-0000-4000-8000-000000000003', 'WOMPI-123', 'Menor de edad') ->> 'ok',
+  'true', 'refund: a refund of the products only is recorded since step 18b-2 (D-069)');
 reset role;
 
 -- ---------------------------------------------------------------------------
@@ -360,8 +360,8 @@ select is(
 update public.orders set delivery_fee_cop = 0, total_cop = 45000 where id = 'd4000000-0000-4000-8000-000000000003';
 select pg_temp.as_admin();
 set local role authenticated;
-select is(public.mark_order_refunded('d4000000-0000-4000-8000-000000000003', 'WOMPI-124', 'Menor de edad') ->> 'error',
-  'partial_refund_pending', 'refund: products only waits for 18b-2 even when the delivery was free');
+select is(public.mark_order_refunded('d4000000-0000-4000-8000-000000000003', 'WOMPI-124', 'Menor de edad') ->> 'already_refunded',
+  'true', 'refund: recording a products-only refund twice changes nothing');
 reset role;
 
 select pg_temp.order_on_the_way('d4000000-0000-4000-8000-000000000009', 'd3000000-0000-4000-8000-000000000004');

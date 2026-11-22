@@ -14,7 +14,7 @@ export type RefundRow = {
   totalCop: number;
   /** What to return: the whole order, or only the products (D-068). */
   refundAmountCop: number;
-  /** Products only: waits for the partial credit note of step 18b-2. */
+  /** Products only: a partial credit note when it is recorded (D-069). */
   productsOnly: boolean;
   refundReason: string;
   paidAt: string | null;
@@ -50,9 +50,8 @@ const MESSAGES: Record<string, string> = {
   invalid_reference: "Escribe la referencia del reembolso en Wompi (entre 3 y 120 caracteres).",
   invalid_reason: "Escribe una nota (entre 3 y 300 caracteres).",
   order_not_refundable: "Ese pedido no está marcado para reembolso.",
-  // Products only after a failed delivery (D-068): completed in step 18b-2.
-  partial_refund_pending:
-    "Este reembolso es solo de los productos y necesita una nota crédito parcial, que todavía no está disponible. No lo registres aún.",
+  // Products only (D-069): the partial credit note needs the invoice issued.
+  invoice_in_progress: "La factura de este pedido todavía se está emitiendo. Registra el reembolso en unos minutos.",
 };
 
 export async function markRefundedAction(_previous: ReasonFormState, formData: FormData): Promise<ReasonFormState> {

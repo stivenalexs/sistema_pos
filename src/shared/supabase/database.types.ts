@@ -153,14 +153,14 @@ isOneToOne: false
                   ]
                 },"credit_notes": {
                   Row: {
-                    "attempts": number,"created_at": string,"cufe": string | null,"factus_number": string | null,"id": string,"invoice_id": string,"last_error": string | null,"reason": string,"reference_code": string,"request": Json | null,"requested_by": string | null,"response": Json | null,"status": Database["public"]['Enums']["invoice_status"],"updated_at": string
+                    "attempts": number,"concept_code": string,"created_at": string,"cufe": string | null,"factus_number": string | null,"id": string,"invoice_id": string,"kind": string,"last_error": string | null,"reason": string,"reference_code": string,"request": Json | null,"requested_by": string | null,"response": Json | null,"status": Database["public"]['Enums']["invoice_status"],"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "attempts"?: number,"created_at"?: string,"cufe"?: string | null,"factus_number"?: string | null,"id"?: string,"invoice_id": string,"last_error"?: string | null,"reason": string,"reference_code": string,"request"?: Json | null,"requested_by"?: string | null,"response"?: Json | null,"status"?: Database["public"]['Enums']["invoice_status"],"updated_at"?: string
+                    "attempts"?: number,"concept_code"?: string,"created_at"?: string,"cufe"?: string | null,"factus_number"?: string | null,"id"?: string,"invoice_id": string,"kind"?: string,"last_error"?: string | null,"reason": string,"reference_code": string,"request"?: Json | null,"requested_by"?: string | null,"response"?: Json | null,"status"?: Database["public"]['Enums']["invoice_status"],"updated_at"?: string
                   }
                   Update: {
-                    "attempts"?: number,"created_at"?: string,"cufe"?: string | null,"factus_number"?: string | null,"id"?: string,"invoice_id"?: string,"last_error"?: string | null,"reason"?: string,"reference_code"?: string,"request"?: Json | null,"requested_by"?: string | null,"response"?: Json | null,"status"?: Database["public"]['Enums']["invoice_status"],"updated_at"?: string
+                    "attempts"?: number,"concept_code"?: string,"created_at"?: string,"cufe"?: string | null,"factus_number"?: string | null,"id"?: string,"invoice_id"?: string,"kind"?: string,"last_error"?: string | null,"reason"?: string,"reference_code"?: string,"request"?: Json | null,"requested_by"?: string | null,"response"?: Json | null,"status"?: Database["public"]['Enums']["invoice_status"],"updated_at"?: string
                   }
                   Relationships: [
                     {

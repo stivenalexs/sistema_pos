@@ -79,7 +79,10 @@ async function Invoices() {
               <li key={n.id} className="card flex flex-col gap-2 p-4">
                 <p className="font-medium">
                   {n.referenceCode} <span className="badge ml-2">{STATUS[n.status] ?? n.status}</span>
-                  <span className="ml-2 text-sm text-muted">factura {n.invoiceNumber ?? "—"}</span>
+                  <span className="ml-2 text-sm text-muted">
+                    factura {n.invoiceNumber ?? "—"} ·{" "}
+                    {n.kind === "products_only" ? "parcial: solo productos (concepto 1)" : "anulación total (concepto 2)"}
+                  </span>
                 </p>
                 <p className="text-sm text-muted">
                   {n.reason} · {DATE.format(new Date(n.createdAt))}

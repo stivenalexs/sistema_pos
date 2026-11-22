@@ -25,6 +25,8 @@ export type CreditNoteRow = {
   referenceCode: string;
   status: string;
   reason: string;
+  /** Whole invoice (concept 2) or products only (concept 1, D-069). */
+  kind: "full" | "products_only";
   lastError: string | null;
   invoiceNumber: string | null;
   createdAt: string;
@@ -42,7 +44,7 @@ export async function listInvoicesForAdmin(): Promise<{ invoices: AttentionInvoi
       action_status: string | null; action_error: string | null;
     }[];
     credit_notes: {
-      id: string; reference_code: string; status: string; reason: string; last_error: string | null;
+      id: string; reference_code: string; status: string; reason: string; kind: "full" | "products_only"; last_error: string | null;
       invoice_number: string | null; created_at: string; action_status: string | null;
     }[];
   };
@@ -67,6 +69,7 @@ export async function listInvoicesForAdmin(): Promise<{ invoices: AttentionInvoi
       referenceCode: n.reference_code,
       status: n.status,
       reason: n.reason,
+      kind: n.kind,
       lastError: n.last_error,
       invoiceNumber: n.invoice_number,
       createdAt: n.created_at,

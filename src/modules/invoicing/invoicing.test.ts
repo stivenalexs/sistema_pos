@@ -248,12 +248,18 @@ describe("issueInvoice (worker)", () => {
 });
 
 describe("issueCreditNote (worker, D-066)", () => {
-  function noteDb(invoice: typeof INVOICE = INVOICE) {
+  function noteDb(
+    invoice: { lines: object[] } & Omit<typeof INVOICE, "lines"> = INVOICE,
+    extra: { kind?: string; concept_code?: string } = {},
+  ) {
     const note = {
       id: "cn-1",
       reference_code: "NC-1",
       reason: "Anulación de la venta",
       status: "pending",
+      kind: "full",
+      concept_code: "2",
+      ...extra,
       invoices: { ...invoice, factus_number: "SETP990000001", invoice_lines: invoice.lines },
     };
     return {
@@ -295,5 +301,28 @@ describe("issueCreditNote (worker, D-066)", () => {
     const payload = (post.mock.calls[0] as unknown as [string, Record<string, unknown>])[1];
     expect(payload).not.toHaveProperty("cash_rounding_amount");
     expect(payload.payment_details).toEqual([expect.objectContaining({ amount: "52000.20" })]);
+  });
+
+  it("credits only the product lines with concept 1 for a products-only refund (D-069)", async () => {
+    const invoice = {
+      ...INVOICE,
+      total_cop: 114465,
+      lines: [
+        { ...INVOICE.lines[0]!, line_kind: "product" },
+        { sku: "DOMICILIO", name: "Servicio de domicilio", quantity_units: 1, net_cop: 5714, iva_cop: 286, final_cop: 6000, line_kind: "delivery" },
+      ],
+    };
+    const post = vi.fn(async () => ({ status: 201, body: { data: { is_validated: true } } }));
+    await issueCreditNote("cn-1", {
+      db: noteDb(invoice, { kind: "products_only", concept_code: "1" }),
+      client: { post } as unknown as FactusClient,
+      creditNoteRangeId: 390,
+    });
+    const payload = (post.mock.calls[0] as unknown as [string, Record<string, unknown>])[1];
+    expect(payload.correction_concept_code).toBe("1");
+    const items = payload.items as { code_reference: string }[];
+    expect(items.map((i) => i.code_reference)).toEqual(["IMP-WHI"]);
+    // 103.300 + 5 % IVA = 108.465: the products only, without the delivery.
+    expect(payload.payment_details).toEqual([expect.objectContaining({ amount: "108465.00" })]);
   });
 });

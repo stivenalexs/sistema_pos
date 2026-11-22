@@ -59,12 +59,12 @@ async function Refunds() {
             Pedido {r.orderId.slice(0, 8).toUpperCase()} · transacción Wompi {r.transactionId ?? "—"}
           </p>
           {r.productsOnly ? (
-            <p role="status" className="notice notice-warning text-sm">
-              Solo los productos ({formatCop(r.refundAmountCop)} de {formatCop(r.totalCop)}): el domicilio no se devuelve.
-              Necesita una nota crédito parcial y devolver el stock, que todavía no están disponibles; no lo registres
-              aún.
+            <p role="status" className="notice notice-info text-sm">
+              Devuelve solo los productos: {formatCop(r.refundAmountCop)} de {formatCop(r.totalCop)}. El domicilio no se
+              devuelve porque sí se intentó. Las botellas ya volvieron al inventario; al registrar el reembolso se emite
+              una nota crédito parcial de los productos.
             </p>
-          ) : (
+          ) : null}
           <ReasonActionForm
             action={markRefundedAction}
             hidden={{ orderId: r.orderId }}
@@ -74,7 +74,6 @@ async function Refunds() {
             ]}
             submitLabel="Registrar reembolso"
           />
-          )}
         </li>
       ))}
     </ul>
