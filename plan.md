@@ -1,6 +1,6 @@
 # Plan de trabajo con Claude Code
 
-Ubicación en el repositorio: `plan.md` (raíz). Estado al 2026-11-21: pasos 1 a 17 hechos y el paso agregado 17e (recogida en tienda y domicilios fallidos); falta la fase 7. Ver `docs/handoff.md`.
+Ubicación en el repositorio: `plan.md` (raíz). Estado al 2026-11-21: pasos 1 a 17 hechos, el paso agregado 17e (recogida en tienda y domicilios fallidos) y el paso 20 corrido como reporte (D-070); faltan los pasos 18 (opcional) y 19. Ver `docs/handoff.md`.
 
 Cómo usarlo: un paso por sesión de trabajo. Pide siempre primero un plan sin código, revísalo y luego aprueba. Al terminar cada paso, pide un commit y esta línea: *"Actualiza docs/memoria.md con lo que decidimos."*
 
@@ -58,4 +58,4 @@ Antes de los pasos 18 y 19 hay que instalar las skills antislop y thermos (no es
 
 - [ ] **18.** (Opcional) "Con antislop, revisa las descripciones de producto y los textos comerciales. No toques textos legales ni código."
 - [ ] **19.** "Ejecuta thermos a mano sobre todo el repositorio y dame los hallazgos sin aplicar nada."
-- [ ] **20.** "Corre pre-deploy-checklist y dime qué falla."
+- [x] **20.** "Corre pre-deploy-checklist y dime qué falla." Corrido el 2026-11-21 (D-070): no se puede desplegar; fallan 8 de 11 puntos porque no hay entorno alojado ni credenciales de producción, los textos legales siguen en borrador, falta el inventario real, thermos y un plan de reversa. Volver a correrlo antes de cualquier despliegue.

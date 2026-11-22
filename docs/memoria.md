@@ -507,6 +507,23 @@ Registro de decisiones. Se lee al iniciar cada sesión (referenciado desde `agen
     - La migración se corrigió en su mismo archivo porque no tenía commit y solo estaba aplicada en local; se volvió a aplicar con `db:reset`, que borró los datos de la prueba en el sandbox (su resultado queda registrado aquí).
   - **Revisión humana:** la versión corregida fue aprobada por el responsable el 2026-11-21.
 
+### Salida a producción
+- **D-070 (2026-11-21)** Paso 20 de `plan.md`: `pre-deploy-checklist` corrido solo como reporte, sin cambiar nada. **Resultado: no se puede desplegar.** El código está sano en local, pero 8 de los 11 puntos fallan porque el proyecto vive en local y en sandbox (coherente con D-041).
+  - **Pasan:** (1) typecheck, lint, 182 Vitest, build, 691 pgTAP y `db lint` sin hallazgos en `public` ni `private`; (2) RLS activa en las 37 tablas de `public`, todas con política, y en las tablas de `private`; (3) ningún `.env` versionado ni en el historial, ningún secreto real en los archivos versionados (solo el valor falso `prv_prod_SECRETVALUE` de una prueba), el cliente con la clave secreta no se importa en archivos de navegador, y `npm audit` sin vulnerabilidades en producción (7 moderadas en herramientas de desarrollo, ya conocidas, D-029).
+  - **Fallan:**
+    - (1) No existe el proyecto alojado de Supabase: falta verificar ahí las extensiones (D-025), que `postgres` pueda escribir `auth.users` (D-054) y las migraciones en orden.
+    - (3) Solo hay variables de sandbox y Supabase local; faltan las de producción, incluidas las SMTP de un proveedor real.
+    - (4) Wompi: sin llaves de producción, sin webhook registrado en una URL pública y sin prueba real de bajo monto.
+    - (5) Factus: probado solo en el sandbox; faltan credenciales y rango de producción y una factura aceptada por la DIAN en producción.
+    - (6) Textos legales en `0-borrador` (D-035) y 0 reglas de bloqueo cargadas (las reales dependen de P-006); el aviso 18+ y la prueba de entrega sí están activos.
+    - (7) La cola funciona en local, pero el Vault está vacío (hay que configurar en cada entorno las URLs y el secreto del worker y de la conciliación) y las alertas solo se ven en el panel, sin aviso externo.
+    - (8) Solo hay inventario de ejemplo (`seed.sql`); falta el conteo inicial real.
+    - (9) thermos no se ha corrido ni está instalada (paso 19).
+    - (10) P-006 sigue abierto.
+    - (11) No hay plan de reversa: las migraciones son de solo avance y falta documentar el respaldo de la base y cómo volver a la versión anterior de la app.
+  - **Supuestos que seguirían en producción:** ubicación de la tienda en Medellín y mapas de OpenStreetMap (D-045), `R-99-PN` para mayoristas en las notas crédito (D-066) y domicilio sin facturar si un pedido se marca para reembolso antes de emitir su factura (D-069).
+  - **Lo que se puede avanzar sin decidir un despliegue:** el paso 19 (thermos, tras instalarla con aprobación) y el plan de reversa.
+
 ## Pendientes de confirmar (supuestos del asistente, no decisiones)
 
 - ~~**P-001**~~ Resuelto en D-021.
