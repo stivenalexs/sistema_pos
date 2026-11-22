@@ -1,6 +1,6 @@
 # Plan de trabajo con Claude Code
 
-Ubicación en el repositorio: `plan.md` (raíz). Estado al 2026-11-21: pasos 1 a 17 hechos, el paso agregado 17e (recogida en tienda y domicilios fallidos) y el paso 20 corrido como reporte (D-070); faltan los pasos 18 (opcional) y 19. Ver `docs/handoff.md`.
+Ubicación en el repositorio: `plan.md` (raíz). Estado al 2026-11-21: pasos 1 a 17 hechos, el paso agregado 17e (recogida en tienda y domicilios fallidos) y los pasos 19 y 20 corridos como reporte (D-071, D-070); falta el paso 18 (opcional) y corregir los hallazgos de thermos. Ver `docs/handoff.md`.
 
 Cómo usarlo: un paso por sesión de trabajo. Pide siempre primero un plan sin código, revísalo y luego aprueba. Al terminar cada paso, pide un commit y esta línea: *"Actualiza docs/memoria.md con lo que decidimos."*
 
@@ -54,8 +54,8 @@ Revisa tú, sin delegar: las políticas RLS (paso 6), la firma del webhook de Wo
 
 ## Fase 7: salida a producción
 
-Antes de los pasos 18 y 19 hay que instalar las skills antislop y thermos (no están en `.claude/skills/`), con aprobación y versión fijada (agents.md §8).
+Antes del paso 18 hay que instalar la skill antislop (no está en `.claude/skills/`), con aprobación y versión fijada (agents.md §8). thermos ya está instalada (D-071).
 
 - [ ] **18.** (Opcional) "Con antislop, revisa las descripciones de producto y los textos comerciales. No toques textos legales ni código."
-- [ ] **19.** "Ejecuta thermos a mano sobre todo el repositorio y dame los hallazgos sin aplicar nada."
+- [x] **19.** "Ejecuta thermos a mano sobre todo el repositorio y dame los hallazgos sin aplicar nada." Corrido el 2026-11-21 (D-071): 7 hallazgos de seguridad y bugs (1 alto: pago duplicado que marca el pedido para reembolso) y 11 de calidad; ninguno aplicado.
 - [x] **20.** "Corre pre-deploy-checklist y dime qué falla." Corrido el 2026-11-21 (D-070): no se puede desplegar; fallan 8 de 11 puntos porque no hay entorno alojado ni credenciales de producción, los textos legales siguen en borrador, falta el inventario real, thermos y un plan de reversa. Volver a correrlo antes de cualquier despliegue.
