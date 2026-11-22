@@ -1,6 +1,6 @@
 # Plan de trabajo con Claude Code
 
-Ubicación en el repositorio: `plan.md` (raíz). Estado al 2026-11-07: pasos 1 a 13 hechos; ver `docs/handoff.md`.
+Ubicación en el repositorio: `plan.md` (raíz). Estado al 2026-11-21: pasos 1 a 17 hechos y el paso agregado 17e (recogida en tienda y domicilios fallidos); falta la fase 7. Ver `docs/handoff.md`.
 
 Cómo usarlo: un paso por sesión de trabajo. Pide siempre primero un plan sin código, revísalo y luego aprueba. Al terminar cada paso, pide un commit y esta línea: *"Actualiza docs/memoria.md con lo que decidimos."*
 
@@ -42,9 +42,19 @@ Revisa tú, sin delegar: las políticas RLS (paso 6), la firma del webhook de Wo
 - [x] **14.** "Con delivery-proof: tarifas configurables, asignación a mensajero propio o tercero y la vista móvil con cédula y firma."
 - [x] **15.** "Con block-sales-rule: bloqueos por municipio, fecha y hora, evaluados en el checkout y en el POS."
 - [x] **16.** "Con pos-sale: la pantalla de caja con venta asíncrona, descuento compartido con la web y factura."
-- [ ] **17.** "Panel de administración: aprobar mayoristas, ver facturas rechazadas, cola atascada, ajustes de inventario y reglas de bloqueo."
+- [x] **17.** "Panel de administración: aprobar mayoristas, ver facturas rechazadas, cola atascada, ajustes de inventario y reglas de bloqueo." Hecho en partes: 17a mayoristas y personal (D-054), 17b facturas, notas crédito, cola y reembolsos (D-055), 17c inventario (D-056), 17d-1 ventas POS y domicilios (D-057), 17d-2a tienda, zonas y tarifas (D-058), 17d-2b reglas de bloqueo (D-060) y 17d-3 pedido web endurecido y Factus probado en el sandbox (D-066).
+- [x] **17e.** (Agregado, decisiones de D-059.) "Recogida en tienda confirmada por el cliente y domicilios fallidos: devolución a la tienda, elección del cliente, reprogramación, correo y reembolso de solo productos." En la memoria y los commits se llamó "paso 18": 18a recogida (D-067), 18b-1 domicilios fallidos y correo (D-068) y 18b-2 reembolso de productos con nota crédito parcial (D-069). No confundir con el paso 18 de este plan (antislop).
+
+## Pendientes fuera del plan
+
+- POS: venta sin internet y apertura y cierre de caja (D-053).
+- Rediseño del panel, propuestas 4 a 6: listas en tabla, estados vacíos que orienten y la entrada de mercancía primero en Inventario (D-064).
+- Accesibilidad: pendientes menores de la auditoría (D-062).
+- Por confirmar: P-006 (abogado: textos legales, ley seca, habeas data) y P-013 (documentos del mayorista).
 
 ## Fase 7: salida a producción
+
+Antes de los pasos 18 y 19 hay que instalar las skills antislop y thermos (no están en `.claude/skills/`), con aprobación y versión fijada (agents.md §8).
 
 - [ ] **18.** (Opcional) "Con antislop, revisa las descripciones de producto y los textos comerciales. No toques textos legales ni código."
 - [ ] **19.** "Ejecuta thermos a mano sobre todo el repositorio y dame los hallazgos sin aplicar nada."
