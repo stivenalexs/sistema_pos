@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { acceptDeliveryAttempt, MAX_SIGNATURE_BYTES } from "@/modules/delivery";
 import { isUuid } from "@/shared/actions/action-types";
 import { readIdempotencyKey } from "@/shared/actions/server/accept-action";
+import { parseFormBody, readBodyWithLimit } from "@/shared/http/read-body";
 
 const NO_STORE = { "Cache-Control": "no-store" };
 // Form fields plus the signature PNG.
@@ -23,19 +24,22 @@ export async function POST(request: Request, ctx: RouteContext<"/api/deliveries/
     return NextResponse.json({ error: "missing_idempotency_key" }, { status: 400, headers: NO_STORE });
   }
 
-  const length = Number(request.headers.get("content-length") ?? "0");
-  if (length > MAX_BODY_BYTES) {
-    return NextResponse.json({ error: "payload_too_large" }, { status: 413, headers: NO_STORE });
-  }
-
-  let form: FormData;
-  try {
-    form = await request.formData();
-  } catch {
-    return NextResponse.json({ error: "invalid_form" }, { status: 400, headers: NO_STORE });
-  }
-
-  const result = await acceptDeliveryAttempt({ orderId, idempotencyKey, form });
+  // The body is read only after the module checked the session (D-074), as
+  // a stream that stops at the limit (Content-Length can be missing or false).
+  const result = await acceptDeliveryAttempt({
+    orderId,
+    idempotencyKey,
+    readForm: async () => {
+      const body = await readBodyWithLimit(request, MAX_BODY_BYTES);
+      if (!body.ok) {
+        return body.error === "payload_too_large"
+          ? { ok: false, status: 413, error: "payload_too_large" }
+          : { ok: false, status: 400, error: "invalid_form" };
+      }
+      const form = await parseFormBody(body.bytes, request.headers.get("content-type"));
+      return form ? { ok: true, form } : { ok: false, status: 400, error: "invalid_form" };
+    },
+  });
   if (!result.ok) {
     return NextResponse.json({ error: result.error }, { status: result.status, headers: NO_STORE });
   }

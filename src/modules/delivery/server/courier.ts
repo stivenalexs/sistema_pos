@@ -112,27 +112,38 @@ export async function getCourierDelivery(orderId: string): Promise<CourierDelive
 
 export type ConfirmDeliveryResult =
   | { ok: true; trackingId: string }
-  | { ok: false; status: 400 | 403 | 409; error: string };
+  | { ok: false; status: 400 | 403 | 409 | 413; error: string };
+
+/** The route's body reader: the form, or why it could not be read. */
+export type DeliveryFormReader = () => Promise<
+  { ok: true; form: FormData } | { ok: false; status: 400 | 413; error: string }
+>;
 
 /**
- * Validates and accepts a delivery attempt (delivered or failed). Call it
- * from the route with the parsed multipart form and the idempotency key.
+ * Validates and accepts a delivery attempt (delivered or failed). The route
+ * passes how to read its multipart body: it is read only AFTER the session
+ * is known to belong to a courier or an administrator (D-074), so nobody
+ * else makes the server read a body at all.
  */
 export async function acceptDeliveryAttempt(input: {
   orderId: string;
   idempotencyKey: string;
-  form: FormData;
+  readForm: DeliveryFormReader;
 }): Promise<ConfirmDeliveryResult> {
   const staff = await getDeliveryStaff();
   if (!staff) return { ok: false, status: 403, error: "delivery_forbidden" };
 
+  const body = await input.readForm();
+  if (!body.ok) return body;
+  const form = body.form;
+
   const parsed = parseProofInput({
-    outcome: input.form.get("outcome"),
-    recipientName: input.form.get("recipientName"),
-    documentNumber: input.form.get("documentNumber"),
-    ageConfirmed: input.form.get("ageConfirmed"),
-    failureReason: input.form.get("failureReason"),
-    notes: input.form.get("notes"),
+    outcome: form.get("outcome"),
+    recipientName: form.get("recipientName"),
+    documentNumber: form.get("documentNumber"),
+    ageConfirmed: form.get("ageConfirmed"),
+    failureReason: form.get("failureReason"),
+    notes: form.get("notes"),
   });
   if (!parsed.ok) return { ok: false, status: 400, error: parsed.error };
 
@@ -144,7 +155,7 @@ export async function acceptDeliveryAttempt(input: {
   const proof = parsed.value;
   let path: string | null = null;
   if (proof.outcome === "delivered") {
-    const file = input.form.get("signature");
+    const file = form.get("signature");
     if (!(file instanceof Blob)) return { ok: false, status: 400, error: "signature_missing" };
     const bytes = new Uint8Array(await file.arrayBuffer());
     if (!isValidSignaturePng(bytes)) return { ok: false, status: 400, error: "signature_missing" };

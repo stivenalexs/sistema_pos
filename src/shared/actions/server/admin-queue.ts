@@ -53,6 +53,8 @@ const MESSAGES: Record<string, string> = {
   invalid_reason: "Escribe el motivo (entre 3 y 300 caracteres).",
   action_not_found: "No encontramos esa acción.",
   action_not_failed: "Esa acción ya no está fallida.",
+  delivery_proof_data_removed:
+    "Esta confirmación de entrega ya no guarda la cédula de quien recibió. Pide al mensajero que la envíe de nuevo.",
 };
 
 export async function retryActionAction(_previous: ReasonFormState, formData: FormData): Promise<ReasonFormState> {
