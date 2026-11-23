@@ -2,6 +2,7 @@
 
 import { refresh } from "next/cache";
 
+import { readRaisedError, rpcFailureMessage } from "@/shared/supabase/rpc-result";
 import { createSupabaseServerClient } from "@/shared/supabase/server";
 import type { IdempotentFormState } from "@/shared/ui/idempotent-form-state";
 
@@ -126,9 +127,9 @@ export async function assignDeliveryAction(previous: IdempotentFormState, formDa
     // (assign_delivery then clears it) instead of rejecting the form.
     p_external_ref: (!choice.courierId && values.externalRef) || undefined,
   });
-  if (error) {
-    const code = Object.keys(ASSIGNMENT_ERROR_MESSAGES).find((k) => error.message.includes(k));
-    return answer(previous, "error", (code && ASSIGNMENT_ERROR_MESSAGES[code]) ?? "No se pudo asignar.", values);
+  const failure = readRaisedError(error, ASSIGNMENT_ERROR_MESSAGES);
+  if (failure) {
+    return answer(previous, "error", rpcFailureMessage(failure, ASSIGNMENT_ERROR_MESSAGES, "No se pudo asignar."), values);
   }
   refresh();
   return answer(previous, "ok", "Domicilio asignado: el pedido quedó en camino.");

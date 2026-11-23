@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
 
-import { getStaffRole } from "@/modules/customers";
 import {
   type ConfigChange,
   type FeeRule,
@@ -16,13 +14,14 @@ import {
   setZoneActiveAction,
   StoreSettingsForm,
 } from "@/modules/delivery";
+import { formatBogotaDateTime } from "@/shared/dates";
+import { requireStaffPage } from "@/shared/auth/staff-session";
 import { formatCop } from "@/modules/pricing";
 import { type IdempotentField, IdempotentActionForm } from "@/shared/ui/idempotent-action-form";
 import { PageHeader } from "@/shared/ui/page-header";
 
 export const metadata: Metadata = { title: "Configuración · Administración" };
 
-const DATE = new Intl.DateTimeFormat("es-CO", { timeZone: "America/Bogota", dateStyle: "medium", timeStyle: "short" });
 const CUSTOMER_TYPE_LABELS = { any: "Todos los clientes", retail: "Minoristas", wholesale: "Mayoristas (por caja)" };
 const TABLE_LABELS: Record<string, string> = {
   app_settings: "Datos de la tienda",
@@ -64,7 +63,7 @@ export default function ConfigurationPage() {
 
 async function Configuration() {
   await connection();
-  if ((await getStaffRole()) !== "admin") redirect("/login?next=/admin/configuracion");
+  await requireStaffPage(["admin"], "/admin/configuracion");
   const config = await getConfigOverview();
   const general = config.feeRules.filter((r) => r.isActive && r.customerType === null && r.minBoxes === null);
   const coversAnyDistance = general.some((r) => r.maxDistanceM === null);
@@ -171,7 +170,7 @@ async function Configuration() {
                   {c.changedBy ?? "Sistema"} {OPERATION_LABELS[c.operation] ?? c.operation}{" "}
                   {(TABLE_LABELS[c.tableName] ?? c.tableName).toLowerCase()}: {describeChange(c)}
                 </span>
-                <span className="text-xs text-muted">{DATE.format(new Date(c.createdAt))}</span>
+                <span className="text-xs text-muted">{formatBogotaDateTime(c.createdAt)}</span>
               </li>
             ))}
           </ul>

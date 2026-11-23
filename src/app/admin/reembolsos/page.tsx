@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
 
-import { getStaffRole } from "@/modules/customers";
+import { formatBogotaDateTime } from "@/shared/dates";
+import { requireStaffPage } from "@/shared/auth/staff-session";
 import { listRefunds, markAttemptRefundedAction, markRefundedAction } from "@/modules/orders";
 import { formatCop } from "@/modules/pricing";
 import { PageHeader } from "@/shared/ui/page-header";
@@ -11,7 +11,6 @@ import { ReasonActionForm } from "@/shared/ui/reason-action-form";
 
 export const metadata: Metadata = { title: "Reembolsos · Administración" };
 
-const DATE = new Intl.DateTimeFormat("es-CO", { timeZone: "America/Bogota", dateStyle: "medium", timeStyle: "short" });
 const REASONS: Record<string, string> = {
   insufficient_stock_after_payment: "Pagó, pero ya no había stock",
   payment_for_closed_order: "Pagó después de que el pedido se canceló",
@@ -38,7 +37,7 @@ export default function RefundsPage() {
 
 async function Refunds() {
   await connection();
-  if ((await getStaffRole()) !== "admin") redirect("/login?next=/admin/reembolsos");
+  await requireStaffPage(["admin"], "/admin/reembolsos");
   const refunds = await listRefunds();
   if (refunds.length === 0) return <p className="notice notice-success">No hay reembolsos pendientes.</p>;
 
@@ -54,7 +53,7 @@ async function Refunds() {
           </div>
           <p className="text-sm">
             {REASONS[r.refundReason] ?? r.refundReason}
-            {r.paidAt ? ` · pagó el ${DATE.format(new Date(r.paidAt))}` : ""}
+            {r.paidAt ? ` · pagó el ${formatBogotaDateTime(r.paidAt)}` : ""}
           </p>
           <p className="text-xs text-muted">
             Pedido {r.orderId.slice(0, 8).toUpperCase()} · transacción Wompi {r.transactionId ?? "—"}

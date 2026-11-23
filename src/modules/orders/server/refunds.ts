@@ -2,6 +2,7 @@
 
 import { refresh } from "next/cache";
 
+import { readRpcResult, rpcFailureMessage } from "@/shared/supabase/rpc-result";
 import { createSupabaseServerClient } from "@/shared/supabase/server";
 import type { ReasonFormState } from "@/shared/ui/reason-action-form";
 
@@ -74,9 +75,8 @@ export async function markRefundedAction(_previous: ReasonFormState, formData: F
     p_reference: reference.trim(),
     p_note: note.trim(),
   });
-  const result = data as { ok: boolean; error?: string } | null;
-  const code = error ? Object.keys(MESSAGES).find((k) => error.message.includes(k)) : result?.ok ? null : result?.error;
-  if (error || code) return { status: "error", message: (code && MESSAGES[code]) ?? "No se pudo registrar." };
+  const result = readRpcResult({ data, error }, MESSAGES);
+  if (!result.ok) return { status: "error", message: rpcFailureMessage(result, MESSAGES, "No se pudo registrar.") };
   refresh();
   return { status: "ok", message: "Reembolso registrado." };
 }
@@ -102,9 +102,8 @@ export async function markAttemptRefundedAction(_previous: ReasonFormState, form
     p_reference: reference.trim(),
     p_note: note.trim(),
   });
-  const result = data as { ok: boolean; error?: string } | null;
-  const code = error ? Object.keys(ATTEMPT_MESSAGES).find((k) => error.message.includes(k)) : result?.ok ? null : result?.error;
-  if (error || code) return { status: "error", message: (code && ATTEMPT_MESSAGES[code]) ?? "No se pudo registrar." };
+  const result = readRpcResult({ data, error }, ATTEMPT_MESSAGES);
+  if (!result.ok) return { status: "error", message: rpcFailureMessage(result, ATTEMPT_MESSAGES, "No se pudo registrar.") };
   refresh();
   return { status: "ok", message: "Reembolso del pago duplicado registrado." };
 }

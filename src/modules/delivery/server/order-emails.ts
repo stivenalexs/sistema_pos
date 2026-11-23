@@ -1,6 +1,7 @@
 import "server-only";
 
 import { formatCop } from "@/modules/pricing";
+import { formatBogotaLongDateTime, formatCalendarDay } from "@/shared/dates";
 import { PermanentActionError } from "@/shared/actions/server/worker";
 import { getEmailConfig, sendEmail } from "@/shared/email/send-email";
 import type { EmailConfig } from "@/shared/email/email-config";
@@ -29,21 +30,6 @@ type Deps = {
   config?: EmailConfig;
 };
 
-const DEADLINE = new Intl.DateTimeFormat("es-CO", {
-  timeZone: "America/Bogota",
-  weekday: "long",
-  day: "numeric",
-  month: "long",
-  hour: "numeric",
-  minute: "2-digit",
-});
-const DAY = new Intl.DateTimeFormat("es-CO", {
-  timeZone: "UTC",
-  weekday: "long",
-  day: "numeric",
-  month: "long",
-});
-const clean = (value: string) => value.replace(/ | /g, " ");
 
 async function loadEmailData(orderId: string): Promise<EmailData | null> {
   const { data, error } = await createSupabaseAdminClient().rpc("order_email_data", { p_order_id: orderId });
@@ -67,11 +53,9 @@ export async function sendOrderEmail(payload: unknown, deps: Deps = {}): Promise
     customerName: data.customer_name,
     orderNumber: data.order_id.slice(0, 8).toUpperCase(),
     failureReason: data.failure_reason,
-    deadlineText: data.return_choice_deadline ? clean(DEADLINE.format(new Date(data.return_choice_deadline))) : null,
-    // A date (no time): formatted in UTC so the day never shifts.
-    scheduledText: data.scheduled_delivery_on
-      ? clean(DAY.format(new Date(`${data.scheduled_delivery_on}T00:00:00Z`)))
-      : null,
+    deadlineText: data.return_choice_deadline ? formatBogotaLongDateTime(data.return_choice_deadline) : null,
+    // A date (no time): the day never shifts.
+    scheduledText: data.scheduled_delivery_on ? formatCalendarDay(data.scheduled_delivery_on) : null,
     refundText: data.refund_amount_cop != null ? formatCop(data.refund_amount_cop) : null,
     orderUrl: config.appUrl ? `${config.appUrl}${orderPath}` : null,
     orderPath,

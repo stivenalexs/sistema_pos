@@ -2,6 +2,7 @@
 
 import { refresh } from "next/cache";
 
+import { readRaisedError, rpcFailureMessage } from "@/shared/supabase/rpc-result";
 import { createSupabaseServerClient } from "@/shared/supabase/server";
 
 import { ADDRESS_ERROR_MESSAGES, type FieldErrors, parseAddressInput } from "../domain/delivery";
@@ -16,8 +17,7 @@ export type AddressFormState = {
 };
 
 function knownMessage(message: string, fallback: string): string {
-  const code = Object.keys(ADDRESS_ERROR_MESSAGES).find((key) => message.includes(key));
-  return code ? (ADDRESS_ERROR_MESSAGES[code] ?? fallback) : fallback;
+  return rpcFailureMessage(readRaisedError({ message }, ADDRESS_ERROR_MESSAGES)!, ADDRESS_ERROR_MESSAGES, fallback);
 }
 
 export async function saveAddressAction(

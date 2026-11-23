@@ -2,6 +2,7 @@
 
 import { refresh } from "next/cache";
 
+import { readRpcResult, rpcFailureMessage } from "@/shared/supabase/rpc-result";
 import { createSupabaseServerClient } from "@/shared/supabase/server";
 import type { IdempotentFormState } from "@/shared/ui/idempotent-form-state";
 
@@ -144,13 +145,12 @@ export async function saveStoreSettingsAction(
     p_zone_id: values.zoneId,
     p_max_distance_m: km * 1000,
   });
-  const result = data as { ok: boolean; changed?: boolean; error?: string } | null;
-  if (error || !result?.ok) {
-    const code = error ? (error.message.includes("admin_forbidden") ? "admin_forbidden" : "") : (result?.error ?? "");
-    return answer(previous, "error", STORE_SETTINGS_ERROR_MESSAGES[code] ?? "No se pudo guardar.", values);
+  const result = readRpcResult<{ changed?: boolean }>({ data, error }, STORE_SETTINGS_ERROR_MESSAGES);
+  if (!result.ok) {
+    return answer(previous, "error", rpcFailureMessage(result, STORE_SETTINGS_ERROR_MESSAGES, "No se pudo guardar."), values);
   }
   refresh();
-  return answer(previous, "ok", result.changed ? "Datos de la tienda guardados." : "No había cambios.");
+  return answer(previous, "ok", result.value.changed ? "Datos de la tienda guardados." : "No había cambios.");
 }
 
 export async function setZoneActiveAction(previous: IdempotentFormState, formData: FormData): Promise<IdempotentFormState> {

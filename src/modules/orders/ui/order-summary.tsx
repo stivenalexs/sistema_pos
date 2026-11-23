@@ -1,3 +1,4 @@
+import { formatCalendarDay } from "@/shared/dates";
 import type { ReactNode } from "react";
 
 import { formatCop } from "@/modules/pricing";
@@ -144,8 +145,6 @@ export function OrderSummary({
   );
 }
 
-const DAY = new Intl.DateTimeFormat("es-CO", { timeZone: "UTC", weekday: "long", day: "numeric", month: "long" });
-const formatDay = (isoDate: string) => DAY.format(new Date(`${isoDate}T00:00:00Z`));
 
 // A failed delivery back at the store (D-059, D-068). No animation (agents.md §8).
 function DeliveryReturnNotice({ order, withNit }: { order: OrderDetail; withNit: boolean }) {
@@ -173,7 +172,7 @@ function DeliveryReturnNotice({ order, withNit }: { order: OrderDetail; withNit:
         {order.returnKind === "force_majeure"
           ? "No pudimos entregar tu pedido por un imprevisto ajeno a ti. "
           : "Programamos de nuevo tu domicilio. "}
-        Lo enviaremos el {formatDay(order.scheduledDeliveryOn)}, sin costo adicional.
+        Lo enviaremos el {formatCalendarDay(order.scheduledDeliveryOn)}, sin costo adicional.
       </p>
     );
   }

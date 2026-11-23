@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
 
-import { getStaffRole } from "@/modules/customers";
+import { requireStaffPage } from "@/shared/auth/staff-session";
 import {
   getInventoryOverview,
   getRecentMovements,
@@ -39,8 +39,7 @@ export default function ProductInventoryPage({ params }: { params: Params }) {
 async function ProductInventory({ params }: { params: Params }) {
   await connection();
   const { productId } = await params;
-  const role = await getStaffRole();
-  if (role !== "admin" && role !== "warehouse") redirect(`/login?next=/admin/inventario/${productId}`);
+  await requireStaffPage(["admin", "warehouse"], `/admin/inventario/${productId}`);
   if (!isUuid(productId)) notFound();
   const product = (await getInventoryOverview()).find((p) => p.productId === productId);
   if (!product) notFound();

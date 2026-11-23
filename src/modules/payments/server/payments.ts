@@ -5,6 +5,7 @@ import { createHash } from "node:crypto";
 import { acceptAction } from "@/shared/actions/server/accept-action";
 import { createSupabaseAdminClient } from "@/shared/supabase/admin";
 import type { Json } from "@/shared/supabase/database.types";
+import { readRpcResult } from "@/shared/supabase/rpc-result";
 import { createSupabaseServerClient } from "@/shared/supabase/server";
 
 import { buildCheckoutUrl, checkoutRedirectUrl } from "./checkout";
@@ -22,6 +23,13 @@ import { getWompiConfig } from "./wompi-config";
 export type StartPaymentResult =
   | { ok: true; trackingId: string; checkoutUrl: string }
   | { ok: false; error: "insufficient_stock" | "payment_in_progress" | "payment_order_not_payable" | "sales_blocked" | "idempotency_key_conflict" };
+
+const PAYMENT_REFUSALS = ["insufficient_stock", "payment_in_progress", "payment_order_not_payable", "sales_blocked"] as const;
+type PaymentRefusal = (typeof PAYMENT_REFUSALS)[number];
+
+function isPaymentRefusal(code: string | null): code is PaymentRefusal {
+  return (PAYMENT_REFUSALS as readonly (string | null)[]).includes(code);
+}
 
 type AttemptRow = { id: string; reference: string; amount_in_cents: number; expires_at: string };
 
@@ -44,10 +52,12 @@ export async function startPayment(input: {
     throw new Error(`start_payment failed: ${error.message}`);
   }
 
-  const result = data as { ok: boolean; tracking_id?: string; attempt?: AttemptRow; error?: string };
-  if (!result.ok || !result.attempt || !result.tracking_id) {
-    return { ok: false, error: (result.error ?? "payment_order_not_payable") as "payment_order_not_payable" };
+  const answer = readRpcResult<{ tracking_id?: string; attempt?: AttemptRow }>({ data, error: null }, {});
+  if (!answer.ok || !answer.value.attempt || !answer.value.tracking_id) {
+    const code = answer.ok ? null : answer.code;
+    return { ok: false, error: isPaymentRefusal(code) ? code : "payment_order_not_payable" };
   }
+  const result = { tracking_id: answer.value.tracking_id, attempt: answer.value.attempt };
 
   const [{ data: claims }, { data: customer }] = await Promise.all([
     supabase.auth.getClaims(),

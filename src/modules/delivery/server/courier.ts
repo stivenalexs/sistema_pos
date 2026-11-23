@@ -5,7 +5,9 @@ import {
   IdempotencyConflictError,
 } from "@/shared/actions/server/accept-action";
 import { PermanentActionError } from "@/shared/actions/server/worker";
+import { getStaffSessionIn, type StaffSession } from "@/shared/auth/staff-session";
 import { createSupabaseAdminClient } from "@/shared/supabase/admin";
+import { readRpcResult } from "@/shared/supabase/rpc-result";
 import { createSupabaseServerClient } from "@/shared/supabase/server";
 import type { Database, Json } from "@/shared/supabase/database.types";
 
@@ -21,16 +23,13 @@ import { isValidSignaturePng, parseProofInput, signaturePath } from "../domain/d
 
 export const SIGNATURES_BUCKET = "delivery-signatures";
 
-export type DeliveryStaffRole = "courier" | "admin";
+export const DELIVERY_ROLES = ["courier", "admin"] as const;
+
+export type DeliveryStaffRole = (typeof DELIVERY_ROLES)[number];
 
 /** The internal role of the signed-in user, if it can deliver orders. */
-export async function getDeliveryStaff(): Promise<{ userId: string; role: DeliveryStaffRole } | null> {
-  const supabase = await createSupabaseServerClient();
-  const { data } = await supabase.auth.getClaims();
-  const claims = data?.claims;
-  const role = (claims?.app_metadata as { staff_role?: unknown } | undefined)?.staff_role;
-  if (!claims?.sub || (role !== "courier" && role !== "admin")) return null;
-  return { userId: claims.sub, role };
+export async function getDeliveryStaff(): Promise<StaffSession<DeliveryStaffRole> | null> {
+  return getStaffSessionIn(DELIVERY_ROLES);
 }
 
 export type DeliveryAddressSnapshot = {
@@ -258,7 +257,7 @@ export async function processDeliveryAttempt(
     if (error.message.includes("idempotency_key_conflict")) throw new PermanentActionError("idempotency_key_conflict");
     throw new Error(`record_delivery_attempt failed: ${error.message}`);
   }
-  const result = data as { ok: boolean; error?: string; outcome?: string; attempt_id?: string };
-  if (!result.ok) throw new PermanentActionError(result.error ?? "delivery_rejected");
-  return { outcome: result.outcome ?? payload.outcome, attempt_id: result.attempt_id ?? null };
+  const result = readRpcResult<{ outcome?: string; attempt_id?: string }>({ data, error: null }, {});
+  if (!result.ok) throw new PermanentActionError(result.code ?? "delivery_rejected");
+  return { outcome: result.value.outcome ?? payload.outcome, attempt_id: result.value.attempt_id ?? null };
 }

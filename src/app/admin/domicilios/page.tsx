@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
 
-import { getStaffRole } from "@/modules/customers";
 import {
   type AdminDelivery,
   assignDeliveryAction,
@@ -15,6 +13,8 @@ import {
   listDeliveriesForAdmin,
   setProviderActiveAction,
 } from "@/modules/delivery";
+import { bogotaToday, formatBogotaDateTime, formatCalendarDay } from "@/shared/dates";
+import { requireStaffPage } from "@/shared/auth/staff-session";
 import { listPickupsAttention, ORDER_STATUS_LABELS, type PickupAttention, resetPickupAttemptsAction } from "@/modules/orders";
 import { formatCop } from "@/modules/pricing";
 import { IdempotentActionForm } from "@/shared/ui/idempotent-action-form";
@@ -23,10 +23,6 @@ import { ReasonActionForm } from "@/shared/ui/reason-action-form";
 
 export const metadata: Metadata = { title: "Domicilios · Administración" };
 
-const DATE = new Intl.DateTimeFormat("es-CO", { timeZone: "America/Bogota", dateStyle: "medium", timeStyle: "short" });
-const DAY = new Intl.DateTimeFormat("es-CO", { timeZone: "UTC", weekday: "short", day: "numeric", month: "short" });
-const formatDay = (isoDate: string) => DAY.format(new Date(`${isoDate}T00:00:00Z`));
-const TODAY_BOGOTA = () => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Bogota" }).format(new Date());
 
 // Delivery assignment (D-026, D-045, D-057): paid web orders go to an own
 // courier (who then sees them in /courier) or to a third party, tracked here.
@@ -47,7 +43,7 @@ export default function DeliveriesPage() {
 
 async function Deliveries() {
   await connection();
-  if ((await getStaffRole()) !== "admin") redirect("/login?next=/admin/domicilios");
+  await requireStaffPage(["admin"], "/admin/domicilios");
   const [deliveries, options, pickups] = await Promise.all([
     listDeliveriesForAdmin(),
     getDeliveryOptions(),
@@ -66,7 +62,7 @@ async function Deliveries() {
   const awaitingChoice = deliveries.filter((d) => d.awaitingChoice);
   const waiting = deliveries.filter((d) => d.status !== "out_for_delivery" && !d.awaitingChoice);
   const onTheWay = deliveries.filter((d) => d.status === "out_for_delivery");
-  const today = TODAY_BOGOTA();
+  const today = bogotaToday();
 
   return (
     <div className="flex flex-col gap-10">
@@ -178,19 +174,19 @@ function DeliveryCard({
       </div>
       <p className="text-xs text-muted">
         Pedido {d.orderId.slice(0, 8).toUpperCase()} · {ORDER_STATUS_LABELS[d.status] ?? d.status}
-        {d.paidAt ? ` · pagó el ${DATE.format(new Date(d.paidAt))}` : ""} · {formatDistance(d.distanceM)} ·{" "}
+        {d.paidAt ? ` · pagó el ${formatBogotaDateTime(d.paidAt)}` : ""} · {formatDistance(d.distanceM)} ·{" "}
         {d.totalUnits} {d.totalUnits === 1 ? "unidad" : "unidades"} · {d.contactName ?? "—"} {d.contactPhone ?? ""}
       </p>
       {d.status === "out_for_delivery" ? (
         <p className="text-sm">
           En camino con <strong>{d.courier ?? d.provider ?? "—"}</strong>
           {d.externalRef ? ` (guía ${d.externalRef})` : ""}
-          {d.assignedAt ? ` · desde el ${DATE.format(new Date(d.assignedAt))}` : ""}
+          {d.assignedAt ? ` · desde el ${formatBogotaDateTime(d.assignedAt)}` : ""}
         </p>
       ) : null}
       {d.lastFailure ? (
         <p role="status" className="notice notice-warning text-sm">
-          {d.returnedAt ? "Volvió a la tienda" : "Intento fallido"} el {DATE.format(new Date(d.lastFailure.at))}:{" "}
+          {d.returnedAt ? "Volvió a la tienda" : "Intento fallido"} el {formatBogotaDateTime(d.lastFailure.at)}:{" "}
           {FAILURE_REASON_LABELS[d.lastFailure.reason] ?? d.lastFailure.reason}
           {d.lastFailure.notes ? ` — ${d.lastFailure.notes}` : ""}.
         </p>
@@ -198,14 +194,14 @@ function DeliveryCard({
       {d.scheduledDeliveryOn && d.status !== "out_for_delivery" ? (
         <p className="text-sm">
           <span className="badge">{d.scheduledDeliveryOn <= today ? "Sale hoy" : "Programado"}</span> Enviar el{" "}
-          {formatDay(d.scheduledDeliveryOn)}
+          {formatCalendarDay(d.scheduledDeliveryOn, "short")}
           {d.returnChoice === "reschedule" ? " (lo pidió el cliente)" : d.returnKind === "force_majeure" ? " (fuerza mayor)" : ""}.
         </p>
       ) : null}
       {d.awaitingChoice ? (
         <p className="text-sm text-muted">
           Esperando que el cliente elija: recoger, reprogramar o reembolso
-          {d.returnChoiceDeadline ? `, hasta el ${DATE.format(new Date(d.returnChoiceDeadline))}` : ""}. Si no elige,
+          {d.returnChoiceDeadline ? `, hasta el ${formatBogotaDateTime(d.returnChoiceDeadline)}` : ""}. Si no elige,
           queda para recoger en la tienda.
         </p>
       ) : (
@@ -242,7 +238,7 @@ function PickupCard({ pickup: p }: { pickup: PickupAttention }) {
       </div>
       <p className="text-xs text-muted">
         Pedido {p.orderId.slice(0, 8).toUpperCase()} · {ORDER_STATUS_LABELS[p.status] ?? p.status}
-        {p.paidAt ? ` · pagó el ${DATE.format(new Date(p.paidAt))}` : ""}
+        {p.paidAt ? ` · pagó el ${formatBogotaDateTime(p.paidAt)}` : ""}
         {p.defaulted ? " · quedó para recoger porque el cliente no eligió en 3 días" : ""}
       </p>
       {p.reason === "locked" ? (

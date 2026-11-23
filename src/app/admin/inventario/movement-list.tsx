@@ -1,6 +1,6 @@
 import { MOVEMENT_LABELS, type MovementRow } from "@/modules/inventory";
+import { formatBogotaDateTime } from "@/shared/dates";
 
-const DATE = new Intl.DateTimeFormat("es-CO", { timeZone: "America/Bogota", dateStyle: "medium", timeStyle: "short" });
 
 // Movements ledger, newest first (read only: the ledger is insert-only).
 export function MovementList({ movements, showProduct }: { movements: MovementRow[]; showProduct: boolean }) {
@@ -15,7 +15,7 @@ export function MovementList({ movements, showProduct }: { movements: MovementRo
               {showProduct ? <span className="text-muted"> · {m.productName}</span> : null}
             </span>
             <span className="text-xs text-muted">
-              {DATE.format(new Date(m.createdAt))}
+              {formatBogotaDateTime(m.createdAt)}
               {m.recordedBy ? ` · ${m.recordedBy}` : ""}
               {m.reference ? ` · ${m.reference}` : ""}
               {m.reason ? ` · ${m.reason}` : ""}

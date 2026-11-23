@@ -2,6 +2,7 @@
 
 import { refresh } from "next/cache";
 
+import { readRpcResult, rpcFailureMessage } from "@/shared/supabase/rpc-result";
 import { createSupabaseServerClient } from "@/shared/supabase/server";
 import type { ReasonFormState } from "@/shared/ui/reason-action-form";
 
@@ -54,9 +55,8 @@ export async function resetPickupAttemptsAction(_previous: ReasonFormState, form
     p_order_id: orderId,
     p_reason: reason.trim(),
   });
-  const result = data as { ok: boolean; error?: string } | null;
-  const code = error ? Object.keys(RESET_MESSAGES).find((k) => error.message.includes(k)) : result?.ok ? null : result?.error;
-  if (error || code) return { status: "error", message: (code && RESET_MESSAGES[code]) ?? "No se pudo reiniciar." };
+  const result = readRpcResult({ data, error }, RESET_MESSAGES);
+  if (!result.ok) return { status: "error", message: rpcFailureMessage(result, RESET_MESSAGES, "No se pudo reiniciar.") };
   refresh();
   return { status: "ok", message: "Intentos reiniciados. El cliente ya puede confirmar la recogida." };
 }

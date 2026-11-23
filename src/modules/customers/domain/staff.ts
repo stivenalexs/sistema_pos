@@ -5,9 +5,11 @@ import { passwordError } from "./password";
 
 export { passwordError };
 
-export type StaffRole = "admin" | "cashier" | "courier" | "warehouse";
+import { isStaffRole, STAFF_ROLES, type StaffRole } from "@/shared/auth/staff-role";
 
-export const STAFF_ROLES: readonly StaffRole[] = ["admin", "cashier", "courier", "warehouse"];
+// The roles themselves live in src/shared/auth (D-075); re-exported here so
+// the module's public API does not change.
+export { isStaffRole, STAFF_ROLES, type StaffRole };
 
 export const STAFF_ROLE_LABELS: Record<StaffRole, string> = {
   admin: "Administrador",
@@ -24,9 +26,6 @@ export const STAFF_HOME: Record<StaffRole, string> = {
   warehouse: "/admin/inventario",
 };
 
-export function isStaffRole(value: unknown): value is StaffRole {
-  return typeof value === "string" && (STAFF_ROLES as readonly string[]).includes(value);
-}
 
 /** Pages only for people without a session (D-065). */
 export const SIGNED_OUT_ONLY_PATHS = ["/login", "/signup"] as const;

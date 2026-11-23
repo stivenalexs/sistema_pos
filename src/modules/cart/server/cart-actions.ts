@@ -2,6 +2,7 @@
 
 import { refresh } from "next/cache";
 
+import { readRaisedError, rpcFailureMessage } from "@/shared/supabase/rpc-result";
 import { createSupabaseServerClient } from "@/shared/supabase/server";
 
 // Cart changes (D-039). Synchronous and small, so they use FormSubmitButton
@@ -39,12 +40,9 @@ export async function setCartItemAction(
     p_product_id: productId,
     p_quantity: quantity,
   });
-  if (error) {
-    const known = Object.keys(MESSAGES).find((code) => error.message.includes(code));
-    return {
-      status: "error",
-      message: known ? MESSAGES[known] : "No pudimos actualizar el carrito. Intenta de nuevo.",
-    };
+  const failure = readRaisedError(error, MESSAGES);
+  if (failure) {
+    return { status: "error", message: rpcFailureMessage(failure, MESSAGES, "No pudimos actualizar el carrito. Intenta de nuevo.") };
   }
   // Re-render the current page with the new data (totals, status).
   refresh();

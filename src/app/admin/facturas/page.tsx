@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
 
-import { getStaffRole } from "@/modules/customers";
+import { formatBogotaDateTime } from "@/shared/dates";
+import { requireStaffPage } from "@/shared/auth/staff-session";
 import { listInvoicesForAdmin, retryCreditNoteAction, retryInvoiceAction } from "@/modules/invoicing";
 import { formatCop } from "@/modules/pricing";
 import { PageHeader } from "@/shared/ui/page-header";
@@ -11,7 +11,6 @@ import { ReasonActionForm } from "@/shared/ui/reason-action-form";
 
 export const metadata: Metadata = { title: "Facturas · Administración" };
 
-const DATE = new Intl.DateTimeFormat("es-CO", { timeZone: "America/Bogota", dateStyle: "medium", timeStyle: "short" });
 const STATUS: Record<string, string> = { pending: "En cola", sent: "Enviada", accepted: "Aceptada", rejected: "Rechazada" };
 const REASON_FIELD = [{ name: "reason", label: "Motivo del reintento", placeholder: "Rango de numeración renovado" }];
 
@@ -33,7 +32,7 @@ export default function InvoicesPage() {
 
 async function Invoices() {
   await connection();
-  if ((await getStaffRole()) !== "admin") redirect("/login?next=/admin/facturas");
+  await requireStaffPage(["admin"], "/admin/facturas");
   const { invoices, creditNotes } = await listInvoicesForAdmin();
 
   return (
@@ -54,7 +53,7 @@ async function Invoices() {
                   <p className="tabular-nums">{formatCop(i.totalCop)}</p>
                 </div>
                 <p className="text-xs text-muted">
-                  Intentos: {i.attempts} · actualizada {DATE.format(new Date(i.updatedAt))} · emisión:{" "}
+                  Intentos: {i.attempts} · actualizada {formatBogotaDateTime(i.updatedAt)} · emisión:{" "}
                   {i.actionStatus === "failed" ? "detenida" : i.actionStatus === "succeeded" ? "terminada" : "en cola"}
                 </p>
                 {i.responseMessage || i.lastError ? (
@@ -85,7 +84,7 @@ async function Invoices() {
                   </span>
                 </p>
                 <p className="text-sm text-muted">
-                  {n.reason} · {DATE.format(new Date(n.createdAt))}
+                  {n.reason} · {formatBogotaDateTime(n.createdAt)}
                 </p>
                 {n.lastError ? <p className="notice notice-danger text-sm">{n.lastError}</p> : null}
                 {n.status !== "accepted" && n.actionStatus === "failed" ? (

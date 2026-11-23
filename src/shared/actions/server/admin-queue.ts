@@ -2,6 +2,7 @@
 
 import { refresh } from "next/cache";
 
+import { readRpcResult, rpcFailureMessage } from "@/shared/supabase/rpc-result";
 import { createSupabaseServerClient } from "@/shared/supabase/server";
 import type { ReasonFormState } from "@/shared/ui/reason-action-form";
 
@@ -63,8 +64,8 @@ export async function retryActionAction(_previous: ReasonFormState, formData: Fo
   if (typeof id !== "string" || typeof reason !== "string") return { status: "error", message: MESSAGES.invalid_reason };
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.rpc("retry_action", { p_action_id: id, p_reason: reason.trim() });
-  const code = error ? Object.keys(MESSAGES).find((k) => error.message.includes(k)) : (data as { ok: boolean; error?: string }).ok ? null : (data as { error?: string }).error;
-  if (error || code) return { status: "error", message: (code && MESSAGES[code]) ?? "No se pudo reintentar." };
+  const result = readRpcResult({ data, error }, MESSAGES);
+  if (!result.ok) return { status: "error", message: rpcFailureMessage(result, MESSAGES, "No se pudo reintentar.") };
   refresh();
   return { status: "ok", message: "Acción encolada de nuevo." };
 }

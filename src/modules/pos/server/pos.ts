@@ -1,5 +1,6 @@
 import "server-only";
 
+import { getStaffSessionIn, type StaffSession } from "@/shared/auth/staff-session";
 import { createSupabaseServerClient } from "@/shared/supabase/server";
 
 import { type PosCatalogItem, type PosPaymentMethod, POS_PAYMENT_METHODS } from "../domain/pos";
@@ -8,15 +9,12 @@ import { type PosCatalogItem, type PosPaymentMethod, POS_PAYMENT_METHODS } from 
 // database checks the role, prices the sale, takes the stock and enqueues
 // the invoice in one transaction.
 
-export type PosStaff = { userId: string; role: "cashier" | "admin" };
+export const POS_ROLES = ["cashier", "admin"] as const;
+
+export type PosStaff = StaffSession<(typeof POS_ROLES)[number]>;
 
 export async function getPosStaff(): Promise<PosStaff | null> {
-  const supabase = await createSupabaseServerClient();
-  const { data } = await supabase.auth.getClaims();
-  const claims = data?.claims;
-  const role = (claims?.app_metadata as { staff_role?: unknown } | undefined)?.staff_role;
-  if (!claims?.sub || (role !== "cashier" && role !== "admin")) return null;
-  return { userId: claims.sub, role };
+  return getStaffSessionIn(POS_ROLES);
 }
 
 export type PosCustomer = {

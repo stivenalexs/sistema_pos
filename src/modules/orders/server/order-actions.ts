@@ -2,6 +2,7 @@
 
 import { refresh } from "next/cache";
 
+import { readRpcResult, rpcFailureMessage } from "@/shared/supabase/rpc-result";
 import { createSupabaseServerClient } from "@/shared/supabase/server";
 
 import {
@@ -58,14 +59,15 @@ export async function confirmPickupAction(
   if (error) {
     return { status: "error", message: "No pudimos registrar la recogida. Intenta de nuevo." };
   }
-  const result = data as { ok: boolean; error?: ConfirmPickupError; attempts_left?: number };
+  const result = readRpcResult({ data, error }, CONFIRM_PICKUP_MESSAGES);
   if (!result.ok) {
-    const message = (result.error && CONFIRM_PICKUP_MESSAGES[result.error]) ?? "No pudimos registrar la recogida.";
+    const message = rpcFailureMessage(result, CONFIRM_PICKUP_MESSAGES, "No pudimos registrar la recogida.");
+    const attemptsLeft = result.value?.attempts_left;
     const left =
-      result.error === "document_mismatch" && typeof result.attempts_left === "number"
-        ? result.attempts_left === 1
+      result.code === ("document_mismatch" satisfies ConfirmPickupError) && typeof attemptsLeft === "number"
+        ? attemptsLeft === 1
           ? " Te queda 1 intento."
-          : ` Te quedan ${result.attempts_left} intentos.`
+          : ` Te quedan ${attemptsLeft} intentos.`
         : "";
     return { status: "error", message: message + left };
   }
@@ -93,9 +95,9 @@ export async function chooseReturnOptionAction(
     ...(typeof document === "string" && document.trim() !== "" ? { p_pickup_document: document } : {}),
   });
   if (error) return { status: "error", message: "No pudimos guardar tu elección. Intenta de nuevo." };
-  const result = data as { ok: boolean; error?: string };
+  const result = readRpcResult({ data, error }, RETURN_CHOICE_MESSAGES);
   if (!result.ok) {
-    return { status: "error", message: (result.error && RETURN_CHOICE_MESSAGES[result.error]) ?? "No pudimos guardar tu elección." };
+    return { status: "error", message: rpcFailureMessage(result, RETURN_CHOICE_MESSAGES, "No pudimos guardar tu elección.") };
   }
   refresh();
   return { status: "ok", message: "Listo, guardamos tu elección." };
@@ -116,9 +118,9 @@ export async function setPickupDocumentAction(
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.rpc("set_pickup_document", { p_order_id: orderId, p_document: document });
   if (error) return { status: "error", message: "No pudimos guardar la cédula. Intenta de nuevo." };
-  const result = data as { ok: boolean; error?: string };
+  const result = readRpcResult({ data, error }, SET_PICKUP_DOCUMENT_MESSAGES);
   if (!result.ok) {
-    return { status: "error", message: (result.error && SET_PICKUP_DOCUMENT_MESSAGES[result.error]) ?? "No pudimos guardar la cédula." };
+    return { status: "error", message: rpcFailureMessage(result, SET_PICKUP_DOCUMENT_MESSAGES, "No pudimos guardar la cédula.") };
   }
   refresh();
   return { status: "ok", message: "Cédula registrada." };

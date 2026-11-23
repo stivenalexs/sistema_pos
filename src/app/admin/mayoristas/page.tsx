@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
 
-import { getStaffRole, listWholesale, WholesaleReviewForm } from "@/modules/customers";
+import { formatBogotaDateTime } from "@/shared/dates";
+import { requireStaffPage } from "@/shared/auth/staff-session";
+import { listWholesale, WholesaleReviewForm } from "@/modules/customers";
 import { PageHeader } from "@/shared/ui/page-header";
 
 export const metadata: Metadata = { title: "Mayoristas · Administración" };
@@ -17,7 +18,6 @@ const TABS = [
   { status: "rejected", label: "Rechazados" },
 ] as const;
 
-const DATE = new Intl.DateTimeFormat("es-CO", { timeZone: "America/Bogota", dateStyle: "medium", timeStyle: "short" });
 
 // Wholesale review (D-054). Approving changes the customer's prices on their
 // next session refresh (up to 1 hour, D-031). Documents (RUT, cámara de
@@ -37,7 +37,7 @@ export default function WholesalePage({ searchParams }: { searchParams: SearchPa
 
 async function Applicants({ searchParams }: { searchParams: SearchParams }) {
   await connection();
-  if ((await getStaffRole()) !== "admin") redirect("/login?next=/admin/mayoristas");
+  await requireStaffPage(["admin"], "/admin/mayoristas");
   const params = await searchParams;
   const status = TABS.find((tab) => tab.status === params.estado)?.status ?? "pending";
   const applicants = await listWholesale(status);
@@ -68,7 +68,7 @@ async function Applicants({ searchParams }: { searchParams: SearchParams }) {
                   NIT {a.nit ?? "—"} · {a.fullName} · {a.email}
                   {a.phone ? ` · ${a.phone}` : ""}
                 </p>
-                <p className="text-xs text-muted">Registro: {DATE.format(new Date(a.createdAt))}</p>
+                <p className="text-xs text-muted">Registro: {formatBogotaDateTime(a.createdAt)}</p>
                 {a.lastReview ? (
                   <p className="text-xs text-muted">
                     Última revisión: {a.lastReview.decision === "approved" ? "aprobado" : "rechazado"} ({a.lastReview.reason})

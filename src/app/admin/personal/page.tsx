@@ -1,21 +1,20 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
 
 import {
   DeactivateStaffForm,
-  getStaffRole,
   InviteStaffForm,
   listStaff,
   RevokeInvitationForm,
   STAFF_ROLE_LABELS,
 } from "@/modules/customers";
+import { formatBogotaDateTime } from "@/shared/dates";
+import { requireStaffPage } from "@/shared/auth/staff-session";
 import { PageHeader } from "@/shared/ui/page-header";
 
 export const metadata: Metadata = { title: "Personal · Administración" };
 
-const DATE = new Intl.DateTimeFormat("es-CO", { timeZone: "America/Bogota", dateStyle: "medium", timeStyle: "short" });
 
 // Staff (D-054): invitations by email and deactivation.
 export default function StaffPage() {
@@ -34,7 +33,7 @@ export default function StaffPage() {
 
 async function Staff() {
   await connection();
-  if ((await getStaffRole()) !== "admin") redirect("/login?next=/admin/personal");
+  await requireStaffPage(["admin"], "/admin/personal");
   const { members, invitations } = await listStaff();
 
   return (
@@ -51,7 +50,7 @@ async function Staff() {
                   </p>
                   <p className="text-sm text-muted">
                     {m.email} ·{" "}
-                    {m.lastSignInAt ? `último ingreso ${DATE.format(new Date(m.lastSignInAt))}` : "todavía no ha ingresado"}
+                    {m.lastSignInAt ? `último ingreso ${formatBogotaDateTime(m.lastSignInAt)}` : "todavía no ha ingresado"}
                   </p>
                 </div>
                 <DeactivateStaffForm userId={m.userId} />
@@ -77,7 +76,7 @@ async function Staff() {
                       {i.fullName} <span className="badge ml-2">{STAFF_ROLE_LABELS[i.role]}</span>
                     </p>
                     <p className="text-sm text-muted">
-                      {i.email} · {i.expired ? "vencida" : `vence ${DATE.format(new Date(i.expiresAt))}`}
+                      {i.email} · {i.expired ? "vencida" : `vence ${formatBogotaDateTime(i.expiresAt)}`}
                     </p>
                   </div>
                   <RevokeInvitationForm invitationId={i.id} />

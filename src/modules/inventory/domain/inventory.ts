@@ -1,5 +1,7 @@
 // Pure inventory rules for the admin panel (D-038, D-056). No I/O.
 
+import { readRaisedError, rpcFailureMessage } from "@/shared/supabase/rpc-result";
+
 export type MovementType =
   | "purchase_in"
   | "web_sale"
@@ -60,11 +62,10 @@ export const INVENTORY_MESSAGES: Record<string, string> = {
 
 /** Spanish message for a database error, matched by its code in the text. */
 export function inventoryErrorMessage(errorText: string): string {
-  // Longest codes first, so "inventory_missing_reason" never matches a shorter prefix.
-  const code = Object.keys(INVENTORY_MESSAGES)
-    .sort((a, b) => b.length - a.length)
-    .find((k) => errorText.includes(k));
-  return code ? INVENTORY_MESSAGES[code]! : "No se pudo registrar. Inténtalo de nuevo.";
+  // readRaisedError tries the longest codes first, so
+  // "inventory_missing_reason" never matches a shorter prefix.
+  const failure = readRaisedError({ message: errorText }, INVENTORY_MESSAGES)!;
+  return rpcFailureMessage(failure, INVENTORY_MESSAGES, "No se pudo registrar. Inténtalo de nuevo.");
 }
 
 /** "12 u. (1 caja de 12)" style hint of a quantity in base units. */
