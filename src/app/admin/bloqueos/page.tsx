@@ -15,7 +15,7 @@ import {
 import { formatBogotaDateTime, formatBogotaShortDateTime } from "@/shared/dates";
 import { requireStaffPage } from "@/shared/auth/staff-session";
 import { getConfigOverview } from "@/modules/delivery";
-import { type IdempotentField, IdempotentActionForm } from "@/shared/ui/idempotent-action-form";
+import { ActionForm, type ActionFormField } from "@/shared/ui/action-form";
 import { PageHeader } from "@/shared/ui/page-header";
 
 export const metadata: Metadata = { title: "Bloqueos de venta · Administración" };
@@ -115,7 +115,7 @@ async function SalesBlocks() {
                 <details>
                   <summary className="link cursor-pointer text-sm">Editar</summary>
                   <div className="pt-3">
-                    <IdempotentActionForm
+                    <ActionForm
                       action={saveSalesBlockAction}
                       hidden={{ ruleId: r.id, kind: r.kind }}
                       fields={ruleFields(r.kind, zones, r)}
@@ -124,7 +124,7 @@ async function SalesBlocks() {
                     />
                   </div>
                 </details>
-                <IdempotentActionForm
+                <ActionForm
                   action={setSalesBlockActiveAction}
                   hidden={{ ruleId: r.id, active: String(!r.isActive) }}
                   fields={[]}
@@ -141,7 +141,7 @@ async function SalesBlocks() {
         <div className="card flex flex-col gap-3 p-5">
           <h3 className="font-display text-2xl">Nuevo rango de fechas</h3>
           <p className="text-sm text-muted">Por ejemplo, una ley seca por elecciones: bloquea de un momento a otro.</p>
-          <IdempotentActionForm
+          <ActionForm
             action={saveSalesBlockAction}
             hidden={{ kind: "date_range" }}
             fields={ruleFields("date_range", zones, null)}
@@ -155,7 +155,7 @@ async function SalesBlocks() {
             Se repite cada semana en los días elegidos (el día en que empieza la franja). Si la hora de fin es menor que la
             de inicio, la franja cruza la medianoche (por ejemplo, de 22:00 a 10:00).
           </p>
-          <IdempotentActionForm
+          <ActionForm
             action={saveSalesBlockAction}
             hidden={{ kind: "weekly" }}
             fields={ruleFields("weekly", zones, null)}
@@ -203,8 +203,8 @@ function describeRule(r: SalesBlockRule): string {
   return `${where} · ${channels} · ${days} de ${r.startTime} a ${r.endTime}${crosses}${validity ? ` · ${validity}` : ""}`;
 }
 
-function ruleFields(kind: "date_range" | "weekly", zones: Zone[], r: SalesBlockRule | null): IdempotentField[] {
-  const common: IdempotentField[] = [
+function ruleFields(kind: "date_range" | "weekly", zones: Zone[], r: SalesBlockRule | null): ActionFormField[] {
+  const common: ActionFormField[] = [
     { kind: "text", name: "name", label: "Nombre", maxLength: 80, defaultValue: r?.name },
     {
       kind: "select",
@@ -224,7 +224,7 @@ function ruleFields(kind: "date_range" | "weekly", zones: Zone[], r: SalesBlockR
       defaultValue: r ? r.channels.join(",") : "web,pos",
     },
   ];
-  const timing: IdempotentField[] =
+  const timing: ActionFormField[] =
     kind === "date_range"
       ? [
           { kind: "datetime", name: "startsAt", label: "Desde", defaultValue: r ? isoToBogotaLocal(r.startsAt) : undefined },

@@ -11,7 +11,7 @@ import { readRpcResult } from "@/shared/supabase/rpc-result";
 import { createSupabaseServerClient } from "@/shared/supabase/server";
 import type { Database, Json } from "@/shared/supabase/database.types";
 
-import { isValidSignaturePng, parseProofInput, signaturePath } from "../domain/delivery";
+import { isValidSignaturePng, parseProofInput, signaturePath } from "../domain/proof";
 
 // Courier side of the delivery (D-007, D-026, D-045).
 // - Reads run with the user's session: RLS shows a courier only the orders

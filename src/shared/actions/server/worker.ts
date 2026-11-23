@@ -27,6 +27,19 @@ export class PermanentActionError extends Error {
   override name = "PermanentActionError";
 }
 
+/**
+ * Reads a required text field of a job payload (D-077). A payload without it
+ * can never succeed, so it fails at once instead of being retried.
+ */
+export function requirePayloadText(payload: unknown, field: string): string {
+  const value =
+    typeof payload === "object" && payload !== null && !Array.isArray(payload)
+      ? (payload as Record<string, unknown>)[field]
+      : undefined;
+  if (typeof value !== "string" || value === "") throw new PermanentActionError("invalid_payload");
+  return value;
+}
+
 export interface ActionQueue {
   claim(batch: number, visibilitySeconds: number): Promise<ClaimedAction[]>;
   complete(actionId: string, result: Json): Promise<void>;

@@ -17,7 +17,7 @@ import { bogotaToday, formatBogotaDateTime, formatCalendarDay } from "@/shared/d
 import { requireStaffPage } from "@/shared/auth/staff-session";
 import { listPickupsAttention, ORDER_STATUS_LABELS, type PickupAttention, resetPickupAttemptsAction } from "@/modules/orders";
 import { formatCop } from "@/modules/pricing";
-import { IdempotentActionForm } from "@/shared/ui/idempotent-action-form";
+import { ActionForm } from "@/shared/ui/action-form";
 import { PageHeader } from "@/shared/ui/page-header";
 import { ReasonActionForm } from "@/shared/ui/reason-action-form";
 
@@ -115,7 +115,7 @@ async function Deliveries() {
                 </span>
               </span>
               {p.kind === "third_party" ? (
-                <IdempotentActionForm
+                <ActionForm
                   action={setProviderActiveAction}
                   hidden={{ providerId: p.id, active: String(!p.isActive) }}
                   fields={[]}
@@ -128,7 +128,7 @@ async function Deliveries() {
         </ul>
         <div className="card flex flex-col gap-3 p-5">
           <h3 className="font-display text-2xl">Nueva empresa tercera</h3>
-          <IdempotentActionForm
+          <ActionForm
             action={createProviderAction}
             fields={[{ kind: "text", name: "name", label: "Nombre de la empresa", maxLength: 80 }]}
             submitLabel="Crear empresa"
@@ -205,7 +205,7 @@ function DeliveryCard({
           queda para recoger en la tienda.
         </p>
       ) : (
-      <IdempotentActionForm
+      <ActionForm
         action={assignDeliveryAction}
         hidden={{ orderId: d.orderId }}
         fields={[

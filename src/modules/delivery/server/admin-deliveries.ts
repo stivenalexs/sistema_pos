@@ -4,9 +4,10 @@ import { refresh } from "next/cache";
 
 import { readRaisedError, rpcFailureMessage } from "@/shared/supabase/rpc-result";
 import { createSupabaseServerClient } from "@/shared/supabase/server";
-import type { IdempotentFormState } from "@/shared/ui/idempotent-form-state";
+import type { ActionFormState } from "@/shared/ui/action-form-state";
 
-import { ASSIGNMENT_ERROR_MESSAGES, type FailureReason, parseAssignment } from "../domain/delivery";
+import { ASSIGNMENT_ERROR_MESSAGES, parseAssignment } from "../domain/assignment";
+import { type FailureReason } from "../domain/proof";
 
 // Delivery assignment from the admin panel (D-045, D-057). assign_delivery
 // checks the admin role, the order state and the courier; this only parses
@@ -95,11 +96,11 @@ export async function getDeliveryOptions(): Promise<{ providers: DeliveryProvide
 }
 
 function answer(
-  previous: IdempotentFormState,
+  previous: ActionFormState,
   status: "ok" | "error",
   message: string,
   values?: Record<string, string>,
-): IdempotentFormState {
+): ActionFormState {
   return { status, message, values, answer: (previous.answer ?? 0) + 1 };
 }
 
@@ -108,7 +109,7 @@ function text(formData: FormData, name: string): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
-export async function assignDeliveryAction(previous: IdempotentFormState, formData: FormData): Promise<IdempotentFormState> {
+export async function assignDeliveryAction(previous: ActionFormState, formData: FormData): Promise<ActionFormState> {
   const values = { assignment: text(formData, "assignment"), externalRef: text(formData, "externalRef") };
   const orderId = text(formData, "orderId");
   const choice = parseAssignment(values.assignment);
@@ -135,7 +136,7 @@ export async function assignDeliveryAction(previous: IdempotentFormState, formDa
   return answer(previous, "ok", "Domicilio asignado: el pedido quedó en camino.");
 }
 
-export async function createProviderAction(previous: IdempotentFormState, formData: FormData): Promise<IdempotentFormState> {
+export async function createProviderAction(previous: ActionFormState, formData: FormData): Promise<ActionFormState> {
   const name = text(formData, "name");
   if (name.length < 3 || name.length > 80) {
     return answer(previous, "error", "Escribe el nombre de la empresa (entre 3 y 80 caracteres).", { name });
@@ -152,9 +153,9 @@ export async function createProviderAction(previous: IdempotentFormState, formDa
 }
 
 export async function setProviderActiveAction(
-  previous: IdempotentFormState,
+  previous: ActionFormState,
   formData: FormData,
-): Promise<IdempotentFormState> {
+): Promise<ActionFormState> {
   const providerId = text(formData, "providerId");
   const active = text(formData, "active") === "true";
   const supabase = await createSupabaseServerClient();

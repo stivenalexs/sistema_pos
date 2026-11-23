@@ -1,6 +1,6 @@
 import "server-only";
 
-import { PermanentActionError } from "@/shared/actions/server/worker";
+import { PermanentActionError, requirePayloadText } from "@/shared/actions/server/worker";
 import { createSupabaseAdminClient } from "@/shared/supabase/admin";
 import type { Json } from "@/shared/supabase/database.types";
 
@@ -33,6 +33,16 @@ type FactusBody = { message?: string; data?: { is_validated?: boolean; errors?: 
 function errorMessage(body: unknown, status: number): string {
   const b = body as FactusBody | null;
   return `${status}: ${b?.message ?? "factus_error"}`.slice(0, 2000);
+}
+
+/** Worker job "issue_invoice": reads its payload (D-077). */
+export async function issueInvoiceJob(payload: unknown): Promise<Json> {
+  return issueInvoice(requirePayloadText(payload, "order_id"));
+}
+
+/** Worker job "issue_credit_note": reads its payload (D-077). */
+export async function issueCreditNoteJob(payload: unknown): Promise<Json> {
+  return issueCreditNote(requirePayloadText(payload, "credit_note_id"));
 }
 
 export async function issueInvoice(orderId: string, deps: Deps = {}): Promise<Json> {

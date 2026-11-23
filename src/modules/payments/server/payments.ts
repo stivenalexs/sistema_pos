@@ -3,6 +3,7 @@ import "server-only";
 import { createHash } from "node:crypto";
 
 import { acceptAction } from "@/shared/actions/server/accept-action";
+import { requirePayloadText } from "@/shared/actions/server/worker";
 import { createSupabaseAdminClient } from "@/shared/supabase/admin";
 import type { Json } from "@/shared/supabase/database.types";
 import { readRpcResult } from "@/shared/supabase/rpc-result";
@@ -141,6 +142,11 @@ export async function handleWompiWebhook(rawBody: string, checksumHeader: string
     payload: { event_id: stored.event_id },
   });
   return { status: 200, outcome: stored.created ? "stored" : "duplicate" };
+}
+
+/** Worker job "process_payment_event": reads its payload (D-077). */
+export async function processPaymentEventJob(payload: unknown): Promise<{ outcome: string }> {
+  return { outcome: await processPaymentEvent(requirePayloadText(payload, "event_id")) };
 }
 
 /** Worker handler: applies a stored event atomically and idempotently. */

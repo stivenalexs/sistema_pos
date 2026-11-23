@@ -17,7 +17,7 @@ import {
 import { formatBogotaDateTime } from "@/shared/dates";
 import { requireStaffPage } from "@/shared/auth/staff-session";
 import { formatCop } from "@/modules/pricing";
-import { type IdempotentField, IdempotentActionForm } from "@/shared/ui/idempotent-action-form";
+import { ActionForm, type ActionFormField } from "@/shared/ui/action-form";
 import { PageHeader } from "@/shared/ui/page-header";
 
 export const metadata: Metadata = { title: "Configuración · Administración" };
@@ -96,7 +96,7 @@ async function Configuration() {
                   {z.isActive ? "con domicilio" : "sin domicilio"}
                 </span>
               </span>
-              <IdempotentActionForm
+              <ActionForm
                 action={setZoneActiveAction}
                 hidden={{ zoneId: z.id, active: String(!z.isActive) }}
                 fields={[]}
@@ -130,14 +130,14 @@ async function Configuration() {
                 <p className="text-lg text-gold tabular-nums">{r.feeCop === 0 ? "Gratis" : formatCop(r.feeCop)}</p>
               </div>
               <p className="text-xs text-muted">{describeRule(r)}</p>
-              <IdempotentActionForm
+              <ActionForm
                 action={saveFeeRuleAction}
                 hidden={{ ruleId: r.id }}
                 fields={feeRuleFields(r)}
                 submitLabel="Guardar cambios"
                 pendingLabel="Guardando…"
               />
-              <IdempotentActionForm
+              <ActionForm
                 action={setFeeRuleActiveAction}
                 hidden={{ ruleId: r.id, active: String(!r.isActive) }}
                 fields={[]}
@@ -149,7 +149,7 @@ async function Configuration() {
         </ul>
         <div className="card flex flex-col gap-3 p-5">
           <h3 className="font-display text-2xl">Nueva tarifa</h3>
-          <IdempotentActionForm
+          <ActionForm
             action={saveFeeRuleAction}
             fields={feeRuleFields(null)}
             submitLabel="Crear tarifa"
@@ -190,7 +190,7 @@ function describeRule(r: FeeRule): string {
     .join(" · ");
 }
 
-function feeRuleFields(r: FeeRule | null): IdempotentField[] {
+function feeRuleFields(r: FeeRule | null): ActionFormField[] {
   return [
     { kind: "text", name: "name", label: "Nombre", maxLength: 80, defaultValue: r?.name },
     {

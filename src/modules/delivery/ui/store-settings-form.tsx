@@ -3,7 +3,7 @@
 import { useActionState, useState } from "react";
 
 import { FormSubmitButton } from "@/shared/ui/form-submit-button";
-import type { IdempotentFormState } from "@/shared/ui/idempotent-form-state";
+import type { ActionFormState } from "@/shared/ui/action-form-state";
 
 import { AddressMap, type LatLng } from "./address-map";
 
@@ -12,14 +12,14 @@ import { AddressMap, type LatLng } from "./address-map";
 // No animation (agents.md §8).
 
 type Props = {
-  action: (previous: IdempotentFormState, formData: FormData) => Promise<IdempotentFormState>;
+  action: (previous: ActionFormState, formData: FormData) => Promise<ActionFormState>;
   initial: { lat: number | null; lng: number | null; zoneId: string | null; maxDistanceM: number };
   zones: { id: string; municipality: string }[];
   center: LatLng;
 };
 
 export function StoreSettingsForm({ action, initial, zones, center }: Props) {
-  const [state, formAction] = useActionState<IdempotentFormState, FormData>(action, { status: "idle" });
+  const [state, formAction] = useActionState<ActionFormState, FormData>(action, { status: "idle" });
   const [point, setPoint] = useState<LatLng | null>(
     initial.lat !== null && initial.lng !== null ? { lat: initial.lat, lng: initial.lng } : null,
   );

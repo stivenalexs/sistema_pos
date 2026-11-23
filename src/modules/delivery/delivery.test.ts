@@ -1,16 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
-import {
-  encodeAssignment,
-  parseFeeRuleInput,
-  parseAssignment,
-  formatDistance,
-  isValidSignaturePng,
-  MAX_SIGNATURE_BYTES,
-  parseAddressInput,
-  parseProofInput,
-  signaturePath,
-} from "./domain/delivery";
+import { formatDistance, parseAddressInput } from "./domain/address";
+import { encodeAssignment, parseAssignment } from "./domain/assignment";
+import { isValidSignaturePng, MAX_SIGNATURE_BYTES, parseProofInput, signaturePath } from "./domain/proof";
+import { parseFeeRuleInput } from "./domain/store-config";
 import { processDeliveryAttempt } from "./server/courier";
 import { PermanentActionError } from "@/shared/actions/server/worker";
 

@@ -13,7 +13,7 @@ import {
   setStockSettingsAction,
   unitsWithBoxes,
 } from "@/modules/inventory";
-import { IdempotentActionForm } from "@/shared/ui/idempotent-action-form";
+import { ActionForm } from "@/shared/ui/action-form";
 import { PageHeader } from "@/shared/ui/page-header";
 
 import { MovementList } from "../movement-list";
@@ -79,7 +79,7 @@ async function ProductInventory({ params }: { params: Params }) {
           <strong>Colchón web:</strong> unidades que la tienda web no vende ni muestra, para que el POS no se quede sin
           producto. El POS sí puede venderlas. Ambos en unidades.
         </p>
-        <IdempotentActionForm
+        <ActionForm
           action={setStockSettingsAction}
           hidden={{ productId: product.productId }}
           fields={[

@@ -188,3 +188,13 @@ describe("isAuthorizedWorkerRequest", () => {
     expect(isAuthorizedWorkerRequest("Bearer short", SECRET)).toBe(false);
   });
 });
+
+describe("requirePayloadText (D-077)", () => {
+  it("reads a required text field, and fails for good without it", async () => {
+    const { requirePayloadText } = await import("./worker");
+    expect(requirePayloadText({ order_id: "o-1" }, "order_id")).toBe("o-1");
+    for (const bad of [null, [], "o-1", {}, { order_id: 1 }, { order_id: "" }]) {
+      expect(() => requirePayloadText(bad, "order_id")).toThrow(PermanentActionError);
+    }
+  });
+});

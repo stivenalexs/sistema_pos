@@ -1,7 +1,7 @@
 // Validation of the sign-up form (D-035). Pure, no I/O. The server action runs
 // it to show clear messages; the database repeats the critical checks.
 
-import { isOfLegalAge, isValidIsoDate, todayInColombia } from "@/modules/compliance";
+import { isOfLegalAge, isValidIsoDate, todayInColombia } from "@/modules/compliance/client";
 
 export type CustomerTypeInput = "retail" | "wholesale";
 

@@ -1,7 +1,7 @@
 // Public API of the pos module. Other modules import only from here (agents.md, section 3).
 // Exports server code too: import this index only from Server Components and
-// server code (D-036).
-export * from "./domain/pos";
+// server code (D-036). Client Components use ./client (D-077).
+export * from "./client";
 export {
   createPosSale,
   findPosCustomer,
@@ -17,4 +17,3 @@ export {
   type PosStaff,
 } from "./server/pos";
 export { type AdminPosSale, listPosSalesForAdmin, voidPosSaleAction } from "./server/admin-sales";
-export { PosTerminal } from "./ui/pos-terminal";

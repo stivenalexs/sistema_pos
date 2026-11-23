@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { type Fulfillment, placeOrder } from "@/modules/orders";
-import { isUuid } from "@/shared/actions/action-types";
+import { parseOrderRequest, placeOrder } from "@/modules/orders";
 import { readIdempotencyKey } from "@/shared/actions/server/accept-action";
 import { createSupabaseServerClient } from "@/shared/supabase/server";
 
@@ -22,20 +21,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "missing_idempotency_key" }, { status: 400, headers: NO_STORE });
   }
 
-  // The body says only pickup or delivery and which address. Prices and the
-  // delivery fee are never read from the request (agents.md §5.1).
-  const body = (await request.json().catch(() => null)) as
-    | { fulfillment?: unknown; addressId?: unknown; pickupDocument?: unknown }
-    | null;
-  let choice: Fulfillment;
-  if (!body || body.fulfillment === undefined || body.fulfillment === "pickup") {
-    // Cédula of whoever picks it up (D-067); the database validates and hashes it.
-    const pickupDocument =
-      typeof body?.pickupDocument === "string" && body.pickupDocument.length <= 40 ? body.pickupDocument : undefined;
-    choice = pickupDocument ? { fulfillment: "pickup", pickupDocument } : { fulfillment: "pickup" };
-  } else if (body.fulfillment === "delivery" && typeof body.addressId === "string" && isUuid(body.addressId)) {
-    choice = { fulfillment: "delivery", addressId: body.addressId };
-  } else {
+  // The module reads the body: pickup or delivery, the address and the cédula,
+  // never prices (agents.md §5.1).
+  const choice = parseOrderRequest(await request.json().catch(() => null));
+  if (!choice) {
     return NextResponse.json({ error: "invalid_fulfillment" }, { status: 400, headers: NO_STORE });
   }
 

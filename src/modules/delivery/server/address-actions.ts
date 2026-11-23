@@ -5,7 +5,7 @@ import { refresh } from "next/cache";
 import { readRaisedError, rpcFailureMessage } from "@/shared/supabase/rpc-result";
 import { createSupabaseServerClient } from "@/shared/supabase/server";
 
-import { ADDRESS_ERROR_MESSAGES, type FieldErrors, parseAddressInput } from "../domain/delivery";
+import { ADDRESS_ERROR_MESSAGES, type FieldErrors, parseAddressInput } from "../domain/address";
 
 // Saving and deleting addresses is synchronous and small: FormSubmitButton
 // (frozen on the first click), like the cart (D-039).

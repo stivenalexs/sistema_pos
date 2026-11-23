@@ -2,6 +2,8 @@ import "server-only";
 
 import { createSupabaseServerClient } from "@/shared/supabase/server";
 
+import type { Fulfillment } from "../domain/order-request";
+
 // Web orders (D-039). Everything runs with the customer's session: RLS shows
 // only their own orders, and place_order() prices the cart with their
 // permissions before creating the order atomically.
@@ -23,10 +25,7 @@ type PlaceOrderError =
   | "pickup_document_required"
   | "invalid_pickup_document";
 
-/** pickupDocument: cédula of whoever picks the order up (customers without a NIT, D-067). */
-export type Fulfillment =
-  | { fulfillment: "pickup"; pickupDocument?: string }
-  | { fulfillment: "delivery"; addressId: string };
+export type { Fulfillment };
 
 export async function placeOrder(idempotencyKey: string, choice: Fulfillment = { fulfillment: "pickup" }): Promise<PlaceOrderResult> {
   const supabase = await createSupabaseServerClient();
