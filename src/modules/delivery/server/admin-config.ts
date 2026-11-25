@@ -2,10 +2,11 @@
 
 import { refresh } from "next/cache";
 
+import { readRpcResult, rpcFailureMessage } from "@/shared/supabase/rpc-result";
 import { createSupabaseServerClient } from "@/shared/supabase/server";
-import type { IdempotentFormState } from "@/shared/ui/idempotent-form-state";
+import type { ActionFormState } from "@/shared/ui/action-form-state";
 
-import { parseFeeRuleInput, STORE_SETTINGS_ERROR_MESSAGES } from "../domain/delivery";
+import { parseFeeRuleInput, STORE_SETTINGS_ERROR_MESSAGES } from "../domain/store-config";
 
 // Store settings, delivery zones and fee rules from the admin panel (D-045,
 // D-058). The database checks the admin role (set_store_settings, RLS on
@@ -104,11 +105,11 @@ export async function getConfigOverview(): Promise<ConfigOverview> {
 }
 
 function answer(
-  previous: IdempotentFormState,
+  previous: ActionFormState,
   status: "ok" | "error",
   message: string,
   values?: Record<string, string>,
-): IdempotentFormState {
+): ActionFormState {
   return { status, message, values, answer: (previous.answer ?? 0) + 1 };
 }
 
@@ -118,9 +119,9 @@ function text(formData: FormData, name: string): string {
 }
 
 export async function saveStoreSettingsAction(
-  previous: IdempotentFormState,
+  previous: ActionFormState,
   formData: FormData,
-): Promise<IdempotentFormState> {
+): Promise<ActionFormState> {
   const values = {
     lat: text(formData, "lat"),
     lng: text(formData, "lng"),
@@ -144,16 +145,15 @@ export async function saveStoreSettingsAction(
     p_zone_id: values.zoneId,
     p_max_distance_m: km * 1000,
   });
-  const result = data as { ok: boolean; changed?: boolean; error?: string } | null;
-  if (error || !result?.ok) {
-    const code = error ? (error.message.includes("admin_forbidden") ? "admin_forbidden" : "") : (result?.error ?? "");
-    return answer(previous, "error", STORE_SETTINGS_ERROR_MESSAGES[code] ?? "No se pudo guardar.", values);
+  const result = readRpcResult<{ changed?: boolean }>({ data, error }, STORE_SETTINGS_ERROR_MESSAGES);
+  if (!result.ok) {
+    return answer(previous, "error", rpcFailureMessage(result, STORE_SETTINGS_ERROR_MESSAGES, "No se pudo guardar."), values);
   }
   refresh();
-  return answer(previous, "ok", result.changed ? "Datos de la tienda guardados." : "No había cambios.");
+  return answer(previous, "ok", result.value.changed ? "Datos de la tienda guardados." : "No había cambios.");
 }
 
-export async function setZoneActiveAction(previous: IdempotentFormState, formData: FormData): Promise<IdempotentFormState> {
+export async function setZoneActiveAction(previous: ActionFormState, formData: FormData): Promise<ActionFormState> {
   const zoneId = text(formData, "zoneId");
   const active = text(formData, "active") === "true";
   const supabase = await createSupabaseServerClient();
@@ -164,7 +164,7 @@ export async function setZoneActiveAction(previous: IdempotentFormState, formDat
   return answer(previous, "ok", active ? "Domicilios activados." : "Domicilios desactivados.");
 }
 
-export async function saveFeeRuleAction(previous: IdempotentFormState, formData: FormData): Promise<IdempotentFormState> {
+export async function saveFeeRuleAction(previous: ActionFormState, formData: FormData): Promise<ActionFormState> {
   const values = {
     name: text(formData, "name"),
     customerType: text(formData, "customerType"),
@@ -193,9 +193,9 @@ export async function saveFeeRuleAction(previous: IdempotentFormState, formData:
 }
 
 export async function setFeeRuleActiveAction(
-  previous: IdempotentFormState,
+  previous: ActionFormState,
   formData: FormData,
-): Promise<IdempotentFormState> {
+): Promise<ActionFormState> {
   const ruleId = text(formData, "ruleId");
   const active = text(formData, "active") === "true";
   const supabase = await createSupabaseServerClient();

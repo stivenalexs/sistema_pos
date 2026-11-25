@@ -163,8 +163,12 @@ select is(
    where d ->> 'order_id' = 'd2000000-0000-4000-8000-000000000012'),
   'recipient_absent', 'deliveries: the last failed attempt is shown'
 );
-select is((public.admin_summary() ->> 'deliveries_failed')::int >= 1, true, 'summary: counts failed deliveries');
-create temporary table t_failed as select (public.admin_summary() ->> 'deliveries_failed')::int as n;
+-- Since D-068 a failed delivery returns to the store; the summary counts
+-- the orders waiting for the customer's choice (failed_deliveries.test.sql).
+select is((public.admin_summary() ->> 'deliveries_failed')::int,
+  (select count(*)::int from public.orders where channel = 'web' and fulfillment = 'delivery'
+     and not needs_refund and status = 'preparing' and delivery_return_kind = 'customer' and return_choice is null),
+  'summary: failed deliveries are the ones waiting for the customer');
 
 -- Reassigning starts over: the failure of the previous assignment is no
 -- longer shown nor counted. (Inside this test transaction now() does not
@@ -180,8 +184,10 @@ select is(
    where d ->> 'order_id' = 'd2000000-0000-4000-8000-000000000012'),
   'null'::jsonb, 'deliveries: a reassigned order no longer shows the old failure'
 );
-select is((public.admin_summary() ->> 'deliveries_failed')::int, (select n - 1 from t_failed),
-  'summary: a reassigned order is no longer counted as failed');
+select is(
+  (select d ->> 'awaiting_choice' from jsonb_array_elements(public.admin_list_deliveries()) d
+   where d ->> 'order_id' = 'd2000000-0000-4000-8000-000000000012'),
+  'false', 'deliveries: an assigned order is not waiting for the customer');
 
 -- ---------------------------------------------------------------------------
 -- Third-party providers and their history

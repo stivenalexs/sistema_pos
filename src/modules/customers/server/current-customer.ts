@@ -6,6 +6,8 @@ export type CurrentCustomer = {
   customerType: "retail" | "wholesale";
   wholesaleStatus: "pending" | "approved" | "rejected" | null;
   fullName: string;
+  /** A registered NIT: pickup is confirmed with it instead of a cédula (D-067). */
+  hasNit: boolean;
 };
 
 /** The signed-in customer's own profile, or null for visitors and staff. */
@@ -17,7 +19,7 @@ export async function getCurrentCustomer(): Promise<CurrentCustomer | null> {
 
   const { data } = await supabase
     .from("customers")
-    .select("customer_type, wholesale_status, full_name")
+    .select("customer_type, wholesale_status, full_name, document_type")
     .eq("id", userId)
     .maybeSingle();
   if (!data) return null;
@@ -26,5 +28,6 @@ export async function getCurrentCustomer(): Promise<CurrentCustomer | null> {
     customerType: data.customer_type,
     wholesaleStatus: data.wholesale_status,
     fullName: data.full_name,
+    hasNit: data.document_type === "nit",
   };
 }

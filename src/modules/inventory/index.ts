@@ -1,7 +1,7 @@
 // Public API of the inventory module. Other modules import only from here (agents.md, section 3).
 // Exports server code too: import this index only from Server Components and
-// server code (D-036).
-export * from "./domain/inventory";
+// server code (D-036). Client Components use ./client (D-077).
+export * from "./client";
 export {
   getInventoryAlerts,
   getInventoryOverview,

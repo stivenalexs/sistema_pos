@@ -2,7 +2,7 @@ import "server-only";
 
 import { createSupabaseServerClient } from "@/shared/supabase/server";
 
-import type { DeliveryQuoteError } from "../domain/delivery";
+import type { DeliveryQuoteError } from "../domain/address";
 
 // Zones, addresses and delivery fee (D-005, D-021, D-045). Everything runs
 // with the customer's session; the fee is always computed by the database.

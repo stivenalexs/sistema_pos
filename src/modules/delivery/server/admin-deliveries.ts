@@ -2,10 +2,12 @@
 
 import { refresh } from "next/cache";
 
+import { readRaisedError, rpcFailureMessage } from "@/shared/supabase/rpc-result";
 import { createSupabaseServerClient } from "@/shared/supabase/server";
-import type { IdempotentFormState } from "@/shared/ui/idempotent-form-state";
+import type { ActionFormState } from "@/shared/ui/action-form-state";
 
-import { ASSIGNMENT_ERROR_MESSAGES, type FailureReason, parseAssignment } from "../domain/delivery";
+import { ASSIGNMENT_ERROR_MESSAGES, parseAssignment } from "../domain/assignment";
+import { type FailureReason } from "../domain/proof";
 
 // Delivery assignment from the admin panel (D-045, D-057). assign_delivery
 // checks the admin role, the order state and the courier; this only parses
@@ -32,6 +34,15 @@ export type AdminDelivery = {
   externalRef: string | null;
   assignedAt: string | null;
   lastFailure: { reason: FailureReason; notes: string | null; at: string } | null;
+  /** Failed delivery back at the store (D-068). */
+  returnKind: "customer" | "force_majeure" | "underage" | null;
+  returnedAt: string | null;
+  returnChoice: "pickup" | "reschedule" | "refund" | null;
+  returnChoiceDeadline: string | null;
+  /** Waiting for the customer's choice: not assignable. */
+  awaitingChoice: boolean;
+  /** Day (Colombia, YYYY-MM-DD) a rescheduled delivery should go out. */
+  scheduledDeliveryOn: string | null;
 };
 
 export async function listDeliveriesForAdmin(): Promise<AdminDelivery[]> {
@@ -58,6 +69,12 @@ export async function listDeliveriesForAdmin(): Promise<AdminDelivery[]> {
     externalRef: (r.external_ref as string | null) ?? null,
     assignedAt: (r.assigned_at as string | null) ?? null,
     lastFailure: (r.last_failure as AdminDelivery["lastFailure"]) ?? null,
+    returnKind: (r.return_kind as AdminDelivery["returnKind"]) ?? null,
+    returnedAt: (r.returned_at as string | null) ?? null,
+    returnChoice: (r.return_choice as AdminDelivery["returnChoice"]) ?? null,
+    returnChoiceDeadline: (r.return_choice_deadline as string | null) ?? null,
+    awaitingChoice: r.awaiting_choice === true,
+    scheduledDeliveryOn: (r.scheduled_delivery_on as string | null) ?? null,
   }));
 }
 
@@ -79,11 +96,11 @@ export async function getDeliveryOptions(): Promise<{ providers: DeliveryProvide
 }
 
 function answer(
-  previous: IdempotentFormState,
+  previous: ActionFormState,
   status: "ok" | "error",
   message: string,
   values?: Record<string, string>,
-): IdempotentFormState {
+): ActionFormState {
   return { status, message, values, answer: (previous.answer ?? 0) + 1 };
 }
 
@@ -92,7 +109,7 @@ function text(formData: FormData, name: string): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
-export async function assignDeliveryAction(previous: IdempotentFormState, formData: FormData): Promise<IdempotentFormState> {
+export async function assignDeliveryAction(previous: ActionFormState, formData: FormData): Promise<ActionFormState> {
   const values = { assignment: text(formData, "assignment"), externalRef: text(formData, "externalRef") };
   const orderId = text(formData, "orderId");
   const choice = parseAssignment(values.assignment);
@@ -111,15 +128,15 @@ export async function assignDeliveryAction(previous: IdempotentFormState, formDa
     // (assign_delivery then clears it) instead of rejecting the form.
     p_external_ref: (!choice.courierId && values.externalRef) || undefined,
   });
-  if (error) {
-    const code = Object.keys(ASSIGNMENT_ERROR_MESSAGES).find((k) => error.message.includes(k));
-    return answer(previous, "error", (code && ASSIGNMENT_ERROR_MESSAGES[code]) ?? "No se pudo asignar.", values);
+  const failure = readRaisedError(error, ASSIGNMENT_ERROR_MESSAGES);
+  if (failure) {
+    return answer(previous, "error", rpcFailureMessage(failure, ASSIGNMENT_ERROR_MESSAGES, "No se pudo asignar."), values);
   }
   refresh();
   return answer(previous, "ok", "Domicilio asignado: el pedido quedó en camino.");
 }
 
-export async function createProviderAction(previous: IdempotentFormState, formData: FormData): Promise<IdempotentFormState> {
+export async function createProviderAction(previous: ActionFormState, formData: FormData): Promise<ActionFormState> {
   const name = text(formData, "name");
   if (name.length < 3 || name.length > 80) {
     return answer(previous, "error", "Escribe el nombre de la empresa (entre 3 y 80 caracteres).", { name });
@@ -136,9 +153,9 @@ export async function createProviderAction(previous: IdempotentFormState, formDa
 }
 
 export async function setProviderActiveAction(
-  previous: IdempotentFormState,
+  previous: ActionFormState,
   formData: FormData,
-): Promise<IdempotentFormState> {
+): Promise<ActionFormState> {
   const providerId = text(formData, "providerId");
   const active = text(formData, "active") === "true";
   const supabase = await createSupabaseServerClient();

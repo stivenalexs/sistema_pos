@@ -1,5 +1,7 @@
 // Spanish labels for order states (UI text in Spanish, code in English).
 
+import { formatBogotaDateTime } from "@/shared/dates";
+
 export const ORDER_STATUS_LABELS: Record<string, string> = {
   draft: "Borrador",
   awaiting_payment: "Pendiente de pago",
@@ -16,13 +18,5 @@ export const FULFILLMENT_LABELS: Record<string, string> = {
   delivery: "Domicilio",
 };
 
-const BOGOTA_DATE_TIME = new Intl.DateTimeFormat("es-CO", {
-  timeZone: "America/Bogota",
-  dateStyle: "medium",
-  timeStyle: "short",
-});
-
-/** Formats a UTC timestamp in Colombian time. */
-export function formatBogotaDateTime(iso: string): string {
-  return BOGOTA_DATE_TIME.format(new Date(iso)).replace(/ /g, " ");
-}
+/** Formats a UTC timestamp in Colombian time (shared, D-075). */
+export { formatBogotaDateTime };

@@ -1,7 +1,8 @@
 // Public API of the delivery module. Other modules import only from here (agents.md, section 3).
 // Server-only code and Client Components are both exported: import this
-// index only from Server Components and server code (D-036).
-export * from "./domain/delivery";
+// index only from Server Components and server code (D-036). Client
+// Components use ./client (D-077).
+export * from "./client";
 export {
   type DeliveryAddress,
   type DeliveryQuote,
@@ -19,6 +20,7 @@ export {
   listCourierDeliveries,
   processDeliveryAttempt,
 } from "./server/courier";
+export { sendOrderEmail } from "./server/order-emails";
 export {
   type AdminCourier,
   type AdminDelivery,
@@ -40,8 +42,4 @@ export {
   setFeeRuleActiveAction,
   setZoneActiveAction,
 } from "./server/admin-config";
-export { AddressForm } from "./ui/address-form";
-export { StoreSettingsForm } from "./ui/store-settings-form";
-export { DeleteAddressForm } from "./ui/delete-address-form";
-export { DeliveryAttemptForm } from "./ui/delivery-attempt-form";
 export { type FulfillmentChoice, FulfillmentPicker } from "./ui/fulfillment-picker";

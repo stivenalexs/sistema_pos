@@ -2,19 +2,16 @@
 // The database applies the same rule as the final guarantee
 // (private.validate_customer_signup).
 
+import { BOGOTA_TIME_ZONE, bogotaToday } from "@/shared/dates";
+
 export const LEGAL_AGE = 18;
-export const COLOMBIA_TIME_ZONE = "America/Bogota";
+export const COLOMBIA_TIME_ZONE = BOGOTA_TIME_ZONE;
 
 const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
 
 /** Today's date in Colombia as YYYY-MM-DD. */
 export function todayInColombia(now: Date = new Date()): string {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: COLOMBIA_TIME_ZONE,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(now);
+  return bogotaToday(now);
 }
 
 /** True for a real calendar date written as YYYY-MM-DD. */

@@ -4,7 +4,7 @@ import { PermanentActionError } from "@/shared/actions/server/worker";
 
 import { buildBillPayload, FINAL_CONSUMER_ID, paymentMethodCode, splitNit } from "./domain/build-bill";
 import { FactusClient, FactusTransientError, parseFactusConfig } from "./server/factus-client";
-import { issueInvoice } from "./server/issue-invoice";
+import { issueCreditNote, issueInvoice } from "./server/issue-invoice";
 
 const CONFIG = parseFactusConfig({
   FACTUS_ENV: "sandbox",
@@ -160,6 +160,20 @@ describe("FactusClient", () => {
     const fiveHundred = new FactusClient(CONFIG, vi.fn(async (url: string) => (url.endsWith("/oauth/token") ? token.clone() : json(503, {}))));
     await expect(fiveHundred.post("/v2/bills/validate", {})).rejects.toBeInstanceOf(FactusTransientError);
   });
+
+  it("puts a time limit on every request, and a timeout is transient (D-073)", async () => {
+    const signals: (AbortSignal | null | undefined)[] = [];
+    const hangs = vi.fn(async (url: string, init: RequestInit) => {
+      signals.push(init.signal);
+      if (url.endsWith("/oauth/token")) return json(200, { access_token: "t", expires_in: 3600 });
+      throw new DOMException("The operation was aborted due to timeout", "TimeoutError");
+    });
+    await expect(new FactusClient(CONFIG, hangs).post("/v2/bills/validate", {})).rejects.toBeInstanceOf(
+      FactusTransientError,
+    );
+    expect(signals).toHaveLength(2);
+    expect(signals.every((s) => s instanceof AbortSignal)).toBe(true);
+  });
 });
 
 describe("issueInvoice (worker)", () => {
@@ -244,5 +258,85 @@ describe("issueInvoice (worker)", () => {
     const error = await issueInvoice("o-1", { db, client, numberingRangeId: null }).catch((e: unknown) => e);
     expect(error).toBeInstanceOf(Error);
     expect(error).not.toBeInstanceOf(PermanentActionError);
+  });
+});
+
+describe("issueCreditNote (worker, D-066)", () => {
+  function noteDb(
+    invoice: { lines: object[] } & Omit<typeof INVOICE, "lines"> = INVOICE,
+    extra: { kind?: string; concept_code?: string } = {},
+  ) {
+    const note = {
+      id: "cn-1",
+      reference_code: "NC-1",
+      reason: "Anulación de la venta",
+      status: "pending",
+      kind: "full",
+      concept_code: "2",
+      ...extra,
+      invoices: { ...invoice, factus_number: "SETP990000001", invoice_lines: invoice.lines },
+    };
+    return {
+      from: () => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: note, error: null }) }) }) }),
+      rpc: vi.fn(async () => ({ data: null, error: null })),
+    } as never;
+  }
+
+  it("sends the invoice's customer with its fiscal responsibilities and the credit note range", async () => {
+    const post = vi.fn(async () => ({ status: 201, body: { data: { is_validated: true, credit_note: { number: "NC1" } } } }));
+    await issueCreditNote("cn-1", { db: noteDb(), client: { post } as unknown as FactusClient, creditNoteRangeId: 390 });
+    const [path, payload] = post.mock.calls[0] as unknown as [string, Record<string, unknown>];
+    expect(path).toBe("/v2/credit-notes/validate");
+    expect(payload).toMatchObject({
+      bill_number: "SETP990000001",
+      correction_concept_code: "2",
+      customization_id: "20",
+      numbering_range_id: 390,
+      customer: { identification: FINAL_CONSUMER_ID, responsibilities: ["R-99-PN"] },
+    });
+  });
+
+  it("omits the range when there is a single active credit note range", async () => {
+    const post = vi.fn(async () => ({ status: 201, body: { data: { is_validated: true } } }));
+    await issueCreditNote("cn-1", { db: noteDb(), client: { post } as unknown as FactusClient, creditNoteRangeId: null });
+    expect((post.mock.calls[0] as unknown as [string, Record<string, unknown>])[1]).not.toHaveProperty("numbering_range_id");
+  });
+
+  it("pays the total Factus computes from the items, since credit notes have no cash rounding", async () => {
+    // Real sandbox case: 52.000 charged, Factus totals 49.524 + 2.476,20 = 52.000,20.
+    const invoice = {
+      ...INVOICE,
+      payment_method_code: "POS_CARD",
+      total_cop: 52000,
+      lines: [{ sku: "NAC-RON-750", name: "Ron", quantity_units: 1, net_cop: 49524, iva_cop: 2476, final_cop: 52000 }],
+    };
+    const post = vi.fn(async () => ({ status: 201, body: { data: { is_validated: true } } }));
+    await issueCreditNote("cn-1", { db: noteDb(invoice), client: { post } as unknown as FactusClient, creditNoteRangeId: 390 });
+    const payload = (post.mock.calls[0] as unknown as [string, Record<string, unknown>])[1];
+    expect(payload).not.toHaveProperty("cash_rounding_amount");
+    expect(payload.payment_details).toEqual([expect.objectContaining({ amount: "52000.20" })]);
+  });
+
+  it("credits only the product lines with concept 1 for a products-only refund (D-069)", async () => {
+    const invoice = {
+      ...INVOICE,
+      total_cop: 114465,
+      lines: [
+        { ...INVOICE.lines[0]!, line_kind: "product" },
+        { sku: "DOMICILIO", name: "Servicio de domicilio", quantity_units: 1, net_cop: 5714, iva_cop: 286, final_cop: 6000, line_kind: "delivery" },
+      ],
+    };
+    const post = vi.fn(async () => ({ status: 201, body: { data: { is_validated: true } } }));
+    await issueCreditNote("cn-1", {
+      db: noteDb(invoice, { kind: "products_only", concept_code: "1" }),
+      client: { post } as unknown as FactusClient,
+      creditNoteRangeId: 390,
+    });
+    const payload = (post.mock.calls[0] as unknown as [string, Record<string, unknown>])[1];
+    expect(payload.correction_concept_code).toBe("1");
+    const items = payload.items as { code_reference: string }[];
+    expect(items.map((i) => i.code_reference)).toEqual(["IMP-WHI"]);
+    // 103.300 + 5 % IVA = 108.465: the products only, without the delivery.
+    expect(payload.payment_details).toEqual([expect.objectContaining({ amount: "108465.00" })]);
   });
 });

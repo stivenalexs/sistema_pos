@@ -1,6 +1,6 @@
 import "server-only";
 
-import { PermanentActionError } from "@/shared/actions/server/worker";
+import { PermanentActionError, requirePayloadText } from "@/shared/actions/server/worker";
 import { createSupabaseAdminClient } from "@/shared/supabase/admin";
 import type { Json } from "@/shared/supabase/database.types";
 
@@ -18,14 +18,31 @@ type Deps = {
   client?: FactusClient;
   ivaRatePct?: number;
   numberingRangeId?: number | null;
+  creditNoteRangeId?: number | null;
   db?: ReturnType<typeof createSupabaseAdminClient>;
 };
+
+// "No responsable" (R-99-PN), the documented default. Factus' sandbox requires
+// customer.responsibilities in credit notes (D-066). PROJECT ASSUMPTION for
+// wholesale buyers with NIT: their real fiscal responsibilities (RUT) are not
+// collected yet.
+const DEFAULT_RESPONSIBILITIES = ["R-99-PN"];
 
 type FactusBody = { message?: string; data?: { is_validated?: boolean; errors?: unknown } };
 
 function errorMessage(body: unknown, status: number): string {
   const b = body as FactusBody | null;
   return `${status}: ${b?.message ?? "factus_error"}`.slice(0, 2000);
+}
+
+/** Worker job "issue_invoice": reads its payload (D-077). */
+export async function issueInvoiceJob(payload: unknown): Promise<Json> {
+  return issueInvoice(requirePayloadText(payload, "order_id"));
+}
+
+/** Worker job "issue_credit_note": reads its payload (D-077). */
+export async function issueCreditNoteJob(payload: unknown): Promise<Json> {
+  return issueCreditNote(requirePayloadText(payload, "credit_note_id"));
 }
 
 export async function issueInvoice(orderId: string, deps: Deps = {}): Promise<Json> {
@@ -94,29 +111,55 @@ export async function issueCreditNote(creditNoteId: string, deps: Deps = {}): Pr
   const db = deps.db ?? createSupabaseAdminClient();
   const { data: note, error } = await db
     .from("credit_notes")
-    .select("id, reference_code, reason, status, invoices (factus_number, reference_code, total_cop, customer, payment_method_code, invoice_lines (sku, name, quantity_units, net_cop, iva_cop, final_cop))")
+    .select("id, reference_code, reason, status, kind, concept_code, invoices (factus_number, reference_code, total_cop, customer, payment_method_code, invoice_lines (sku, name, quantity_units, net_cop, iva_cop, final_cop, line_kind))")
     .eq("id", creditNoteId)
     .maybeSingle();
   if (error || !note) throw new PermanentActionError("credit_note_not_found");
   if (note.status === "accepted") return { outcome: "already_accepted" };
 
-  const invoice = note.invoices as unknown as InvoiceData & { factus_number: string | null; invoice_lines: InvoiceData["lines"] };
+  const invoice = note.invoices as unknown as InvoiceData & {
+    factus_number: string | null;
+    invoice_lines: (InvoiceData["lines"][number] & { line_kind?: string })[];
+  };
   if (!invoice?.factus_number) throw new PermanentActionError("credit_note_invoice_without_number");
 
+  // Products only (D-069): the product lines, without the delivery line,
+  // which stays invoiced because the delivery was attempted.
+  const productsOnly = note.kind === "products_only";
+  const lines = productsOnly
+    ? invoice.invoice_lines.filter((line) => (line.line_kind ?? "product") === "product")
+    : invoice.invoice_lines;
+  if (lines.length === 0) throw new PermanentActionError("credit_note_without_lines");
+  const creditedTotal = productsOnly ? lines.reduce((sum, line) => sum + line.final_cop, 0) : invoice.total_cop;
+
   const bill = buildBillPayload(
-    { ...invoice, reference_code: note.reference_code, lines: invoice.invoice_lines },
+    { ...invoice, total_cop: creditedTotal, reference_code: note.reference_code, lines },
     deps.ivaRatePct ?? 5,
     deps.numberingRangeId !== undefined ? deps.numberingRangeId : null,
   );
+  const creditNoteRangeId =
+    deps.creditNoteRangeId !== undefined ? deps.creditNoteRangeId : getFactusConfig().creditNoteRangeId;
   const payload = {
     reference_code: note.reference_code,
     bill_number: invoice.factus_number,
-    // PROJECT ASSUMPTION (D-044): DIAN concept 2 = annulment of the invoice
-    // (full refund). The Factus docs do not list the codes; verify in sandbox.
-    correction_concept_code: "2",
+    // Factus reference tables (D-066, D-069): concept 2 = "Anulación de
+    // factura electrónica", 1 = "Devolución parcial de los bienes";
+    // operation 20 = credit note that references an invoice.
+    correction_concept_code: note.concept_code === "1" ? "1" : "2",
     customization_id: "20",
+    // Required by Factus when there is more than one active credit note range.
+    ...(creditNoteRangeId !== null ? { numbering_range_id: creditNoteRangeId } : {}),
+    // The documentation says customer is optional (taken from the invoice);
+    // the sandbox requires it, with its fiscal responsibilities (D-066).
+    customer: { ...bill.customer, responsibilities: DEFAULT_RESPONSIBILITIES },
     observation: note.reason.slice(0, 250),
-    payment_details: bill.payment_details,
+    // Credit notes have no cash_rounding_amount: Factus totals them from the
+    // items, so the payment must equal that total (charged − rounding), not
+    // the amount charged (D-066).
+    payment_details: bill.payment_details.map((detail) => ({
+      ...detail,
+      amount: (Math.round((Number(detail.amount) - Number(bill.cash_rounding_amount)) * 100) / 100).toFixed(2),
+    })),
     items: bill.items.map((item) => ({ ...item, note: note.reason.slice(0, 250) })),
   };
 

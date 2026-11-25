@@ -3,14 +3,15 @@
 import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { staffRoleFromAppMetadata } from "@/shared/auth/staff-role";
 import { createSupabaseAdminClient } from "@/shared/supabase/admin";
+import { readRaisedError, readRpcResult, type RpcFailure, rpcFailureMessage } from "@/shared/supabase/rpc-result";
 import { createSupabaseServerClient } from "@/shared/supabase/server";
 
 import {
   ADMIN_ERROR_MESSAGES,
   cleanReason,
   type InviteField,
-  isStaffRole,
   passwordError,
   STAFF_HOME,
   validateInvite,
@@ -28,12 +29,12 @@ export type AdminFormState = {
 
 const GENERIC = "No se pudo completar. Intenta de nuevo.";
 
-function fail(code: string | undefined): AdminFormState {
-  return { status: "error", message: (code && ADMIN_ERROR_MESSAGES[code]) ?? GENERIC };
+function fail(code: string | null): AdminFormState {
+  return { status: "error", message: rpcFailureMessage({ ok: false, code, value: null }, ADMIN_ERROR_MESSAGES, GENERIC) };
 }
 
-function errorCode(message: string): string | undefined {
-  return Object.keys(ADMIN_ERROR_MESSAGES).find((code) => message.includes(code));
+function failed(failure: RpcFailure): AdminFormState {
+  return { status: "error", message: rpcFailureMessage(failure, ADMIN_ERROR_MESSAGES, GENERIC) };
 }
 
 export async function reviewWholesaleAction(_previous: AdminFormState, formData: FormData): Promise<AdminFormState> {
@@ -49,9 +50,8 @@ export async function reviewWholesaleAction(_previous: AdminFormState, formData:
     p_decision: decision,
     p_reason: reason,
   });
-  if (error) return fail(errorCode(error.message));
-  const result = data as { ok: boolean; error?: string };
-  if (!result.ok) return fail(result.error);
+  const result = readRpcResult({ data, error }, ADMIN_ERROR_MESSAGES);
+  if (!result.ok) return failed(result);
   refresh();
   return {
     status: "ok",
@@ -85,9 +85,13 @@ export async function inviteStaffAction(_previous: AdminFormState, formData: For
     p_phone: phone as string,
     p_staff_role: role,
   });
-  if (error) return fail(errorCode(error.message));
-  const result = data as { ok: boolean; error?: string; invitation_id?: string; token?: string; resent?: boolean };
-  if (!result.ok || !result.invitation_id || !result.token) return fail(result.error);
+  const answer = readRpcResult<{ invitation_id?: string; token?: string; resent?: boolean }>(
+    { data, error },
+    ADMIN_ERROR_MESSAGES,
+  );
+  if (!answer.ok) return failed(answer);
+  const result = answer.value;
+  if (!result.invitation_id || !result.token) return fail(null);
 
   // The one-time code lets the database recognise the user created by THIS
   // invitation (a public sign-up with the same email cannot know it). The
@@ -108,10 +112,11 @@ export async function inviteStaffAction(_previous: AdminFormState, formData: For
 
 export async function revokeInvitationAction(_previous: AdminFormState, formData: FormData): Promise<AdminFormState> {
   const id = formData.get("invitationId");
-  if (typeof id !== "string") return fail(undefined);
+  if (typeof id !== "string") return fail(null);
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.rpc("revoke_staff_invitation", { p_invitation_id: id });
-  if (error) return fail(errorCode(error.message));
+  const failure = readRaisedError(error, ADMIN_ERROR_MESSAGES);
+  if (failure) return failed(failure);
   refresh();
   return { status: "ok", message: "Invitación anulada." };
 }
@@ -119,15 +124,14 @@ export async function revokeInvitationAction(_previous: AdminFormState, formData
 export async function deactivateStaffAction(_previous: AdminFormState, formData: FormData): Promise<AdminFormState> {
   const userId = formData.get("userId");
   const reason = cleanReason(formData.get("reason"));
-  if (typeof userId !== "string") return fail(undefined);
+  if (typeof userId !== "string") return fail(null);
   if (!reason) return fail("invalid_reason");
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.rpc("deactivate_staff", { p_user_id: userId, p_reason: reason });
-  if (error) return fail(errorCode(error.message));
-  const result = data as { ok: boolean; error?: string; open_deliveries?: number };
-  if (!result.ok) return fail(result.error);
+  const result = readRpcResult<{ open_deliveries?: number }>({ data, error }, ADMIN_ERROR_MESSAGES);
+  if (!result.ok) return failed(result);
   refresh();
-  const open = result.open_deliveries ?? 0;
+  const open = result.value.open_deliveries ?? 0;
   return {
     status: "ok",
     message:
@@ -153,6 +157,6 @@ export async function setPasswordAction(_previous: PasswordFormState, formData: 
   const { error } = await supabase.auth.updateUser({ password });
   if (error) return { status: "error", message: GENERIC };
 
-  const role = (claims.claims.app_metadata as { staff_role?: unknown } | undefined)?.staff_role;
-  redirect(isStaffRole(role) ? STAFF_HOME[role] : "/");
+  const role = staffRoleFromAppMetadata(claims.claims.app_metadata);
+  redirect(role ? STAFF_HOME[role] : "/");
 }

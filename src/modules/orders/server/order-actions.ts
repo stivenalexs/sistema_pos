@@ -2,7 +2,16 @@
 
 import { refresh } from "next/cache";
 
+import { readRpcResult, rpcFailureMessage } from "@/shared/supabase/rpc-result";
 import { createSupabaseServerClient } from "@/shared/supabase/server";
+
+import {
+  CONFIRM_PICKUP_MESSAGES,
+  type ConfirmPickupError,
+  normalizeIdDocument,
+  RETURN_CHOICE_MESSAGES,
+  SET_PICKUP_DOCUMENT_MESSAGES,
+} from "../domain/pickup";
 
 export type CancelOrderState = { status: "idle" | "ok" | "error"; message?: string };
 
@@ -28,4 +37,91 @@ export async function cancelOrderAction(
   // Re-render the current page with the new data (totals, status).
   refresh();
   return { status: "ok", message: "Pedido cancelado." };
+}
+
+export type ConfirmPickupState = { status: "idle" | "ok" | "error"; message?: string };
+
+/** "Recogí mi pedido" (D-059, D-067): the customer confirms with the document. */
+export async function confirmPickupAction(
+  _previous: ConfirmPickupState,
+  formData: FormData,
+): Promise<ConfirmPickupState> {
+  const orderId = formData.get("orderId");
+  const document = formData.get("document");
+  if (typeof orderId !== "string" || typeof document !== "string") {
+    return { status: "error", message: "Pedido no válido." };
+  }
+  if (!normalizeIdDocument(document)) {
+    return { status: "error", message: CONFIRM_PICKUP_MESSAGES.invalid_document };
+  }
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.rpc("confirm_pickup", { p_order_id: orderId, p_document: document });
+  if (error) {
+    return { status: "error", message: "No pudimos registrar la recogida. Intenta de nuevo." };
+  }
+  const result = readRpcResult({ data, error }, CONFIRM_PICKUP_MESSAGES);
+  if (!result.ok) {
+    const message = rpcFailureMessage(result, CONFIRM_PICKUP_MESSAGES, "No pudimos registrar la recogida.");
+    const attemptsLeft = result.value?.attempts_left;
+    const left =
+      result.code === ("document_mismatch" satisfies ConfirmPickupError) && typeof attemptsLeft === "number"
+        ? attemptsLeft === 1
+          ? " Te queda 1 intento."
+          : ` Te quedan ${attemptsLeft} intentos.`
+        : "";
+    return { status: "error", message: message + left };
+  }
+  refresh();
+  return { status: "ok", message: "Pedido recogido. ¡Gracias por tu compra!" };
+}
+
+export type ReturnChoiceState = { status: "idle" | "ok" | "error"; message?: string };
+
+/** After a failed delivery: pickup, a new delivery tomorrow or a refund (D-059, D-068). */
+export async function chooseReturnOptionAction(
+  _previous: ReturnChoiceState,
+  formData: FormData,
+): Promise<ReturnChoiceState> {
+  const orderId = formData.get("orderId");
+  const option = formData.get("option");
+  const document = formData.get("document");
+  if (typeof orderId !== "string" || typeof option !== "string") {
+    return { status: "error", message: RETURN_CHOICE_MESSAGES.invalid_option };
+  }
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.rpc("choose_delivery_return_option", {
+    p_order_id: orderId,
+    p_option: option,
+    ...(typeof document === "string" && document.trim() !== "" ? { p_pickup_document: document } : {}),
+  });
+  if (error) return { status: "error", message: "No pudimos guardar tu elección. Intenta de nuevo." };
+  const result = readRpcResult({ data, error }, RETURN_CHOICE_MESSAGES);
+  if (!result.ok) {
+    return { status: "error", message: rpcFailureMessage(result, RETURN_CHOICE_MESSAGES, "No pudimos guardar tu elección.") };
+  }
+  refresh();
+  return { status: "ok", message: "Listo, guardamos tu elección." };
+}
+
+export type SetPickupDocumentState = { status: "idle" | "ok" | "error"; message?: string };
+
+/** A pickup order without a cédula yet: the customer gives it once (D-068). */
+export async function setPickupDocumentAction(
+  _previous: SetPickupDocumentState,
+  formData: FormData,
+): Promise<SetPickupDocumentState> {
+  const orderId = formData.get("orderId");
+  const document = formData.get("document");
+  if (typeof orderId !== "string" || typeof document !== "string" || !normalizeIdDocument(document)) {
+    return { status: "error", message: SET_PICKUP_DOCUMENT_MESSAGES.invalid_pickup_document };
+  }
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.rpc("set_pickup_document", { p_order_id: orderId, p_document: document });
+  if (error) return { status: "error", message: "No pudimos guardar la cédula. Intenta de nuevo." };
+  const result = readRpcResult({ data, error }, SET_PICKUP_DOCUMENT_MESSAGES);
+  if (!result.ok) {
+    return { status: "error", message: rpcFailureMessage(result, SET_PICKUP_DOCUMENT_MESSAGES, "No pudimos guardar la cédula.") };
+  }
+  refresh();
+  return { status: "ok", message: "Cédula registrada." };
 }

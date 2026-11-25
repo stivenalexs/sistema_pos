@@ -3,6 +3,7 @@
 import { refresh } from "next/cache";
 
 import { createSupabaseServerClient } from "@/shared/supabase/server";
+import type { ActionFormState } from "@/shared/ui/action-form-state";
 import { IDEMPOTENCY_FIELD, type IdempotentFormState } from "@/shared/ui/idempotent-form-state";
 
 import {
@@ -124,9 +125,9 @@ export async function recordWasteAction(previous: IdempotentFormState, formData:
 // Threshold and web safety stock (no movement, so no idempotency key: the
 // same values twice change nothing).
 export async function setStockSettingsAction(
-  previous: IdempotentFormState,
+  previous: ActionFormState,
   formData: FormData,
-): Promise<IdempotentFormState> {
+): Promise<ActionFormState> {
   const values = valuesOf(formData, ["productId", "lowStockThreshold", "webSafetyStock"]);
   const threshold = parseWholeNumber(values.lowStockThreshold, 0, MAX_SETTING_UNITS);
   const safety = parseWholeNumber(values.webSafetyStock, 0, MAX_SETTING_UNITS);

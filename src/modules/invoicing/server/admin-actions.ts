@@ -2,6 +2,7 @@
 
 import { refresh } from "next/cache";
 
+import { readRpcResult, rpcFailureMessage } from "@/shared/supabase/rpc-result";
 import { createSupabaseServerClient } from "@/shared/supabase/server";
 import type { ReasonFormState } from "@/shared/ui/reason-action-form";
 
@@ -27,9 +28,8 @@ async function run(fn: "retry_invoice" | "retry_credit_note", idName: string, fo
     fn === "retry_invoice"
       ? await supabase.rpc("retry_invoice", { p_invoice_id: id, p_reason: reason.trim() })
       : await supabase.rpc("retry_credit_note", { p_credit_note_id: id, p_reason: reason.trim() });
-  const result = data as { ok: boolean; error?: string } | null;
-  const code = error ? Object.keys(MESSAGES).find((k) => error.message.includes(k)) : result?.ok ? null : result?.error;
-  if (error || code) return { status: "error", message: (code && MESSAGES[code]) ?? "No se pudo reintentar." };
+  const result = readRpcResult({ data, error }, MESSAGES);
+  if (!result.ok) return { status: "error", message: rpcFailureMessage(result, MESSAGES, "No se pudo reintentar.") };
   refresh();
   return { status: "ok", message: "Enviada de nuevo a Factus. El estado se actualiza en unos segundos." };
 }

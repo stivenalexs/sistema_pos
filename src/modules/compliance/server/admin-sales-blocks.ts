@@ -3,7 +3,7 @@
 import { refresh } from "next/cache";
 
 import { createSupabaseServerClient } from "@/shared/supabase/server";
-import type { IdempotentFormState } from "@/shared/ui/idempotent-form-state";
+import type { ActionFormState } from "@/shared/ui/action-form-state";
 
 import type { SalesChannel } from "../domain/sales-block";
 import { parseSalesBlockRule } from "../domain/sales-block-rule";
@@ -112,11 +112,11 @@ export async function getSalesBlocksOverview(): Promise<SalesBlocksOverview> {
 }
 
 function answer(
-  previous: IdempotentFormState,
+  previous: ActionFormState,
   status: "ok" | "error",
   message: string,
   values?: Record<string, string>,
-): IdempotentFormState {
+): ActionFormState {
   return { status, message, values, answer: (previous.answer ?? 0) + 1 };
 }
 
@@ -129,7 +129,7 @@ function all(formData: FormData, name: string): string[] {
   return formData.getAll(name).filter((v): v is string => typeof v === "string");
 }
 
-export async function saveSalesBlockAction(previous: IdempotentFormState, formData: FormData): Promise<IdempotentFormState> {
+export async function saveSalesBlockAction(previous: ActionFormState, formData: FormData): Promise<ActionFormState> {
   const raw = {
     name: text(formData, "name"),
     kind: text(formData, "kind"),
@@ -170,9 +170,9 @@ export async function saveSalesBlockAction(previous: IdempotentFormState, formDa
 }
 
 export async function setSalesBlockActiveAction(
-  previous: IdempotentFormState,
+  previous: ActionFormState,
   formData: FormData,
-): Promise<IdempotentFormState> {
+): Promise<ActionFormState> {
   const ruleId = text(formData, "ruleId");
   const active = text(formData, "active") === "true";
   const supabase = await createSupabaseServerClient();

@@ -1,14 +1,4 @@
-// Shared by IdempotentActionForm (browser) and the server actions it calls.
-// Kept out of the "use client" file: a server module importing a value from
-// it would get a client reference, not the value.
+// Names kept for the inventory forms (D-056); the form is ActionForm with
+// `idempotent` (D-077).
 
-export const IDEMPOTENCY_FIELD = "idempotencyKey";
-
-export type IdempotentFormState = {
-  status: "idle" | "ok" | "error";
-  message?: string;
-  /** The values sent, so a rejected form keeps what the person typed. */
-  values?: Record<string, string>;
-  /** Changes with every final answer; renews the idempotency key. */
-  answer?: number;
-};
+export { type ActionFormState as IdempotentFormState, IDEMPOTENCY_FIELD } from "./action-form-state";

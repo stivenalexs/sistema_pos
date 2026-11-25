@@ -36,5 +36,11 @@ async function Order({ params }: Pick<PageProps<"/orders/[id]">, "params">) {
 
   // Sales blocks (D-051): no new payment while a rule applies to the order's municipality.
   const block = order.status === "awaiting_payment" ? await getSalesBlock({ zoneId: order.saleZoneId }) : null;
-  return <OrderSummary order={order} paymentBlockedNotice={block ? <SalesBlockNotice block={block} /> : null} />;
+  return (
+    <OrderSummary
+      order={order}
+      paymentBlockedNotice={block ? <SalesBlockNotice block={block} /> : null}
+      pickupWithNit={customer.hasNit}
+    />
+  );
 }

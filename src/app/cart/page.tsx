@@ -51,5 +51,12 @@ async function Cart({ searchParams }: { searchParams: SearchParams }) {
 
   // Municipality of the sale (D-051): the address for delivery, the store for pickup.
   const block = cart.lines.length > 0 ? await getSalesBlock({ zoneId: selected?.zoneId ?? null }) : null;
-  return <CartView cart={cart} choice={choice} salesBlockNotice={block ? <SalesBlockNotice block={block} /> : null} />;
+  return (
+    <CartView
+      cart={cart}
+      choice={choice}
+      salesBlockNotice={block ? <SalesBlockNotice block={block} /> : null}
+      needsPickupDocument={!customer.hasNit}
+    />
+  );
 }

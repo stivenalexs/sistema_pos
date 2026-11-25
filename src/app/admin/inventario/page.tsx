@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
 
-import { getStaffRole } from "@/modules/customers";
+import { requireStaffPage } from "@/shared/auth/staff-session";
 import {
   getInventoryAlerts,
   getInventoryOverview,
@@ -43,8 +42,7 @@ export default function InventoryPage({ searchParams }: { searchParams: SearchPa
 
 async function Inventory({ searchParams }: { searchParams: SearchParams }) {
   await connection();
-  const role = await getStaffRole();
-  if (role !== "admin" && role !== "warehouse") redirect("/login?next=/admin/inventario");
+  await requireStaffPage(["admin", "warehouse"], "/admin/inventario");
   const includeReservations = (await searchParams).reservas === "1";
   const [stock, alerts, movements] = await Promise.all([
     getInventoryOverview(),

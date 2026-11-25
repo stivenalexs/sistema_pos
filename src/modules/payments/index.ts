@@ -3,6 +3,7 @@ export {
   eventIdempotencyKey,
   handleWompiWebhook,
   processPaymentEvent,
+  processPaymentEventJob,
   reconcilePayments,
   recordPaymentRedirect,
   startPayment,

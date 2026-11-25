@@ -12,6 +12,7 @@ export type SummaryCounts = {
   stockMismatches: number;
   deliveriesToAssign: number;
   deliveriesFailed: number;
+  pickupsAttention: number;
 };
 
 export type Task = {
@@ -38,7 +39,9 @@ const DEFINITIONS: Definition[] = [
   { key: "invoicesAttention", one: "factura o nota crédito sin aceptar", many: "facturas o notas crédito sin aceptar", action: "Revisar", href: "/admin/facturas", short: "facturas", urgent: true },
   { key: "failedActions", one: "trabajo fallido", many: "trabajos fallidos", action: "Reintentar", href: "/admin/cola", short: "trabajos", urgent: true },
   { key: "refundsPending", one: "reembolso por registrar", many: "reembolsos por registrar", action: "Registrar", href: "/admin/reembolsos", short: "reembolsos", urgent: true },
-  { key: "deliveriesFailed", one: "entrega con intento fallido", many: "entregas con intento fallido", action: "Reasignar", href: "/admin/domicilios", short: "entregas", urgent: false },
+  // A failed delivery returns to the store and waits for the customer (D-068).
+  { key: "deliveriesFailed", one: "entrega fallida espera la decisión del cliente", many: "entregas fallidas esperan la decisión del cliente", action: "Ver", href: "/admin/domicilios", short: "entregas", urgent: false },
+  { key: "pickupsAttention", one: "recogida por resolver", many: "recogidas por resolver", action: "Resolver", href: "/admin/domicilios", short: "recogidas", urgent: false },
   { key: "deliveriesToAssign", one: "domicilio espera mensajero", many: "domicilios esperan mensajero", action: "Asignar", href: "/admin/domicilios", short: "domicilios", urgent: false },
   { key: "pendingWholesale", one: "mayorista por revisar", many: "mayoristas por revisar", action: "Revisar", href: "/admin/mayoristas", short: "mayoristas", urgent: false },
   { key: "lowStock", one: "producto en stock bajo", many: "productos en stock bajo", action: "Ver", href: "/admin/inventario", short: "stock", urgent: false },
@@ -63,7 +66,7 @@ export function adminTasks(counts: SummaryCounts): { pending: Task[]; upToDate: 
 /** Pending items per menu section (href → count). */
 export function sectionCounts(counts: SummaryCounts): Record<string, number> {
   return {
-    "/admin/domicilios": counts.deliveriesToAssign + counts.deliveriesFailed,
+    "/admin/domicilios": counts.deliveriesToAssign + counts.deliveriesFailed + counts.pickupsAttention,
     "/admin/facturas": counts.invoicesAttention,
     "/admin/reembolsos": counts.refundsPending,
     "/admin/cola": counts.failedActions + counts.queueStuck,

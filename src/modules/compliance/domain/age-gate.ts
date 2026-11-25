@@ -32,6 +32,16 @@ export function safeNextPath(value: string | null | undefined): string {
   if (!value || !value.startsWith("/") || value.startsWith("//") || value.includes("\\")) {
     return "/";
   }
+  // Browsers drop tabs and line breaks from URLs (WHATWG), so "/<tab>/evil.example"
+  // would become "//evil.example": refuse any control character (D-072).
+  if (/[\u0000-\u001F\u007F]/.test(value)) return "/";
+  // Last check: resolved as a URL, it must stay on the same origin.
+  try {
+    const base = "http://internal.invalid";
+    if (new URL(value, base).origin !== base) return "/";
+  } catch {
+    return "/";
+  }
   if (value.startsWith(AGE_GATE_PATH)) return "/";
   return value;
 }

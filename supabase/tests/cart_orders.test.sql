@@ -70,7 +70,7 @@ select pg_temp.as_r1();
 set local role authenticated;
 
 create temporary table t_order as
-  select public.place_order('d0000000-0000-4000-8000-000000000001') as r;
+  select public.place_order('d0000000-0000-4000-8000-000000000001', 'pickup', null, '1020304050') as r;
 
 select is((select r ->> 'created' from t_order), 'true', 'order: created from the cart');
 select is(
@@ -87,7 +87,7 @@ select results_eq(
 );
 select is(jsonb_array_length(public.get_cart_items()), 0, 'order: the cart is emptied');
 select is(
-  (select (public.place_order('d0000000-0000-4000-8000-000000000001')) ->> 'order_id'),
+  (select (public.place_order('d0000000-0000-4000-8000-000000000001', 'pickup', null, '1020304050')) ->> 'order_id'),
   (select r ->> 'order_id' from t_order),
   'idempotency: the same key returns the same order (double click, two tabs)'
 );
@@ -111,7 +111,7 @@ set local role authenticated;
 select is_empty($$select * from public.orders$$, 'rls: another customer cannot see the order');
 select public.set_cart_item('00000000-0000-4000-8000-000000000101', 1);
 select throws_ok(
-  $$select public.place_order('d0000000-0000-4000-8000-000000000001')$$,
+  $$select public.place_order('d0000000-0000-4000-8000-000000000001', 'pickup', null, '1020304050')$$,
   'P0001', 'idempotency_key_conflict', 'idempotency: a key of another customer is rejected'
 );
 reset role;
@@ -138,7 +138,7 @@ select is(
 select public.set_cart_item('00000000-0000-4000-8000-000000000201', 0);
 select public.set_cart_item('00000000-0000-4000-8000-000000000101', 200);
 select is(
-  public.place_order('d0000000-0000-4000-8000-000000000009') ->> 'error', 'insufficient_stock', 'reject: not enough stock'
+  public.place_order('d0000000-0000-4000-8000-000000000009', 'pickup', null, '1020304050') ->> 'error', 'insufficient_stock', 'reject: not enough stock'
 );
 select is((select count(*)::int from public.orders), 1, 'reject: no order was created');
 -- Delivery exists since step 14; without an address it is rejected.
@@ -170,7 +170,7 @@ select is(pg_temp.reserved('00000000-0000-4000-8000-000000000101'), 0, 'cancel: 
 select pg_temp.as_w1();
 set local role authenticated;
 select public.set_cart_item('00000000-0000-4000-8000-000000000101', 1);
-create temporary table t_w as select public.place_order(gen_random_uuid()) as r;
+create temporary table t_w as select public.place_order(gen_random_uuid(), 'pickup', null, '1020304050') as r;
 reset role;
 
 update public.orders set cancel_after = now() - interval '1 minute'

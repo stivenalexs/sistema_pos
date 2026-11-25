@@ -1,18 +1,16 @@
 import "server-only";
 
+import { getStaffSession } from "@/shared/auth/staff-session";
 import { createSupabaseServerClient } from "@/shared/supabase/server";
 
-import { isStaffRole, type StaffRole } from "../domain/staff";
+import type { StaffRole } from "../domain/staff";
 
 // Admin panel reads (D-054). Everything runs with the administrator's
 // session; each database function checks the admin role inside.
 
 /** The signed-in user's internal role, or null. */
 export async function getStaffRole(): Promise<StaffRole | null> {
-  const supabase = await createSupabaseServerClient();
-  const { data } = await supabase.auth.getClaims();
-  const role = (data?.claims.app_metadata as { staff_role?: unknown } | undefined)?.staff_role;
-  return isStaffRole(role) ? role : null;
+  return (await getStaffSession())?.role ?? null;
 }
 
 export type AdminSummary = {
@@ -27,6 +25,7 @@ export type AdminSummary = {
   stockMismatches: number;
   deliveriesToAssign: number;
   deliveriesFailed: number;
+  pickupsAttention: number;
 };
 
 export async function getAdminSummary(): Promise<AdminSummary> {
@@ -45,6 +44,7 @@ export async function getAdminSummary(): Promise<AdminSummary> {
     stock_mismatches: number;
     deliveries_to_assign: number;
     deliveries_failed: number;
+    pickups_attention: number;
   };
   return {
     pendingWholesale: row.pending_wholesale,
@@ -58,6 +58,7 @@ export async function getAdminSummary(): Promise<AdminSummary> {
     stockMismatches: row.stock_mismatches,
     deliveriesToAssign: row.deliveries_to_assign,
     deliveriesFailed: row.deliveries_failed,
+    pickupsAttention: row.pickups_attention,
   };
 }
 

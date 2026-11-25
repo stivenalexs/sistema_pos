@@ -4,6 +4,10 @@
 *.env
 !.env.example
 
+# Database backups (npm run db:backup, D-078): personal data and the pickup
+# HMAC key. Never commit them.
+backups/
+
 # Dependencies
 node_modules/
 .pnp

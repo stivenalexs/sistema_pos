@@ -2,6 +2,7 @@
 
 import { refresh } from "next/cache";
 
+import { readRpcResult, rpcFailureMessage } from "@/shared/supabase/rpc-result";
 import { createSupabaseServerClient } from "@/shared/supabase/server";
 import type { ReasonFormState } from "@/shared/ui/reason-action-form";
 
@@ -64,14 +65,13 @@ export async function voidPosSaleAction(_previous: ReasonFormState, formData: Fo
   }
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.rpc("void_pos_sale", { p_order_id: orderId, p_reason: reason.trim() });
-  const result = data as { ok: boolean; error?: string; already_voided?: boolean; credit_note_id?: string | null } | null;
-  const code = error ? Object.keys(MESSAGES).find((k) => error.message.includes(k)) : result?.ok ? null : result?.error;
-  if (error || code) return { status: "error", message: (code && MESSAGES[code]) ?? "No se pudo anular." };
+  const result = readRpcResult<{ already_voided?: boolean; credit_note_id?: string | null }>({ data, error }, MESSAGES);
+  if (!result.ok) return { status: "error", message: rpcFailureMessage(result, MESSAGES, "No se pudo anular.") };
   refresh();
-  if (result?.already_voided) return { status: "ok", message: "Esa venta ya estaba anulada." };
+  if (result.value.already_voided) return { status: "ok", message: "Esa venta ya estaba anulada." };
   return {
     status: "ok",
-    message: result?.credit_note_id
+    message: result.value.credit_note_id
       ? "Venta anulada: el stock volvió al inventario y se pidió la nota crédito."
       : "Venta anulada: el stock volvió al inventario.",
   };

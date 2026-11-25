@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
 
-import { getStaffRole } from "@/modules/customers";
+import { formatBogotaDateTime } from "@/shared/dates";
+import { requireStaffPage } from "@/shared/auth/staff-session";
 import { ORDER_STATUS_LABELS } from "@/modules/orders";
 import { listPosSalesForAdmin, POS_PAYMENT_LABELS, voidPosSaleAction } from "@/modules/pos";
 import { formatCop } from "@/modules/pricing";
@@ -12,7 +12,6 @@ import { ReasonActionForm } from "@/shared/ui/reason-action-form";
 
 export const metadata: Metadata = { title: "Ventas POS · Administración" };
 
-const DATE = new Intl.DateTimeFormat("es-CO", { timeZone: "America/Bogota", dateStyle: "medium", timeStyle: "short" });
 const INVOICE_LABELS: Record<string, string> = {
   pending: "Factura pendiente",
   sent: "Factura enviada",
@@ -39,7 +38,7 @@ export default function PosSalesPage() {
 
 async function Sales() {
   await connection();
-  if ((await getStaffRole()) !== "admin") redirect("/login?next=/admin/ventas-pos");
+  await requireStaffPage(["admin"], "/admin/ventas-pos");
   const sales = await listPosSalesForAdmin();
   if (sales.length === 0) return <p className="text-sm text-muted">Todavía no hay ventas en la caja.</p>;
 
@@ -49,7 +48,7 @@ async function Sales() {
         <li key={s.orderId} className="card flex flex-col gap-3 p-4">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <p className="font-medium">
-              {DATE.format(new Date(s.createdAt))}
+              {formatBogotaDateTime(s.createdAt)}
               <span className="text-sm text-muted">
                 {" "}
                 · {s.units} {s.units === 1 ? "unidad" : "unidades"} ·{" "}
@@ -68,7 +67,7 @@ async function Sales() {
           </p>
           {s.voidedAt ? (
             <p className="notice notice-info text-sm">
-              {ORDER_STATUS_LABELS[s.status] ?? s.status}: anulada el {DATE.format(new Date(s.voidedAt))}
+              {ORDER_STATUS_LABELS[s.status] ?? s.status}: anulada el {formatBogotaDateTime(s.voidedAt)}
               {s.voidedBy ? ` por ${s.voidedBy}` : ""}. Motivo: {s.voidReason}
             </p>
           ) : (

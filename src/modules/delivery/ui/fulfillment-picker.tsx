@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { formatCop } from "@/modules/pricing";
 
-import { DELIVERY_QUOTE_ERROR_MESSAGES, formatDistance } from "../domain/delivery";
+import { DELIVERY_QUOTE_ERROR_MESSAGES, formatDistance } from "../domain/address";
 import type { DeliveryAddress, DeliveryQuote } from "../server/addresses";
 
 // Pickup or delivery for the cart (D-039, D-045). Plain links (navigation,

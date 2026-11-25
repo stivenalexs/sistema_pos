@@ -6,13 +6,7 @@ import { useState } from "react";
 import { IDEMPOTENCY_KEY_HEADER } from "@/shared/actions/action-types";
 import { ActionButton } from "@/shared/ui/action-button";
 
-import {
-  FAILURE_REASON_LABELS,
-  FAILURE_REASONS,
-  type FailureReason,
-  parseProofInput,
-  PROOF_ERROR_MESSAGES,
-} from "../domain/delivery";
+import { FAILURE_REASON_GROUPS, FAILURE_REASON_LABELS, type FailureReason, parseProofInput, PROOF_ERROR_MESSAGES } from "../domain/proof";
 import { SignaturePad } from "./signature-pad";
 
 // Courier screen to close a delivery (D-007): delivered with name, cédula,
@@ -123,10 +117,14 @@ export function DeliveryAttemptForm({ orderId }: { orderId: string }) {
             className="field"
           >
             <option value="">Elige el motivo</option>
-            {FAILURE_REASONS.map((reason) => (
-              <option key={reason} value={reason}>
-                {FAILURE_REASON_LABELS[reason]}
-              </option>
+            {FAILURE_REASON_GROUPS.map((group) => (
+              <optgroup key={group.label} label={group.label}>
+                {group.reasons.map((reason) => (
+                  <option key={reason} value={reason}>
+                    {FAILURE_REASON_LABELS[reason]}
+                  </option>
+                ))}
+              </optgroup>
             ))}
           </select>
         </label>

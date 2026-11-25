@@ -49,6 +49,23 @@ describe("module boundaries", { timeout: 20_000 }, () => {
     ).toBe(1);
   });
 
+  it("allows the browser-safe API of another module (D-077)", async () => {
+    expect(
+      await boundaryErrors('export * from "@/modules/pricing/client";\n', ORDERS_FILE),
+    ).toBe(0);
+    expect(
+      await boundaryErrors('export * from "@/modules/pricing/clientele";\n', ORDERS_FILE),
+    ).toBe(1);
+  });
+
+  it("client.ts exports only pure rules and Client Components (D-077)", async () => {
+    const CLIENT = "src/modules/orders/client.ts";
+    expect(await boundaryErrors('export * from "./domain/pickup";\n', CLIENT)).toBe(0);
+    expect(await boundaryErrors('export { X } from "./ui/x";\n', CLIENT)).toBe(0);
+    expect(await boundaryErrors('export { getOrder } from "./server/orders";\n', CLIENT)).toBe(1);
+    expect(await boundaryErrors('export * from "@/shared/supabase/server";\n', CLIENT)).toBe(1);
+  });
+
   it("blocks reaching into modules from outside src/modules", async () => {
     expect(
       await boundaryErrors(

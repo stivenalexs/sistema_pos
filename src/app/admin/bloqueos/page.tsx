@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
 
@@ -13,22 +12,14 @@ import {
   setSalesBlockActiveAction,
   WEEKDAY_LABELS,
 } from "@/modules/compliance";
-import { getStaffRole } from "@/modules/customers";
+import { formatBogotaDateTime, formatBogotaShortDateTime } from "@/shared/dates";
+import { requireStaffPage } from "@/shared/auth/staff-session";
 import { getConfigOverview } from "@/modules/delivery";
-import { type IdempotentField, IdempotentActionForm } from "@/shared/ui/idempotent-action-form";
+import { ActionForm, type ActionFormField } from "@/shared/ui/action-form";
 import { PageHeader } from "@/shared/ui/page-header";
 
 export const metadata: Metadata = { title: "Bloqueos de venta · Administración" };
 
-const DATE = new Intl.DateTimeFormat("es-CO", {
-  timeZone: "America/Bogota",
-  weekday: "short",
-  day: "numeric",
-  month: "short",
-  hour: "numeric",
-  minute: "2-digit",
-});
-const STAMP = new Intl.DateTimeFormat("es-CO", { timeZone: "America/Bogota", dateStyle: "medium", timeStyle: "short" });
 const OPERATION_LABELS: Record<string, string> = { insert: "creó", update: "cambió", delete: "borró" };
 const FIELD_LABELS: Record<string, string> = {
   name: "nombre",
@@ -66,7 +57,7 @@ export default function SalesBlocksPage() {
 
 async function SalesBlocks() {
   await connection();
-  if ((await getStaffRole()) !== "admin") redirect("/login?next=/admin/bloqueos");
+  await requireStaffPage(["admin"], "/admin/bloqueos");
   const [overview, config] = await Promise.all([getSalesBlocksOverview(), getConfigOverview()]);
   const zones: Zone[] = config.zones.map((z) => ({ id: z.id, municipality: z.municipality }));
   const storeZone = zones.find((z) => z.id === overview.storeZoneId)?.municipality;
@@ -83,7 +74,7 @@ async function SalesBlocks() {
               <li key={`${b.zoneId}-${b.channel}`}>
                 {b.municipality}
                 {b.municipality === storeZone ? " (tienda)" : ""} · {CHANNEL_LABELS[b.channel]} · {b.name} · hasta el{" "}
-                {DATE.format(new Date(b.endsAt))}
+                {formatBogotaShortDateTime(b.endsAt)}
               </li>
             ))}
           </ul>
@@ -110,21 +101,21 @@ async function SalesBlocks() {
                     </span>
                   </p>
                   {r.isActive && r.blockingUntil ? (
-                    <span className="badge text-warning">Hasta el {DATE.format(new Date(r.blockingUntil))}</span>
+                    <span className="badge text-warning">Hasta el {formatBogotaShortDateTime(r.blockingUntil)}</span>
                   ) : null}
                 </div>
                 <p className="text-sm">{describeRule(r)}</p>
                 <p className="text-sm text-muted">«{r.message}»</p>
                 <p className="text-xs text-muted">
-                  Creada por {r.createdBy ?? "—"} el {STAMP.format(new Date(r.createdAt))}
+                  Creada por {r.createdBy ?? "—"} el {formatBogotaDateTime(r.createdAt)}
                   {r.updatedAt !== r.createdAt && r.updatedBy
-                    ? ` · último cambio de ${r.updatedBy} el ${STAMP.format(new Date(r.updatedAt))}`
+                    ? ` · último cambio de ${r.updatedBy} el ${formatBogotaDateTime(r.updatedAt)}`
                     : ""}
                 </p>
                 <details>
                   <summary className="link cursor-pointer text-sm">Editar</summary>
                   <div className="pt-3">
-                    <IdempotentActionForm
+                    <ActionForm
                       action={saveSalesBlockAction}
                       hidden={{ ruleId: r.id, kind: r.kind }}
                       fields={ruleFields(r.kind, zones, r)}
@@ -133,7 +124,7 @@ async function SalesBlocks() {
                     />
                   </div>
                 </details>
-                <IdempotentActionForm
+                <ActionForm
                   action={setSalesBlockActiveAction}
                   hidden={{ ruleId: r.id, active: String(!r.isActive) }}
                   fields={[]}
@@ -150,7 +141,7 @@ async function SalesBlocks() {
         <div className="card flex flex-col gap-3 p-5">
           <h3 className="font-display text-2xl">Nuevo rango de fechas</h3>
           <p className="text-sm text-muted">Por ejemplo, una ley seca por elecciones: bloquea de un momento a otro.</p>
-          <IdempotentActionForm
+          <ActionForm
             action={saveSalesBlockAction}
             hidden={{ kind: "date_range" }}
             fields={ruleFields("date_range", zones, null)}
@@ -164,7 +155,7 @@ async function SalesBlocks() {
             Se repite cada semana en los días elegidos (el día en que empieza la franja). Si la hora de fin es menor que la
             de inicio, la franja cruza la medianoche (por ejemplo, de 22:00 a 10:00).
           </p>
-          <IdempotentActionForm
+          <ActionForm
             action={saveSalesBlockAction}
             hidden={{ kind: "weekly" }}
             fields={ruleFields("weekly", zones, null)}
@@ -185,7 +176,7 @@ async function SalesBlocks() {
                 <span>
                   {c.actor ?? "Sistema"} {OPERATION_LABELS[c.operation] ?? c.operation} la regla {describeChange(c)}
                 </span>
-                <span className="text-xs text-muted">{STAMP.format(new Date(c.createdAt))}</span>
+                <span className="text-xs text-muted">{formatBogotaDateTime(c.createdAt)}</span>
               </li>
             ))}
           </ul>
@@ -199,21 +190,21 @@ function describeRule(r: SalesBlockRule): string {
   const where = r.municipality ?? "Todo el departamento";
   const channels = r.channels.map((c) => CHANNEL_LABELS[c]).join(" y ");
   if (r.kind === "date_range") {
-    return `${where} · ${channels} · del ${DATE.format(new Date(r.startsAt!))} al ${DATE.format(new Date(r.endsAt!))}`;
+    return `${where} · ${channels} · del ${formatBogotaShortDateTime(r.startsAt!)} al ${formatBogotaShortDateTime(r.endsAt!)}`;
   }
   const days = (r.weekdays ?? []).map((d) => WEEKDAY_LABELS[d]?.slice(0, 3).toLowerCase()).join(", ");
   const crosses = r.startTime && r.endTime && r.endTime < r.startTime ? " (del día siguiente)" : "";
   const validity = [
-    r.startsAt ? `desde el ${DATE.format(new Date(r.startsAt))}` : null,
-    r.endsAt ? `hasta el ${DATE.format(new Date(r.endsAt))}` : null,
+    r.startsAt ? `desde el ${formatBogotaShortDateTime(r.startsAt)}` : null,
+    r.endsAt ? `hasta el ${formatBogotaShortDateTime(r.endsAt)}` : null,
   ]
     .filter(Boolean)
     .join(" ");
   return `${where} · ${channels} · ${days} de ${r.startTime} a ${r.endTime}${crosses}${validity ? ` · ${validity}` : ""}`;
 }
 
-function ruleFields(kind: "date_range" | "weekly", zones: Zone[], r: SalesBlockRule | null): IdempotentField[] {
-  const common: IdempotentField[] = [
+function ruleFields(kind: "date_range" | "weekly", zones: Zone[], r: SalesBlockRule | null): ActionFormField[] {
+  const common: ActionFormField[] = [
     { kind: "text", name: "name", label: "Nombre", maxLength: 80, defaultValue: r?.name },
     {
       kind: "select",
@@ -233,7 +224,7 @@ function ruleFields(kind: "date_range" | "weekly", zones: Zone[], r: SalesBlockR
       defaultValue: r ? r.channels.join(",") : "web,pos",
     },
   ];
-  const timing: IdempotentField[] =
+  const timing: ActionFormField[] =
     kind === "date_range"
       ? [
           { kind: "datetime", name: "startsAt", label: "Desde", defaultValue: r ? isoToBogotaLocal(r.startsAt) : undefined },

@@ -1,16 +1,15 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
 
-import { getStaffRole } from "@/modules/customers";
+import { formatBogotaDateTime } from "@/shared/dates";
+import { requireStaffPage } from "@/shared/auth/staff-session";
 import { getQueueStatus, retryActionAction } from "@/shared/actions/server/admin-queue";
 import { PageHeader } from "@/shared/ui/page-header";
 import { ReasonActionForm } from "@/shared/ui/reason-action-form";
 
 export const metadata: Metadata = { title: "Cola de trabajos · Administración" };
 
-const DATE = new Intl.DateTimeFormat("es-CO", { timeZone: "America/Bogota", dateStyle: "medium", timeStyle: "short" });
 
 const TYPE_LABELS: Record<string, string> = {
   issue_invoice: "Emitir factura",
@@ -37,7 +36,7 @@ export default function QueuePage() {
 
 async function Queue() {
   await connection();
-  if ((await getStaffRole()) !== "admin") redirect("/login?next=/admin/cola");
+  await requireStaffPage(["admin"], "/admin/cola");
   const status = await getQueueStatus();
   const stuck = status.overdue + status.stalled;
 
@@ -66,7 +65,7 @@ async function Queue() {
                 <p className="font-medium">
                   {TYPE_LABELS[a.type] ?? a.type}
                   <span className="ml-2 text-xs text-muted">
-                    {a.attempts}/{a.maxAttempts} intentos · {a.finishedAt ? DATE.format(new Date(a.finishedAt)) : ""}
+                    {a.attempts}/{a.maxAttempts} intentos · {a.finishedAt ? formatBogotaDateTime(a.finishedAt) : ""}
                   </span>
                 </p>
                 {a.error ? <p className="notice notice-danger text-sm break-all">{a.error}</p> : null}

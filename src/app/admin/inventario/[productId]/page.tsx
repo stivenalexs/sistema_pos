@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
 
-import { getStaffRole } from "@/modules/customers";
+import { requireStaffPage } from "@/shared/auth/staff-session";
 import {
   getInventoryOverview,
   getRecentMovements,
@@ -13,7 +13,7 @@ import {
   setStockSettingsAction,
   unitsWithBoxes,
 } from "@/modules/inventory";
-import { IdempotentActionForm } from "@/shared/ui/idempotent-action-form";
+import { ActionForm } from "@/shared/ui/action-form";
 import { PageHeader } from "@/shared/ui/page-header";
 
 import { MovementList } from "../movement-list";
@@ -39,8 +39,7 @@ export default function ProductInventoryPage({ params }: { params: Params }) {
 async function ProductInventory({ params }: { params: Params }) {
   await connection();
   const { productId } = await params;
-  const role = await getStaffRole();
-  if (role !== "admin" && role !== "warehouse") redirect(`/login?next=/admin/inventario/${productId}`);
+  await requireStaffPage(["admin", "warehouse"], `/admin/inventario/${productId}`);
   if (!isUuid(productId)) notFound();
   const product = (await getInventoryOverview()).find((p) => p.productId === productId);
   if (!product) notFound();
@@ -80,7 +79,7 @@ async function ProductInventory({ params }: { params: Params }) {
           <strong>Colchón web:</strong> unidades que la tienda web no vende ni muestra, para que el POS no se quede sin
           producto. El POS sí puede venderlas. Ambos en unidades.
         </p>
-        <IdempotentActionForm
+        <ActionForm
           action={setStockSettingsAction}
           hidden={{ productId: product.productId }}
           fields={[

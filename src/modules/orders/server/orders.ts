@@ -2,6 +2,8 @@ import "server-only";
 
 import { createSupabaseServerClient } from "@/shared/supabase/server";
 
+import type { Fulfillment } from "../domain/order-request";
+
 // Web orders (D-039). Everything runs with the customer's session: RLS shows
 // only their own orders, and place_order() prices the cart with their
 // permissions before creating the order atomically.
@@ -10,13 +12,20 @@ export type PlaceOrderResult =
   | { ok: true; created: boolean; trackingId: string; orderId: string }
   | {
       ok: false;
-      error: "cart_empty" | "quote_failed" | "insufficient_stock" | "delivery_unavailable" | "sales_blocked" | "idempotency_key_conflict";
+      error: PlaceOrderError | "idempotency_key_conflict";
       reason?: string;
     };
 
-export type Fulfillment =
-  | { fulfillment: "pickup" }
-  | { fulfillment: "delivery"; addressId: string };
+type PlaceOrderError =
+  | "cart_empty"
+  | "quote_failed"
+  | "insufficient_stock"
+  | "delivery_unavailable"
+  | "sales_blocked"
+  | "pickup_document_required"
+  | "invalid_pickup_document";
+
+export type { Fulfillment };
 
 export async function placeOrder(idempotencyKey: string, choice: Fulfillment = { fulfillment: "pickup" }): Promise<PlaceOrderResult> {
   const supabase = await createSupabaseServerClient();
@@ -26,6 +35,7 @@ export async function placeOrder(idempotencyKey: string, choice: Fulfillment = {
     p_idempotency_key: idempotencyKey,
     p_fulfillment: choice.fulfillment,
     ...(choice.fulfillment === "delivery" ? { p_address_id: choice.addressId } : {}),
+    ...(choice.fulfillment === "pickup" && choice.pickupDocument ? { p_pickup_document: choice.pickupDocument } : {}),
   });
   if (error) {
     if (error.message.includes("idempotency_key_conflict")) {
@@ -39,7 +49,7 @@ export async function placeOrder(idempotencyKey: string, choice: Fulfillment = {
     created?: boolean;
     tracking_id?: string;
     order_id?: string;
-    error?: "cart_empty" | "quote_failed" | "insufficient_stock" | "delivery_unavailable" | "sales_blocked";
+    error?: PlaceOrderError;
     reason?: string;
   };
   if (result.ok && result.tracking_id && result.order_id) {
@@ -77,6 +87,21 @@ export type OrderDetail = {
     distanceM: number | null;
   } | null;
   deliveredAt: string | null;
+  /** Pickup (D-067): last 3 digits of the cédula given at order time, if any. */
+  pickupDocumentLast3: string | null;
+  /** Too many wrong documents: the store resolves it. */
+  pickupLocked: boolean;
+  /** Pickup without a cédula yet: the customer must give it (D-068). */
+  pickupNeedsDocument: boolean;
+  /** Failed delivery back at the store (D-068). */
+  returnKind: "customer" | "force_majeure" | "underage" | null;
+  returnChoice: "pickup" | "reschedule" | "refund" | null;
+  returnChoiceDeadline: string | null;
+  returnChoiceDefaulted: boolean;
+  /** Day (Colombia, YYYY-MM-DD) of a rescheduled delivery. */
+  scheduledDeliveryOn: string | null;
+  /** Amount to return when it is not the whole order (products only). */
+  refundAmountCop: number | null;
   /** Municipality of the sale, for sales blocks (D-051). */
   saleZoneId: string | null;
   items: {
@@ -94,11 +119,19 @@ export async function getOrder(orderId: string): Promise<OrderDetail | null> {
   const { data } = await supabase
     .from("orders")
     .select(
-      "id, status, fulfillment, sale_unit, subtotal_cop, delivery_fee_cop, total_cop, payment_deadline, cancel_after, created_at, needs_refund, sale_zone_id, delivery_address, delivery_distance_m, delivered_at, order_items (product_name, sku, quantity, unit_price_cop, line_total_cop)",
+      "id, status, fulfillment, sale_unit, subtotal_cop, delivery_fee_cop, total_cop, payment_deadline, cancel_after, created_at, needs_refund, sale_zone_id, delivery_address, delivery_distance_m, delivered_at, delivery_return_kind, return_choice, return_choice_deadline, return_choice_defaulted, scheduled_delivery_on, refund_amount_cop, order_items (product_name, sku, quantity, unit_price_cop, line_total_cop)",
     )
     .eq("id", orderId)
     .maybeSingle();
   if (!data) return null;
+
+  // Pickup (D-067): the cédula digits and the lock live outside orders, which
+  // staff read in full; the customer gets only their own.
+  type PickupStatus = { document_last3: string | null; locked: boolean; needs_document?: boolean };
+  const pickup: PickupStatus | null =
+    data.fulfillment === "pickup"
+      ? (((await supabase.rpc("get_pickup_status", { p_order_id: data.id })).data as PickupStatus | null) ?? null)
+      : null;
 
   return {
     id: data.id,
@@ -114,6 +147,15 @@ export async function getOrder(orderId: string): Promise<OrderDetail | null> {
     needsRefund: data.needs_refund,
     delivery: deliverySnapshot(data.delivery_address, data.delivery_distance_m),
     deliveredAt: data.delivered_at,
+    pickupDocumentLast3: pickup?.document_last3 ?? null,
+    pickupLocked: pickup?.locked ?? false,
+    pickupNeedsDocument: pickup?.needs_document ?? false,
+    returnKind: (data.delivery_return_kind as OrderDetail["returnKind"]) ?? null,
+    returnChoice: (data.return_choice as OrderDetail["returnChoice"]) ?? null,
+    returnChoiceDeadline: data.return_choice_deadline,
+    returnChoiceDefaulted: data.return_choice_defaulted,
+    scheduledDeliveryOn: data.scheduled_delivery_on,
+    refundAmountCop: data.refund_amount_cop,
     saleZoneId: data.sale_zone_id,
     items: data.order_items
       .map((item) => ({
